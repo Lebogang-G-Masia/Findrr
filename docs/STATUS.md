@@ -12,34 +12,35 @@
 | Current milestone | Pre-Milestone 1 (bootstrap; no implementation started) |
 | Current phase | Bootstrap step 1: environment (in progress) |
 | Current iteration | None |
-| Current branch | None |
-| Open PR | None |
+| Current branch | feature/bootstrap-environment |
+| Open PR | PR #1 (https://github.com/Lebogang-G-Masia/Findrr/pull/1) |
 | Latest release | None |
 
 ## Current task
 
-Execute Bootstrap Step 1 (`/bootstrap-1-environment`): verify tooling and environment, create private GitHub repository and protections, setup documentation skeleton, development environment, and CI workflow.
+Bootstrap Step 1 (`/bootstrap-1-environment`): verify tooling and environment, create private GitHub repository and protections, setup documentation skeleton, development environment, and CI workflow.
 
 ## Awaiting merge or approval
 
-- Nothing awaiting merge.
-- Nothing awaiting approval.
+- Awaiting merge: PR #1
+- Awaiting user input on Penpot MCP connection and private repo branch protection settings.
 
 ## Next step
 
-1. Resolve Penpot MCP connection with the user.
-2. Initialize repository and branch protections.
-3. User approval for Bootstrap Step 1 before proceeding to `/bootstrap-2-plan`.
+1. User reviews and merges PR #1.
+2. Resolve Penpot MCP connection.
+3. User approval for Bootstrap Step 1 Gate before proceeding to `/bootstrap-2-plan`.
 
 ## Blockers
 
 1. **Penpot MCP Access**: MCP server call failed with `Error: No Penpot instance connected for user token. Please ensure that Penpot is connected and that the MCP client connection is using the correct token.` UI design cannot start without Penpot MCP. Awaiting user action to connect Penpot instance.
+2. **GitHub Branch Protection on Private Repo**: GitHub API returned `HTTP 403: Upgrade to GitHub Pro or make this repository public to enable this feature.` Native branch protection/rulesets on private repos require GitHub Pro/Team. Branch protection on `main` cannot be enforced via API on a free private repository.
 
 ## Bootstrap and approval tracker
 
 | Gate | Status | Approved by user |
 |---|---|---|
-| 1. Environment and repository | In progress | No |
+| 1. Environment and repository | Presented for review | No |
 | 2. Initial Project Plan and Roadmap | Not started | No |
 | 3. SRS and Product Backlog | Not started | No |
 | 4. Machine Learning Development Plan | Not started | No |
@@ -54,13 +55,13 @@ Mark an item verified only after the check has actually been run.
 
 | Item | Status |
 |---|---|
-| Private GitHub repository created | Not verified |
-| `main` branch protection configured | Not verified |
+| Private GitHub repository created | Verified (`Lebogang-G-Masia/Findrr` created and pushed) |
+| `main` branch protection configured | Blocked by GitHub plan (HTTP 403: requires GitHub Pro or public repo) |
 | GitHub access (gh or MCP) works | Verified (`gh` authenticated as `Lebogang-G-Masia`) |
 | Penpot MCP access works | Failed / Unavailable (`No Penpot instance connected`) |
-| Python environment initialised | Verified (Python 3.14.8 on Arch Linux) |
+| Python environment initialised | Verified (Python 3.14.8 on Arch Linux; `pyproject.toml`, `.env.example`) |
 | Laptop hardware, OS and GPU documented | Verified (Intel i5-1235U, 7.4GiB RAM, Arch Linux, no dedicated GPU) |
-| CI (lint, tests, file-size check, secret scan) running | Not verified |
+| CI (lint, tests, file-size check, secret scan) running | Verified (GitHub Actions run `41347955123` all 4 jobs passed) |
 
 ## Model status
 
@@ -74,14 +75,14 @@ No models have been trained. No artifacts have been supplied.
 
 | Document | Status |
 |---|---|
-| Project Plan | Not started |
-| SRS | Not started |
-| Product Backlog | Not started |
-| Software Architecture Document | Not started |
-| Machine Learning Architecture Document | Not started |
-| Model Specifications | Not started |
-| UI/UX designs | Not started (no UI work without approval) |
-| Test Plan | Not started |
+| Project Plan | Skeleton created (`docs/project-plan.md`) |
+| SRS | Skeleton created (`docs/requirements/srs.md`) |
+| Product Backlog | Skeleton created (`docs/requirements/product-backlog.md`) |
+| Software Architecture Document | Skeleton created (`docs/design/software-architecture.md`) |
+| Machine Learning Architecture Document | Skeleton created (`docs/ml/ml-architecture.md`) |
+| Model Specifications | Directory created (`docs/ml/models/`) |
+| UI/UX designs | Skeleton created (`docs/design/ui-ux.md`; no UI work without approval) |
+| Test Plan | Skeleton created (`docs/testing/test-plan.md`) |
 
 ## Open decisions
 
@@ -91,4 +92,5 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-01 | Re-checked Penpot MCP (still disconnected). Created private GitHub repo `Lebogang-G-Masia/Findrr`, created baseline initial commit on `main` and pushed to GitHub. Created branch `feature/bootstrap-environment`, added documentation skeleton per documentation map, added dev setup, `.env.example`, `.gitignore`, smoke tests, and GitHub Actions CI. Confirmed CI run `41347955123` passed all 4 checks. Attempted branch protection (blocked by GitHub plan for private repo). Opened PR #1. | feature/bootstrap-environment / PR #1 |
 | 2026-11-01 | Started Bootstrap Step 1 (`/bootstrap-1-environment`). Verified Python (3.14.8), GitHub CLI access (`Lebogang-G-Masia`), documented hardware and OS. Checked Penpot MCP (connection failed). | None |

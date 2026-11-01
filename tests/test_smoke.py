@@ -1,6 +1,7 @@
 """Smoke test to verify test harness and package import."""
 
 import unittest
+
 import findrr
 
 

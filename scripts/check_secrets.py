@@ -13,7 +13,13 @@ SUSPICIOUS_PATTERNS = [
     (re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"), "Private Key"),
     (re.compile(r"(?i)aws_access_key_id\s*=\s*['\"][A-Z0-9]{20}['\"]"), "AWS Access Key"),
     (re.compile(r"(?i)aws_secret_access_key\s*=\s*['\"][A-Za-z0-9/+=]{40}['\"]"), "AWS Secret Key"),
-    (re.compile(r"(?i)(?:api_key|apikey|secret_key|private_key)\s*=\s*['\"][0-9a-zA-Z_\-]{20,}['\"]"), "Generic API Key/Secret"),
+    (
+        re.compile(
+            r"(?i)(?:api_key|apikey|secret_key|private_key)"
+            r"\s*=\s*['\"][0-9a-zA-Z_\-]{20,}['\"]"
+        ),
+        "Generic API Key/Secret",
+    ),
 ]
 
 IGNORED_DIRS = {".git", ".venv", "venv", "__pycache__"}

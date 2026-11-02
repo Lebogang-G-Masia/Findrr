@@ -10,26 +10,25 @@
 |---|---|
 | Last updated | 2026-11-02 |
 | Current milestone | Pre-Milestone 1 (bootstrap; no implementation started) |
-| Current phase | Bootstrap step 2: plan (presented for review) |
+| Current phase | Bootstrap step 3: SRS & backlog (presented for review) |
 | Current iteration | None |
-| Current branch | docs/bootstrap-2-plan |
-| Open PR | PR #2 (https://github.com/Lebogang-G-Masia/Findrr/pull/2) |
+| Current branch | docs/bootstrap-3-srs |
+| Open PR | PR #3 (pending submission) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 2 (`/bootstrap-2-plan`): PR #2 opened for Initial Project Plan and High-Level Roadmap. Awaiting user review, merge, and Gate 2 approval.
+Bootstrap Step 3 (`/bootstrap-3-srs`): author initial Software Requirements Specification (SRS), Prioritized Product Backlog, and Traceability Matrix, then present for user approval (Gate 3).
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #2
-- Bootstrap Gate 2 approval: User review and sign-off on the Initial Project Plan (`docs/project-plan.md`) and High-Level Roadmap (`docs/process/roadmap.md`).
+- Bootstrap Gate 3 approval: User review and sign-off on the SRS (`docs/requirements/srs.md`), Prioritized Product Backlog (`docs/requirements/product-backlog.md`), and Traceability Matrix (`docs/requirements/traceability-matrix.md`).
 
 ## Next step
 
-1. User reviews and merges PR #2.
-2. User approves Bootstrap Gate 2.
-3. Proceed to `/bootstrap-3-srs` (SRS and Product Backlog).
+1. Open PR #3 for `docs/bootstrap-3-srs`.
+2. User reviews and merges PR #3.
+3. User approves Bootstrap Gate 3 before proceeding to `/bootstrap-4-ml-plan`.
 
 ## Blockers
 
@@ -41,8 +40,8 @@ Bootstrap Step 2 (`/bootstrap-2-plan`): PR #2 opened for Initial Project Plan an
 | Gate | Status | Approved by user |
 |---|---|---|
 | 1. Environment and repository | Approved | Yes |
-| 2. Initial Project Plan and Roadmap | Presented for review | Pending user confirmation |
-| 3. SRS and Product Backlog | Not started | No |
+| 2. Initial Project Plan and Roadmap | Approved | Yes |
+| 3. SRS and Product Backlog | Presented for review | Pending user confirmation |
 | 4. Machine Learning Development Plan | Not started | No |
 | 5. Initial Architecture and Design | Not started | No |
 | Final approval to begin implementation | Not started | No |
@@ -75,9 +74,9 @@ No models have been trained. No artifacts have been supplied.
 
 | Document | Status |
 |---|---|
-| Project Plan | Drafted and presented (`docs/project-plan.md`) |
-| SRS | Skeleton created (`docs/requirements/srs.md`) |
-| Product Backlog | Skeleton created (`docs/requirements/product-backlog.md`) |
+| Project Plan | Approved (`docs/project-plan.md`) |
+| SRS | Authored and presented (`docs/requirements/srs.md`) |
+| Product Backlog | Authored and presented (`docs/requirements/product-backlog.md`) |
 | Software Architecture Document | Skeleton created (`docs/design/software-architecture.md`) |
 | Machine Learning Architecture Document | Skeleton created (`docs/ml/ml-architecture.md`) |
 | Model Specifications | Directory created (`docs/ml/models/`) |
@@ -92,6 +91,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-02 | User approved Bootstrap Gate 2. PR #2 merged into `main`. Checked out `docs/bootstrap-3-srs`. Authored authoritative initial SRS (`docs/requirements/srs.md`), Prioritized Product Backlog (`docs/requirements/product-backlog.md`), and Traceability Matrix (`docs/requirements/traceability-matrix.md`). Presented Gate 3 for review. | docs/bootstrap-3-srs |
 | 2026-11-02 | User approved Bootstrap Gate 1. Checked out `docs/bootstrap-2-plan`. Authored Initial Project Plan (`docs/project-plan.md`) and refined High-Level Roadmap (`docs/process/roadmap.md`). Formulated feasibility analysis across technical, operational, financial, and ML dimensions. Presented Gate 2 for user review. | docs/bootstrap-2-plan |
 | 2026-11-02 | PR #1 merged into `main` by user. Switched to `main`, pulled merge commit `23ffdf18bff597c574f5400bd4df49011d355c69`. Deleted local feature branch. Closed Bootstrap Step 1 iteration. Presented Gate 1 for user approval before starting `/bootstrap-2-plan`. | main |
 | 2026-11-02 | Resolved CI PR trigger 403 error on Gitleaks action by declaring `pull-requests: read` permission. Confirmed both PR run `41440805215` and push run `41440800224` passed all 4 status checks. PR #1 is fully green and awaiting user review and merge. | feature/bootstrap-environment / PR #1 |

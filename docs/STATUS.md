@@ -13,12 +13,12 @@
 | Current phase | Bootstrap step 5: design & review package (presented for review) |
 | Current iteration | None |
 | Current branch | docs/bootstrap-5-design |
-| Open PR | PR #5 (pending submission) |
+| Open PR | PR #5 (https://github.com/Lebogang-G-Masia/Findrr/pull/5) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 5 (`/bootstrap-5-design`): author Software Architecture Document, Database Design, Technical Specs, API Spec, Test Plan, and ADRs. Compile comprehensive review package for final implementation sign-off.
+Bootstrap Step 5 (`/bootstrap-5-design`): PR #5 opened for Software Architecture, Database Design, Tech Specs, Test Plan, and ADRs. Awaiting user review, merge, and Gate 5 + Final Implementation approval.
 
 ## Awaiting merge or approval
 
@@ -28,9 +28,9 @@ Bootstrap Step 5 (`/bootstrap-5-design`): author Software Architecture Document,
 
 ## Next step
 
-1. Open PR #5 for `docs/bootstrap-5-design`.
-2. User reviews and merges PR #5.
-3. User conducts final review of complete Bootstrap Review Package (Gates 1–5) and grants final approval to begin implementation (`/start-iteration`).
+1. User reviews and merges PR #5.
+2. User approves Bootstrap Gate 5 and grants final approval to begin implementation.
+3. Proceed to `/start-iteration` for Milestone 1, Iteration 1.
 
 ## Blockers
 

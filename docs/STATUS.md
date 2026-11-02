@@ -8,7 +8,7 @@
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-11-01 |
+| Last updated | 2026-11-02 |
 | Current milestone | Pre-Milestone 1 (bootstrap; no implementation started) |
 | Current phase | Bootstrap step 1: environment (in progress) |
 | Current iteration | None |
@@ -61,7 +61,7 @@ Mark an item verified only after the check has actually been run.
 | Penpot MCP access works | Failed / Unavailable (`No Penpot instance connected`) |
 | Python environment initialised | Verified (Python 3.14.8 on Arch Linux; `pyproject.toml`, `.env.example`) |
 | Laptop hardware, OS and GPU documented | Verified (Intel i5-1235U, 7.4GiB RAM, Arch Linux, no dedicated GPU) |
-| CI (lint, tests, file-size check, secret scan) running | Verified (GitHub Actions run `41347955123` all 4 jobs passed) |
+| CI (lint, tests, file-size check, secret scan) running | Verified (GitHub Actions PR run `41440805215` and push run `41440800224` all 4 checks passed) |
 
 ## Model status
 
@@ -92,5 +92,6 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-02 | Resolved CI PR trigger 403 error on Gitleaks action by declaring `pull-requests: read` permission. Confirmed both PR run `41440805215` and push run `41440800224` passed all 4 status checks. PR #1 is fully green and awaiting user review and merge. | feature/bootstrap-environment / PR #1 |
 | 2026-11-01 | Re-checked Penpot MCP (still disconnected). Created private GitHub repo `Lebogang-G-Masia/Findrr`, created baseline initial commit on `main` and pushed to GitHub. Created branch `feature/bootstrap-environment`, added documentation skeleton per documentation map, added dev setup, `.env.example`, `.gitignore`, smoke tests, and GitHub Actions CI. Confirmed CI run `41347955123` passed all 4 checks. Attempted branch protection (blocked by GitHub plan for private repo). Opened PR #1. | feature/bootstrap-environment / PR #1 |
 | 2026-11-01 | Started Bootstrap Step 1 (`/bootstrap-1-environment`). Verified Python (3.14.8), GitHub CLI access (`Lebogang-G-Masia`), documented hardware and OS. Checked Penpot MCP (connection failed). | None |

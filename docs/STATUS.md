@@ -13,22 +13,23 @@
 | Current phase | Bootstrap step 4: ML plan (presented for review) |
 | Current iteration | None |
 | Current branch | docs/bootstrap-4-ml-plan |
-| Open PR | PR #4 (pending submission) |
+| Open PR | PR #4 (https://github.com/Lebogang-G-Masia/Findrr/pull/4) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 4 (`/bootstrap-4-ml-plan`): author Machine Learning Architecture Document, individual Model Specifications (`title-expander`, `similarity-evaluator`, `application-tailor`), and Model Registry catalog, then present for user approval (Gate 4).
+Bootstrap Step 4 (`/bootstrap-4-ml-plan`): PR #4 opened for ML Architecture Document and Model Specifications. Awaiting user review, merge, and Gate 4 approval.
 
 ## Awaiting merge or approval
 
+- Awaiting merge: PR #4
 - Bootstrap Gate 4 approval: User review and sign-off on the ML Architecture Document (`docs/ml/ml-architecture.md`), Model Specifications (`docs/ml/models/`), and Model Registry (`docs/ml/model-registry.md`).
 
 ## Next step
 
-1. Open PR #4 for `docs/bootstrap-4-ml-plan`.
-2. User reviews and merges PR #4.
-3. User approves Bootstrap Gate 4 before proceeding to `/bootstrap-5-design`.
+1. User reviews and merges PR #4.
+2. User approves Bootstrap Gate 4.
+3. Proceed to `/bootstrap-5-design` (Initial Architecture & Design).
 
 ## Blockers
 

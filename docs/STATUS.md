@@ -13,22 +13,23 @@
 | Current phase | Bootstrap step 3: SRS & backlog (presented for review) |
 | Current iteration | None |
 | Current branch | docs/bootstrap-3-srs |
-| Open PR | PR #3 (pending submission) |
+| Open PR | PR #3 (https://github.com/Lebogang-G-Masia/Findrr/pull/3) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 3 (`/bootstrap-3-srs`): author initial Software Requirements Specification (SRS), Prioritized Product Backlog, and Traceability Matrix, then present for user approval (Gate 3).
+Bootstrap Step 3 (`/bootstrap-3-srs`): PR #3 opened for SRS, Product Backlog, and Traceability Matrix. Awaiting user review, merge, and Gate 3 approval.
 
 ## Awaiting merge or approval
 
+- Awaiting merge: PR #3
 - Bootstrap Gate 3 approval: User review and sign-off on the SRS (`docs/requirements/srs.md`), Prioritized Product Backlog (`docs/requirements/product-backlog.md`), and Traceability Matrix (`docs/requirements/traceability-matrix.md`).
 
 ## Next step
 
-1. Open PR #3 for `docs/bootstrap-3-srs`.
-2. User reviews and merges PR #3.
-3. User approves Bootstrap Gate 3 before proceeding to `/bootstrap-4-ml-plan`.
+1. User reviews and merges PR #3.
+2. User approves Bootstrap Gate 3.
+3. Proceed to `/bootstrap-4-ml-plan` (Machine Learning Development Plan).
 
 ## Blockers
 

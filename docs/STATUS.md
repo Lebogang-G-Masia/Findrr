@@ -10,38 +10,38 @@
 |---|---|
 | Last updated | 2026-11-02 |
 | Current milestone | Pre-Milestone 1 (bootstrap; no implementation started) |
-| Current phase | Bootstrap step 1: environment (in progress) |
+| Current phase | Bootstrap step 2: plan (presented for review) |
 | Current iteration | None |
-| Current branch | feature/bootstrap-environment |
-| Open PR | PR #1 (https://github.com/Lebogang-G-Masia/Findrr/pull/1) |
+| Current branch | docs/bootstrap-2-plan |
+| Open PR | PR #2 (https://github.com/Lebogang-G-Masia/Findrr/pull/2) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 1 (`/bootstrap-1-environment`): verify tooling and environment, create private GitHub repository and protections, setup documentation skeleton, development environment, and CI workflow.
+Bootstrap Step 2 (`/bootstrap-2-plan`): PR #2 opened for Initial Project Plan and High-Level Roadmap. Awaiting user review, merge, and Gate 2 approval.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #1
-- Awaiting user input on Penpot MCP connection and private repo branch protection settings.
+- Awaiting merge: PR #2
+- Bootstrap Gate 2 approval: User review and sign-off on the Initial Project Plan (`docs/project-plan.md`) and High-Level Roadmap (`docs/process/roadmap.md`).
 
 ## Next step
 
-1. User reviews and merges PR #1.
-2. Resolve Penpot MCP connection.
-3. User approval for Bootstrap Step 1 Gate before proceeding to `/bootstrap-2-plan`.
+1. User reviews and merges PR #2.
+2. User approves Bootstrap Gate 2.
+3. Proceed to `/bootstrap-3-srs` (SRS and Product Backlog).
 
 ## Blockers
 
-1. **Penpot MCP Access**: MCP server call failed with `Error: No Penpot instance connected for user token. Please ensure that Penpot is connected and that the MCP client connection is using the correct token.` UI design cannot start without Penpot MCP. Awaiting user action to connect Penpot instance.
+1. **Penpot MCP Access**: MCP server call failed with `Error: No Penpot instance connected for user token. Please ensure that Penpot is connected and that the MCP client connection is using the correct token.` UI design cannot start without Penpot MCP. Awaiting user action to connect Penpot instance before Bootstrap Step 5.
 2. **GitHub Branch Protection on Private Repo**: GitHub API returned `HTTP 403: Upgrade to GitHub Pro or make this repository public to enable this feature.` Native branch protection/rulesets on private repos require GitHub Pro/Team. Branch protection on `main` cannot be enforced via API on a free private repository.
 
 ## Bootstrap and approval tracker
 
 | Gate | Status | Approved by user |
 |---|---|---|
-| 1. Environment and repository | Presented for review | No |
-| 2. Initial Project Plan and Roadmap | Not started | No |
+| 1. Environment and repository | Approved | Yes |
+| 2. Initial Project Plan and Roadmap | Presented for review | Pending user confirmation |
 | 3. SRS and Product Backlog | Not started | No |
 | 4. Machine Learning Development Plan | Not started | No |
 | 5. Initial Architecture and Design | Not started | No |
@@ -75,7 +75,7 @@ No models have been trained. No artifacts have been supplied.
 
 | Document | Status |
 |---|---|
-| Project Plan | Skeleton created (`docs/project-plan.md`) |
+| Project Plan | Drafted and presented (`docs/project-plan.md`) |
 | SRS | Skeleton created (`docs/requirements/srs.md`) |
 | Product Backlog | Skeleton created (`docs/requirements/product-backlog.md`) |
 | Software Architecture Document | Skeleton created (`docs/design/software-architecture.md`) |
@@ -92,6 +92,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-02 | User approved Bootstrap Gate 1. Checked out `docs/bootstrap-2-plan`. Authored Initial Project Plan (`docs/project-plan.md`) and refined High-Level Roadmap (`docs/process/roadmap.md`). Formulated feasibility analysis across technical, operational, financial, and ML dimensions. Presented Gate 2 for user review. | docs/bootstrap-2-plan |
+| 2026-11-02 | PR #1 merged into `main` by user. Switched to `main`, pulled merge commit `23ffdf18bff597c574f5400bd4df49011d355c69`. Deleted local feature branch. Closed Bootstrap Step 1 iteration. Presented Gate 1 for user approval before starting `/bootstrap-2-plan`. | main |
 | 2026-11-02 | Resolved CI PR trigger 403 error on Gitleaks action by declaring `pull-requests: read` permission. Confirmed both PR run `41440805215` and push run `41440800224` passed all 4 status checks. PR #1 is fully green and awaiting user review and merge. | feature/bootstrap-environment / PR #1 |
 | 2026-11-01 | Re-checked Penpot MCP (still disconnected). Created private GitHub repo `Lebogang-G-Masia/Findrr`, created baseline initial commit on `main` and pushed to GitHub. Created branch `feature/bootstrap-environment`, added documentation skeleton per documentation map, added dev setup, `.env.example`, `.gitignore`, smoke tests, and GitHub Actions CI. Confirmed CI run `41347955123` passed all 4 checks. Attempted branch protection (blocked by GitHub plan for private repo). Opened PR #1. | feature/bootstrap-environment / PR #1 |
 | 2026-11-01 | Started Bootstrap Step 1 (`/bootstrap-1-environment`). Verified Python (3.14.8), GitHub CLI access (`Lebogang-G-Masia`), documented hardware and OS. Checked Penpot MCP (connection failed). | None |

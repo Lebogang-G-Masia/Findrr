@@ -13,22 +13,23 @@
 | Current phase | Bootstrap step 2: plan (presented for review) |
 | Current iteration | None |
 | Current branch | docs/bootstrap-2-plan |
-| Open PR | PR #2 (pending submission) |
+| Open PR | PR #2 (https://github.com/Lebogang-G-Masia/Findrr/pull/2) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 2 (`/bootstrap-2-plan`): produce Initial Project Plan, feasibility evaluation, and refined high-level roadmap, then present for user approval (Gate 2).
+Bootstrap Step 2 (`/bootstrap-2-plan`): PR #2 opened for Initial Project Plan and High-Level Roadmap. Awaiting user review, merge, and Gate 2 approval.
 
 ## Awaiting merge or approval
 
+- Awaiting merge: PR #2
 - Bootstrap Gate 2 approval: User review and sign-off on the Initial Project Plan (`docs/project-plan.md`) and High-Level Roadmap (`docs/process/roadmap.md`).
 
 ## Next step
 
-1. Open PR #2 for `docs/bootstrap-2-plan`.
-2. User reviews and merges PR #2.
-3. User approves Bootstrap Gate 2 before proceeding to `/bootstrap-3-srs`.
+1. User reviews and merges PR #2.
+2. User approves Bootstrap Gate 2.
+3. Proceed to `/bootstrap-3-srs` (SRS and Product Backlog).
 
 ## Blockers
 

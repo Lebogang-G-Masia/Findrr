@@ -10,26 +10,26 @@
 |---|---|
 | Last updated | 2026-11-02 |
 | Current milestone | Pre-Milestone 1 (bootstrap; no implementation started) |
-| Current phase | Bootstrap step 3: SRS & backlog (presented for review) |
+| Current phase | Bootstrap step 4: ML plan (presented for review) |
 | Current iteration | None |
-| Current branch | docs/bootstrap-3-srs |
-| Open PR | PR #3 (https://github.com/Lebogang-G-Masia/Findrr/pull/3) |
+| Current branch | docs/bootstrap-4-ml-plan |
+| Open PR | PR #4 (https://github.com/Lebogang-G-Masia/Findrr/pull/4) |
 | Latest release | None |
 
 ## Current task
 
-Bootstrap Step 3 (`/bootstrap-3-srs`): PR #3 opened for SRS, Product Backlog, and Traceability Matrix. Awaiting user review, merge, and Gate 3 approval.
+Bootstrap Step 4 (`/bootstrap-4-ml-plan`): PR #4 opened for ML Architecture Document and Model Specifications. Awaiting user review, merge, and Gate 4 approval.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #3
-- Bootstrap Gate 3 approval: User review and sign-off on the SRS (`docs/requirements/srs.md`), Prioritized Product Backlog (`docs/requirements/product-backlog.md`), and Traceability Matrix (`docs/requirements/traceability-matrix.md`).
+- Awaiting merge: PR #4
+- Bootstrap Gate 4 approval: User review and sign-off on the ML Architecture Document (`docs/ml/ml-architecture.md`), Model Specifications (`docs/ml/models/`), and Model Registry (`docs/ml/model-registry.md`).
 
 ## Next step
 
-1. User reviews and merges PR #3.
-2. User approves Bootstrap Gate 3.
-3. Proceed to `/bootstrap-4-ml-plan` (Machine Learning Development Plan).
+1. User reviews and merges PR #4.
+2. User approves Bootstrap Gate 4.
+3. Proceed to `/bootstrap-5-design` (Initial Architecture & Design).
 
 ## Blockers
 
@@ -42,8 +42,8 @@ Bootstrap Step 3 (`/bootstrap-3-srs`): PR #3 opened for SRS, Product Backlog, an
 |---|---|---|
 | 1. Environment and repository | Approved | Yes |
 | 2. Initial Project Plan and Roadmap | Approved | Yes |
-| 3. SRS and Product Backlog | Presented for review | Pending user confirmation |
-| 4. Machine Learning Development Plan | Not started | No |
+| 3. SRS and Product Backlog | Approved | Yes |
+| 4. Machine Learning Development Plan | Presented for review | Pending user confirmation |
 | 5. Initial Architecture and Design | Not started | No |
 | Final approval to begin implementation | Not started | No |
 
@@ -69,18 +69,21 @@ No models have been trained. No artifacts have been supplied.
 
 | Model | Spec approved | Notebook written | Trained by user | Artifacts supplied | Integration verified (real inference) |
 |---|---|---|---|---|---|
-| (none yet) | | | | | |
+| `title-expander` (ML-001) | Proposed (Gate 4) | No | No | No | No |
+| `similarity-evaluator` (ML-002) | Proposed (Gate 4) | No | No | No | No |
+| `application-tailor` (ML-003) | Proposed (Gate 4) | No | No | No | No |
 
 ## Documents
 
 | Document | Status |
 |---|---|
 | Project Plan | Approved (`docs/project-plan.md`) |
-| SRS | Authored and presented (`docs/requirements/srs.md`) |
-| Product Backlog | Authored and presented (`docs/requirements/product-backlog.md`) |
+| SRS | Approved (`docs/requirements/srs.md`) |
+| Product Backlog | Approved (`docs/requirements/product-backlog.md`) |
 | Software Architecture Document | Skeleton created (`docs/design/software-architecture.md`) |
-| Machine Learning Architecture Document | Skeleton created (`docs/ml/ml-architecture.md`) |
-| Model Specifications | Directory created (`docs/ml/models/`) |
+| Machine Learning Architecture Document | Authored and presented (`docs/ml/ml-architecture.md`) |
+| Model Specifications | Authored (`docs/ml/models/`) |
+| Model Registry | Initialized (`docs/ml/model-registry.md`) |
 | UI/UX designs | Skeleton created (`docs/design/ui-ux.md`; no UI work without approval) |
 | Test Plan | Skeleton created (`docs/testing/test-plan.md`) |
 
@@ -92,6 +95,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-02 | User approved Bootstrap Gate 3. PR #3 merged into `main`. Checked out `docs/bootstrap-4-ml-plan`. Authored Machine Learning Architecture Document (`docs/ml/ml-architecture.md`), individual Model Specifications for all 3 models (`title-expander`, `similarity-evaluator`, `application-tailor`), and Model Registry catalog (`docs/ml/model-registry.md`). Presented Gate 4 for review. | docs/bootstrap-4-ml-plan |
+| 2026-11-02 | PR #3 merged into `main` by user. Switched to `main`, pulled merge commit `bc53e0da3d9f7489cf21663ac0a07956d5667159`. Deleted local feature branch. Closed Bootstrap Step 3 iteration. Presented Gate 3 for user sign-off before starting `/bootstrap-4-ml-plan`. | main |
 | 2026-11-02 | User approved Bootstrap Gate 2. PR #2 merged into `main`. Checked out `docs/bootstrap-3-srs`. Authored authoritative initial SRS (`docs/requirements/srs.md`), Prioritized Product Backlog (`docs/requirements/product-backlog.md`), and Traceability Matrix (`docs/requirements/traceability-matrix.md`). Presented Gate 3 for review. | docs/bootstrap-3-srs |
 | 2026-11-02 | User approved Bootstrap Gate 1. Checked out `docs/bootstrap-2-plan`. Authored Initial Project Plan (`docs/project-plan.md`) and refined High-Level Roadmap (`docs/process/roadmap.md`). Formulated feasibility analysis across technical, operational, financial, and ML dimensions. Presented Gate 2 for user review. | docs/bootstrap-2-plan |
 | 2026-11-02 | PR #1 merged into `main` by user. Switched to `main`, pulled merge commit `23ffdf18bff597c574f5400bd4df49011d355c69`. Deleted local feature branch. Closed Bootstrap Step 1 iteration. Presented Gate 1 for user approval before starting `/bootstrap-2-plan`. | main |

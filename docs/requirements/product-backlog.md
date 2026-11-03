@@ -32,9 +32,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-001`, `FR-002`, `FR-004`, `AC-001`
 - **Description:** As a job seeker, I want to input my educational background, work experiences, skills, and employment preferences via an interactive CLI prompt so that Findrr constructs my initial profile.
 - **Tasks:**
-  - [ ] Implement CLI interactive prompt loop with validation (Pydantic models).
-  - [ ] Implement SQLite schema and storage for `UserProfile` and `ProfileEntry`.
-  - [ ] Add verification confirmation step before committing profile to database.
+  - [x] Implement CLI interactive prompt loop with validation (Pydantic models).
+  - [x] Implement SQLite schema and storage for `UserProfile` and `ProfileEntry`.
+  - [x] Add verification confirmation step before committing profile to database.
 - **Dependencies:** Core database schema setup.
 
 #### US-002: Generalized Job Title Synthesis
@@ -43,9 +43,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-005`, `AC-002`
 - **Description:** As a job seeker, I want the system to analyze my verified profile entries and synthesize an objective Generalized Job Title with supporting justification so that my job search targets market-aligned roles.
 - **Tasks:**
-  - [ ] Implement rule-based profile analyzer extracting primary skills and domain clusters.
-  - [ ] Synthesize primary title, justification text, and supporting qualification tags.
-  - [ ] Store synthesized title in `GeneralizedTitle` table.
+  - [x] Implement rule-based profile analyzer extracting primary skills and domain clusters.
+  - [x] Synthesize primary title, justification text, and supporting qualification tags.
+  - [x] Store synthesized title in `GeneralizedTitle` table.
 - **Dependencies:** `US-001`.
 
 #### US-003: Search Configuration Setup
@@ -54,8 +54,8 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-006`, `FR-007`
 - **Description:** As a job seeker, I want to configure target locations, remote/hybrid preferences, and search limit bounds (2–10) so that subsequent searches match my criteria.
 - **Tasks:**
-  - [ ] Add search config prompt in CLI.
-  - [ ] Store configuration with provisional default bounds in SQLite.
+  - [x] Add search config prompt in CLI.
+  - [x] Store configuration with provisional default bounds in SQLite.
 - **Dependencies:** `US-001`.
 
 ---

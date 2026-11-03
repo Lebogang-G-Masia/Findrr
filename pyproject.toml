@@ -24,6 +24,9 @@ dev = [
     "mypy>=1.9.0",
 ]
 
+[project.scripts]
+findrr = "findrr.cli.main:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

@@ -68,9 +68,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-026`, `FR-027`, `FR-028`, `NFR-008`, `AC-006`
 - **Description:** As a system operator, I want the inference service to load model artifacts from disk only after validating cryptographic checksums against `manifest.json` so that corrupted or unverified models are never executed.
 - **Tasks:**
-  - [ ] Implement `ModelRegistry` reader and SHA-256 hash calculator.
-  - [ ] Implement strict loading gate raising structured errors upon checksum mismatch.
-  - [ ] Add explicit diagnostic logging for missing or corrupted artifacts.
+  - [x] Implement `ModelRegistry` reader and SHA-256 hash calculator.
+  - [x] Implement strict loading gate raising structured errors upon checksum mismatch.
+  - [x] Add explicit diagnostic logging for missing or corrupted artifacts.
 - **Dependencies:** None.
 
 #### US-005: Local Inference Engine Architecture
@@ -79,9 +79,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-029`, `FR-030`, `NFR-001`, `NFR-002`
 - **Description:** As an application module, I want a unified inference service interface to request predictions without managing PyTorch/ONNX runtime lifecycles.
 - **Tasks:**
-  - [ ] Implement `InferenceService` singleton with thread-capped CPU execution.
-  - [ ] Add model memory lifecycle management (lazy loading and explicit unloading).
-  - [ ] Implement test fixture harness distinguishing mock inference from verified models.
+  - [x] Implement `InferenceService` singleton with thread-capped CPU execution.
+  - [x] Add model memory lifecycle management (lazy loading and explicit unloading).
+  - [x] Implement test fixture harness distinguishing mock inference from verified models.
 - **Dependencies:** `US-004`.
 
 ---
@@ -90,25 +90,25 @@ Work items are organized hierarchically:
 
 #### US-006: Generative Search Term Expansion (Model 1)
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 3)
+- **Target Milestone:** Milestone 1 (Iteration 2)
 - **Addresses:** `FR-008`, `ML-001`, `AC-003`
 - **Description:** As a job seeker, I want the system to generate alternative job titles using Model 1 so that my search covers varied industry terminology.
 - **Tasks:**
-  - [ ] Define Model 1 specification (`docs/ml/models/title-expander.md`).
-  - [ ] Author Kaggle training notebook for fine-tuning Flan-T5 on O*NET taxonomies.
-  - [ ] Implement inference adapter invoking Model 1 via `InferenceService`.
+  - [x] Define Model 1 specification (`docs/ml/models/title-expander.md`).
+  - [x] Author Kaggle training notebook for fine-tuning Flan-T5 on O*NET taxonomies.
+  - [x] Implement inference adapter invoking Model 1 via `InferenceService`.
 - **Dependencies:** `US-002`, `US-005`.
 
 #### US-007: Bi-Encoder Semantic Similarity Scoring (Model 2)
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 3)
+- **Target Milestone:** Milestone 1 (Iteration 2)
 - **Addresses:** `FR-009`, `FR-010`, `FR-011`, `ML-002`, `AC-003`
 - **Description:** As a job seeker, I want candidate titles evaluated for semantic similarity and deduplicated using Model 2 so that only relevant and distinct titles are presented.
 - **Tasks:**
-  - [ ] Define Model 2 specification (`docs/ml/models/similarity-evaluator.md`).
-  - [ ] Author Kaggle notebook for sentence-transformer fine-tuning and ONNX export.
-  - [ ] Implement cosine similarity evaluation and threshold filtering (provisional threshold: 0.70).
-  - [ ] Implement duplicate rejection (provisional threshold: 0.88).
+  - [x] Define Model 2 specification (`docs/ml/models/similarity-evaluator.md`).
+  - [x] Author Kaggle notebook for sentence-transformer fine-tuning and ONNX export.
+  - [x] Implement cosine similarity evaluation and threshold filtering (provisional threshold: 0.70).
+  - [x] Implement duplicate rejection (provisional threshold: 0.88).
 - **Dependencies:** `US-005`, `US-006`.
 
 ---

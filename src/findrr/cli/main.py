@@ -8,6 +8,8 @@ from findrr.cli.config_cli import display_search_config, run_search_config_promp
 from findrr.cli.profile_cli import handle_synthesize_title, run_interactive_questionnaire
 from findrr.db.connection import get_connection, init_db
 from findrr.db.repository import ProfileRepository, SearchConfigRepository, TitleRepository
+from findrr.ml.registry import ModelRegistry
+from findrr.services.inference_service import InferenceService
 from findrr.services.profile_service import ProfileService
 from findrr.services.search_config_service import SearchConfigService
 
@@ -76,6 +78,24 @@ def build_parser() -> argparse.ArgumentParser:
     show_config_parser.add_argument(
         "profile_id", nargs="?", default=None, help="Profile ID (optional if only one exists)"
     )
+
+    # Subparser: model
+    model_parser = subparsers.add_parser("model", help="Manage and inspect ML models (Module 9)")
+    model_sub = model_parser.add_subparsers(dest="model_action", help="Model actions")
+
+    model_sub.add_parser("list", help="List registered ML models and integrity status")
+
+    inspect_parser = model_sub.add_parser("inspect", help="Inspect model artifacts and checksums")
+    inspect_parser.add_argument("model_id", help="Model ID (e.g. ML-001, ML-002)")
+
+    expand_parser = model_sub.add_parser("expand", help="Test title expansion inference")
+    expand_parser.add_argument("title", help="Generalized job title to expand")
+    expand_parser.add_argument("--skills", default="", help="Comma-separated skills")
+    expand_parser.add_argument("--seniority", default=None, help="Seniority level")
+
+    compare_parser = model_sub.add_parser("compare", help="Test semantic similarity scoring")
+    compare_parser.add_argument("text_a", help="First title or text")
+    compare_parser.add_argument("text_b", help="Second title or text")
 
     return parser
 
@@ -191,6 +211,71 @@ def main(args: Optional[List[str]] = None) -> int:
             return 0
         else:
             parser.parse_args(["config", "--help"])
+            return 0
+
+    elif parsed_args.command == "model":
+        ml_registry = ModelRegistry()
+        inf_service = InferenceService(registry=ml_registry)
+        action = parsed_args.model_action
+
+        if action == "list":
+            print("\nRegistered Machine Learning Models (Module 9 Catalog):")
+            print("-" * 75)
+            for reg in ml_registry.list_registrations():
+                status = ml_registry.inspect_model_status(reg.model_id)
+                tag = "[VERIFIED ARTIFACTS]" if status["integrity_verified"] else "[MOCK / PENDING]"
+                print(f"  {reg.model_id:<8} {reg.name:<24} v{reg.active_version:<6} {tag}")
+                print(f"           Architecture: {reg.architecture}")
+                print(f"           Purpose:      {reg.purpose}")
+            print("-" * 75)
+            return 0
+
+        elif action == "inspect":
+            mid = parsed_args.model_id
+            try:
+                status = ml_registry.inspect_model_status(mid)
+                print(f"\nModel Inspection: {status['model_id']} ({status['name']})")
+                print(f"Version:            {status['version']}")
+                print(f"Artifact Path:      {status['path']}")
+                print(f"Manifest Exists:    {'Yes' if status['manifest_exists'] else 'No'}")
+                print(f"Artifacts Present:  {'Yes' if status['artifacts_present'] else 'No'}")
+                print(f"Integrity Verified: {'Yes' if status['integrity_verified'] else 'No'}")
+                if status.get("evaluation_summary"):
+                    print(f"Evaluation Summary: {status['evaluation_summary']}")
+                if status.get("error"):
+                    print(f"Status Note:        {status['error']}")
+                return 0
+            except Exception as exc:
+                print(f"Error inspecting model: {exc}")
+                return 1
+
+        elif action == "expand":
+            skills = [s.strip() for s in parsed_args.skills.split(",") if s.strip()]
+            res = inf_service.expand_titles(
+                generalized_title=parsed_args.title,
+                skills=skills,
+                seniority=parsed_args.seniority,
+            )
+            mode_tag = "[MOCK INFERENCE]" if res.is_mock else "[VERIFIED MODEL]"
+            print(f"\n{mode_tag} Title Expansion for: {res.generalized_title}")
+            print(f"Model ID / Version: {res.model_id} v{res.model_version}")
+            print("Candidate Titles:")
+            for cand in res.expanded_titles:
+                print(f"  - {cand}")
+            return 0
+
+        elif action == "compare":
+            res = inf_service.evaluate_similarity(parsed_args.text_a, parsed_args.text_b)
+            mode_tag = "[MOCK INFERENCE]" if res.is_mock else "[VERIFIED MODEL]"
+            print(f"\n{mode_tag} Semantic Similarity")
+            print(f"Model ID / Version: {res.model_id} v{res.model_version}")
+            print(f"Text A: {res.text_a!r}")
+            print(f"Text B: {res.text_b!r}")
+            print(f"Similarity Score: {res.similarity_score:.4f}")
+            return 0
+
+        else:
+            parser.parse_args(["model", "--help"])
             return 0
 
     return 0

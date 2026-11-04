@@ -10,28 +10,25 @@
 |---|---|
 | Last updated | 2026-11-04 |
 | Current milestone | Milestone 1 (Core CLI Application Baseline) |
-| Current phase | Milestone 1, Iteration 2 (Planning & Implementation) |
+| Current phase | Milestone 1, Iteration 2 (Review & Verification) |
 | Current iteration | Milestone 1, Iteration 2 |
 | Current branch | feature/iteration-2-ml-models |
-| Open PR | None |
+| Open PR | PR #7 (https://github.com/Lebogang-G-Masia/Findrr/pull/7) |
 | Latest release | None |
 
 ## Current task
 
-Milestone 1, Iteration 2: Kaggle Training Notebooks (Model 1 `title-expander` and Model 2 `similarity-evaluator`), Module 9 Model Management, SHA-256 Checksum Validation, and Inference Service Engine (US-004, US-005, US-006, US-007).
+Milestone 1, Iteration 2: PR #7 opened for Kaggle Training Notebooks, Module 9 Model Management, and Inference Service. Awaiting user review and merge.
 
 ## Awaiting merge or approval
 
-- None.
+- Awaiting merge: PR #7
 
 ## Next step
 
-1. Execute Iteration 2 implementation:
-   - Author Kaggle training notebooks for Model 1 (Flan-T5) and Model 2 (MiniLM-L6 ONNX).
-   - Implement Module 9 Model Registry, SHA-256 checksum verification, and `InferenceService`.
-   - Implement test suite with explicit mock isolation, error handling, and integrity checks.
-2. Verify all tests and guardrails pass.
-3. Open PR for Iteration 2 review.
+1. User reviews and merges PR #7.
+2. User executes Kaggle training notebooks (`notebooks/01_train_title_expander.ipynb` and `notebooks/02_train_similarity_evaluator.ipynb`) on GPU and places exported artifact bundles in `models/`.
+3. Run `/close-iteration` to complete Milestone 1, Iteration 2.
 
 ## Blockers
 
@@ -100,8 +97,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-04 | Milestone 1, Iteration 2 implemented and verified (US-004, US-005, US-006, US-007). Kaggle notebooks for Model 1 and Model 2, Module 9 model management, SHA-256 integrity checks, and InferenceService added. 51 tests passing with 86% coverage. Opened PR #7. | feature/iteration-2-ml-models / PR #7 |
 | 2026-11-04 | PR #6 merged into `main` by user. Switched to `main`, pulled merge commit `cb20dea71f1f2aa6c382ea0824bba7dc9036c1e5`. Deleted local feature branch. Closed Milestone 1, Iteration 1. Ready for Milestone 1, Iteration 2. | main |
 | 2026-11-03 | Milestone 1, Iteration 1 implemented and verified (US-001, US-002, US-003). Profile questionnaire, title synthesizer, search configuration, and SQLite persistence added. 32 tests passing with 91% coverage. Opened PR #6. | feature/iteration-1-profile / PR #6 |
 | 2026-11-03 | PR #5 merged into `main` by user. Switched to `main`, pulled merge commit `98f9bca7ac3d15687e3dd26ed96dad31fc4e4e5f`. Deleted local feature branch. Closed Bootstrap Step 5. Bootstrap phase complete (Gates 1–5 approved). Ready for Milestone 1, Iteration 1. | main |
 | 2026-11-02 | Penpot MCP connection verified. User approved Gate 4 and instructed to continue operations. Checked out `docs/bootstrap-5-design`. Authored Software Architecture Document, Database Design, Technical Specs, API Spec, Test Plan, and ADRs 0001–0004. Presented Gate 5 and complete Bootstrap Review Package for final approval to begin implementation. | docs/bootstrap-5-design |
-| 2026-11-02 | Penpot MCP integration tested and verified in read-only mode against connected file `UI Design`. Read metadata, current page, and empty board structure without making changes. Unblocked Penpot MCP blocker. | main |

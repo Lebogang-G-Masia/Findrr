@@ -21,13 +21,13 @@ This matrix maintains explicit bi-directional traceability across all project la
 
 | Req ID | Title | Module | User Story | Acceptance Criteria | Test Target | ML Asset |
 |---|---|---|---|---|---|---|
-| **FR-001** | Profile Data Ingestion | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_profile_ingest.py` | N/A |
-| **FR-002** | Profile Normalization | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_profile_schema.py` | N/A |
-| **FR-003** | Data Provenance Tracking | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_provenance.py` | N/A |
-| **FR-004** | User Profile Review & Edit | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_profile_cli.py` | N/A |
-| **FR-005** | Generalized Job Title Synthesis | Mod 1 (Profile) | `US-002` | `AC-002` | `tests/unit/test_title_synthesis.py` | N/A |
-| **FR-006** | Search Configuration | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_search_config.py` | N/A |
-| **FR-007** | Search Limits (2–10) | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_search_config.py` | N/A |
+| **FR-001** | Profile Data Ingestion | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_cli.py` | N/A |
+| **FR-002** | Profile Normalization | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_models.py` | N/A |
+| **FR-003** | Data Provenance Tracking | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_db.py` | N/A |
+| **FR-004** | User Profile Review & Edit | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_cli.py` | N/A |
+| **FR-005** | Generalized Job Title Synthesis | Mod 1 (Profile) | `US-002` | `AC-002` | `tests/unit/test_synthesizer.py` | N/A |
+| **FR-006** | Search Configuration | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_services.py` | N/A |
+| **FR-007** | Search Limits (2–10) | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_models.py`, `tests/integration/test_db.py` | N/A |
 | **FR-008** | Generative Search Expansion | Mod 3 (Search Terms) | `US-006` | `AC-003` | `tests/integration/test_model_expansion.py` | Model 1 (Flan-T5) |
 | **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/integration/test_model_similarity.py` | Model 2 (MiniLM) |
 | **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_term_relevance.py` | Model 2 (MiniLM) |

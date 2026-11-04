@@ -39,7 +39,7 @@ def check_files(root_dir="."):
                 size = os.path.getsize(path)
                 if size > MAX_FILE_SIZE_BYTES:
                     violations.append(
-                        f"File size exceeds limit ({size / (1024*1024):.2f} MB > 5 MB): {path}"
+                        f"File size exceeds limit ({size / (1024 * 1024):.2f} MB > 5 MB): {path}"
                     )
             except OSError as e:
                 violations.append(f"Could not check file size for {path}: {e}")

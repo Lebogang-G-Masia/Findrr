@@ -18,11 +18,13 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field
 
+
 class ProvenanceSource(str, Enum):
     MANUAL = "MANUAL"
     RESUME_UPLOAD = "RESUME_UPLOAD"
     LINKEDIN = "LINKEDIN"
     GITHUB = "GITHUB"
+
 
 class ProfileCategory(str, Enum):
     EDUCATION = "EDUCATION"
@@ -30,6 +32,7 @@ class ProfileCategory(str, Enum):
     SKILL = "SKILL"
     CERTIFICATION = "CERTIFICATION"
     PROJECT = "PROJECT"
+
 
 class ProfileEntryCreate(BaseModel):
     category: ProfileCategory
@@ -40,6 +43,7 @@ class ProfileEntryCreate(BaseModel):
     description: Optional[str] = None
     source: ProvenanceSource = ProvenanceSource.MANUAL
     is_verified: bool = False
+
 
 class UserProfileDTO(BaseModel):
     id: str
@@ -57,11 +61,13 @@ class SearchBounds(BaseModel):
     min_results: int = Field(default=2, ge=2, le=10)
     max_results: int = Field(default=10, ge=2, le=10)
 
+
 class SearchTermDTO(BaseModel):
     id: str
     term: str
     similarity_score: float
     is_accepted: bool
+
 
 class JobPostingDTO(BaseModel):
     id: str
@@ -82,6 +88,7 @@ class JobPostingDTO(BaseModel):
 ### 2.1 Module 1: `ProfileService`
 ```python
 from abc import ABC, abstractmethod
+
 
 class IProfileService(ABC):
     @abstractmethod
@@ -169,21 +176,30 @@ class IInferenceService(ABC):
 ```python
 class FindrrError(Exception):
     """Base exception for all Findrr application errors."""
+
     pass
+
 
 class ModelIntegrityError(FindrrError):
     """Raised when an artifact checksum mismatch is detected."""
+
     pass
+
 
 class ModelArtifactMissingError(FindrrError):
     """Raised when required model files are absent from disk."""
+
     pass
+
 
 class FactGroundingViolationError(FindrrError):
     """Raised when generated text contains claims absent from verified profile facts."""
+
     pass
+
 
 class ScrapingBlockedError(FindrrError):
     """Raised when a web destination blocks automation or presents CAPTCHA."""
+
     pass
 ```

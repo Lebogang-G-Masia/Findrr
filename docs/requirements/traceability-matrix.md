@@ -28,10 +28,10 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-005** | Generalized Job Title Synthesis | Mod 1 (Profile) | `US-002` | `AC-002` | `tests/unit/test_synthesizer.py` | N/A |
 | **FR-006** | Search Configuration | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_services.py` | N/A |
 | **FR-007** | Search Limits (2–10) | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_models.py`, `tests/integration/test_db.py` | N/A |
-| **FR-008** | Generative Search Expansion | Mod 3 (Search Terms) | `US-006` | `AC-003` | `tests/integration/test_model_expansion.py` | Model 1 (Flan-T5) |
-| **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/integration/test_model_similarity.py` | Model 2 (MiniLM) |
-| **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_term_relevance.py` | Model 2 (MiniLM) |
-| **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_duplicate_terms.py` | Model 2 (MiniLM) |
+| **FR-008** | Generative Search Expansion | Mod 3 (Search Terms) | `US-006` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Model 1 (Flan-T5) |
+| **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Model 2 (MiniLM) |
+| **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
+| **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
 | **FR-012** | Headful Selenium Automation | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/integration/test_selenium_search.py` | N/A |
 | **FR-013** | Extract 2–10 Postings/Title | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/integration/test_search_limits.py` | N/A |
 | **FR-014** | Employer Destination Priority | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_link_resolver.py` | N/A |
@@ -46,11 +46,11 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-023** | Application Status Transitions | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_lifecycle.py` | N/A |
 | **FR-024** | Submission Logging & Notes | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_records.py` | N/A |
 | **FR-025** | Search & Pipeline Metrics | Mod 7 (Dashboard) | `US-016` | `AC-005` | `tests/unit/test_dashboard_metrics.py` | N/A |
-| **FR-026** | Local Model Artifact Loading | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_model_loader.py` | Model Registry |
-| **FR-027** | SHA-256 Checksum Validation | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_artifact_integrity.py` | Manifests |
-| **FR-028** | Graceful Diagnostic Failure | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_model_failures.py` | N/A |
-| **FR-029** | Unified Inference Service | Mod 9 (Model Mgmt) | `US-005` | `AC-006` | `tests/integration/test_inference_service.py` | Models 1 & 2 |
-| **FR-030** | Memory Lifecycle Management | Mod 9 (Model Mgmt) | `US-005` | `AC-006` | `tests/unit/test_model_memory.py` | N/A |
+| **FR-026** | Local Model Artifact Loading | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_runners.py` | Model Registry |
+| **FR-027** | SHA-256 Checksum Validation | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_manifest.py` | Manifests |
+| **FR-028** | Graceful Diagnostic Failure | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_manifest.py`, `tests/unit/test_ml_registry.py` | N/A |
+| **FR-029** | Unified Inference Service | Mod 9 (Model Mgmt) | `US-005` | `AC-006` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Models 1 & 2 |
+| **FR-030** | Memory Lifecycle Management | Mod 9 (Model Mgmt) | `US-005` | `AC-006` | `tests/unit/test_inference_service.py` | N/A |
 
 ---
 

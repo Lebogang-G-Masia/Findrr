@@ -1,7 +1,9 @@
 """Main entrypoint for Findrr CLI."""
 
 import argparse
+import logging
 import sys
+from pathlib import Path
 from typing import List, Optional
 
 from findrr.cli.app_cli import handle_app_cli, register_app_subparsers
@@ -22,6 +24,40 @@ from findrr.services.profile_service import ProfileService
 from findrr.services.search_config_service import SearchConfigService
 
 
+def configure_logging(verbose: bool = False, log_file: Optional[str] = "logs/findrr.log") -> None:
+    """Configure comprehensive logging for Findrr CLI and Selenium operations."""
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.DEBUG)
+
+    # Console handler
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_level = logging.DEBUG if verbose else logging.INFO
+    console_handler.setLevel(console_level)
+    console_formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    console_handler.setFormatter(console_formatter)
+    root_logger.addHandler(console_handler)
+
+    # File handler
+    if log_file:
+        try:
+            log_path = Path(log_file)
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            file_handler = logging.FileHandler(str(log_path), mode="a", encoding="utf-8")
+            file_handler.setLevel(logging.DEBUG)
+            file_formatter = logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d): %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+            file_handler.setFormatter(file_formatter)
+            root_logger.addHandler(file_handler)
+        except Exception as err:
+            sys.stderr.write(f"Warning: Could not initialize log file at {log_file}: {err}\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="findrr",
@@ -31,6 +67,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--db-path",
         default=None,
         help="Custom path to SQLite database file (default: data/findrr.db or $FINDRR_DB_PATH)",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        default=False,
+        help="Enable verbose DEBUG logging to stderr",
+    )
+    parser.add_argument(
+        "--log-file",
+        default="logs/findrr.log",
+        help="Path to file for execution and Selenium debug logs (default: logs/findrr.log)",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -117,6 +165,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(args: Optional[List[str]] = None) -> int:
     parser = build_parser()
     parsed_args = parser.parse_args(args)
+
+    configure_logging(
+        verbose=getattr(parsed_args, "verbose", False),
+        log_file=getattr(parsed_args, "log_file", "logs/findrr.log"),
+    )
 
     if not parsed_args.command:
         parser.print_help()

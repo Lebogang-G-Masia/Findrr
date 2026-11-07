@@ -1,7 +1,8 @@
 """High-level application preparation service (Module 5)."""
 
 import logging
-from typing import List, Optional
+from datetime import datetime
+from typing import Dict, List, Optional
 
 from findrr.db.repository import ApplicationRepository, PostingRepository, ProfileRepository
 from findrr.models.application import (
@@ -123,9 +124,24 @@ class ApplicationService:
         application_id: str,
         status: ApplicationStatus,
         notes: Optional[str] = None,
+        applied_at: Optional[datetime] = None,
+        contact_person: Optional[str] = None,
+        contact_email: Optional[str] = None,
     ) -> ApplicationRecord:
-        """Update lifecycle status of an application."""
-        return self.app_repo.update_status(application_id, status=status, notes=notes)
+        """Update lifecycle status of an application (US-015, FR-023, FR-024)."""
+        return self.app_repo.update_status(
+            application_id,
+            status=status,
+            notes=notes,
+            applied_at=applied_at,
+            contact_person=contact_person,
+            contact_email=contact_email,
+        )
+
+    def get_pipeline_summary(self, profile_id: Optional[str] = None) -> Dict[str, int]:
+        """Fetch summary count of applications by status (US-016, FR-025)."""
+        pid = profile_id or self._get_default_profile_id()
+        return self.app_repo.get_pipeline_summary(pid)
 
     def _get_default_profile_id(self) -> str:
         profiles = self.profile_repo.list_profiles()

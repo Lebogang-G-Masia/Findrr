@@ -170,12 +170,23 @@ Work items are organized hierarchically:
 
 ### Epic 6: Advanced Document Generation & Company Research (Module 5)
 - **US-012 (DOCX/PDF Export):** Export tailored CVs and cover letters formatted in standard PDF and DOCX formats (`FR-020`, Should Have).
+  - [x] Integrate python-docx for DOCX generation with verified profile grounding (`DocumentGenerator`).
+  - [x] Configure configurable output directory (`FINDRR_DOCS_DIR` / `--docs-dir`).
 - **US-013 (Model 3 Content Tailoring):** Integrate fine-tuned Kaggle Model 3 for stylistic alignment and natural phrasing (`ML-003`, Should Have).
+  - [x] Author Kaggle training notebook `notebooks/03_train_application_tailor.ipynb` adhering strictly to `docs/ml/models/application-tailor.md`.
+  - [x] Implement `ApplicationTailorRunner` (mock & ONNX) in `src/findrr/ml/application_tailor_runner.py`.
+  - [x] Integrate Model 3 into `InferenceService` via `tailor_statement()` and `_get_application_tailor()`.
 - **US-014 (Company Research Summaries):** Gather company mission, industry overview, and recent tech stack details with source attribution for interview prep (`FR-022`, Should Have).
 
 ### Epic 7: Comprehensive Application Lifecycle Tracking (Module 6 & 7)
 - **US-015 (Status Tracking Pipeline):** Track application statuses (Saved -> Applied -> Interviewing -> Offered) with submission dates and notes (`FR-023`, `FR-024`, Must Have).
+  - [x] Implement status transitions (`SAVED`, `APPLIED`, `INTERVIEWING`, `OFFERED`, `REJECTED`, `WITHDRAWN`) in `ApplicationRepository.update_status()`.
+  - [x] Support contact person, contact email, auto-applied date, and ISO-timestamped notes.
+  - [x] Implement `findrr apply status` CLI command.
 - **US-016 (CLI Search & Application Dashboard):** Display summary metrics, active pipelines, and search term effectiveness (`FR-025`, Should Have).
+  - [x] Implement `PostingRepository.get_search_metrics()` (postings count, company distribution, search term yield).
+  - [x] Implement `ApplicationRepository.get_pipeline_summary()` and `DashboardService`.
+  - [x] Implement `findrr dashboard` CLI command with rich visual tables and conversion stats.
 - **US-017 (Multi-Profile Support):** Enable creating and switching between multiple specialized profiles for distinct career paths (`FR-001` enhancement, Could Have).
 
 ---

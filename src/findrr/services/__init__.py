@@ -1,6 +1,7 @@
 """Service layer package."""
 
 from findrr.services.application_service import ApplicationService
+from findrr.services.dashboard_service import DashboardService
 from findrr.services.document_generator import DocumentGenerator
 from findrr.services.fact_matcher import FactMatcher
 from findrr.services.grounding_validator import FabricationDetectedError, FactGroundingValidator
@@ -26,6 +27,7 @@ __all__ = [
     "ValidatedCandidate",
     "PostingService",
     "ApplicationService",
+    "DashboardService",
     "FactMatcher",
     "FactGroundingValidator",
     "FabricationDetectedError",

@@ -1,5 +1,10 @@
 """Machine Learning and Model Management Package (Module 9)."""
 
+from findrr.ml.application_tailor_runner import (
+    MockApplicationTailorRunner,
+    ONNXApplicationTailorRunner,
+    create_application_tailor_runner,
+)
 from findrr.ml.base import IModelRunner
 from findrr.ml.exceptions import (
     FindrrError,
@@ -43,4 +48,7 @@ __all__ = [
     "TitleExpanderRunner",
     "MockSimilarityEvaluatorRunner",
     "SimilarityEvaluatorRunner",
+    "MockApplicationTailorRunner",
+    "ONNXApplicationTailorRunner",
+    "create_application_tailor_runner",
 ]

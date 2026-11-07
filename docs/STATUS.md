@@ -68,7 +68,7 @@ Mark an item verified only after the check has actually been run.
 |---|---|---|---|---|---|
 | `title-expander` (ML-001) | Approved (Gate 4) | Yes (`notebooks/01_train_title_expander.ipynb`) | Yes | Yes (v1.0.0, SHA-256 verified) | Pending (needs `torch` in .venv) |
 | `similarity-evaluator` (ML-002) | Approved (Gate 4) | Yes (`notebooks/02_train_similarity_evaluator.ipynb`) | Yes | Yes (v1.0.0, SHA-256 verified) | Verified (real ONNX inference: 0.7755) |
-| `application-tailor` (ML-003) | Approved (Gate 4) | No | No | No | No |
+| `application-tailor` (ML-003) | Approved (Gate 4) | Yes (`notebooks/03_train_application_tailor.ipynb`) | No | No | No |
 
 ## Documents
 

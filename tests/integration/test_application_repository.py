@@ -92,7 +92,41 @@ def test_update_application_status(db_conn: sqlite3.Connection, seed_data):
         notes="Tailored CV generated. Ready for submission.",
     )
     assert updated.status == ApplicationStatus.SAVED
-    assert updated.notes == "Tailored CV generated. Ready for submission."
+    assert "Tailored CV generated. Ready for submission." in updated.notes
+
+    # Transition to APPLIED with metadata
+    applied = repo.update_status(
+        app.id,
+        status=ApplicationStatus.APPLIED,
+        notes="Confirmed direct submission",
+        contact_person="HR Team",
+        contact_email="hr@soundlabs.com",
+    )
+    assert applied.status == ApplicationStatus.APPLIED
+    assert applied.applied_at is not None
+    assert applied.contact_person == "HR Team"
+    assert applied.contact_email == "hr@soundlabs.com"
+    assert "Confirmed direct submission" in applied.notes
+    assert "Tailored CV generated" in applied.notes
+
+
+def test_pipeline_and_search_metrics(db_conn: sqlite3.Connection, seed_data):
+    profile, posting = seed_data
+    app_repo = ApplicationRepository(db_conn)
+    post_repo = PostingRepository(db_conn)
+
+    app = app_repo.create_or_get_application(profile.id, posting.id)
+    app_repo.update_status(app.id, ApplicationStatus.APPLIED)
+
+    pipeline = app_repo.get_pipeline_summary(profile.id)
+    assert pipeline["APPLIED"] == 1
+    assert pipeline["TOTAL"] == 1
+
+    search_metrics = post_repo.get_search_metrics()
+    assert search_metrics["total_postings"] == 1
+    assert search_metrics["active_postings"] == 1
+    assert search_metrics["unique_companies"] == 1
+    assert len(search_metrics["top_companies"]) == 1
 
 
 def test_list_applications_for_profile(db_conn: sqlite3.Connection, seed_data):

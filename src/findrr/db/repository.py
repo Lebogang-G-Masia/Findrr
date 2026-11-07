@@ -4,7 +4,7 @@ import json
 import sqlite3
 import uuid
 from datetime import datetime, timezone
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from findrr.models.application import (
     ApplicationDocument,
@@ -487,6 +487,52 @@ class PostingRepository:
         row = cursor.fetchone()
         return row["total"] if row else 0
 
+    def get_search_metrics(self) -> Dict[str, Any]:
+        """Aggregate discovery metrics across all stored job postings (US-016, FR-025)."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS total FROM job_postings")
+        total = cursor.fetchone()["total"]
+
+        cursor.execute("SELECT COUNT(*) AS active FROM job_postings WHERE status = 'ACTIVE'")
+        active = cursor.fetchone()["active"]
+
+        cursor.execute("SELECT COUNT(DISTINCT company) AS unique_companies FROM job_postings")
+        unique_companies = cursor.fetchone()["unique_companies"]
+
+        cursor.execute(
+            """
+            SELECT company, COUNT(*) AS count
+            FROM job_postings
+            GROUP BY company
+            ORDER BY count DESC
+            LIMIT 5
+            """
+        )
+        top_companies = [{"company": r["company"], "count": r["count"]} for r in cursor.fetchall()]
+
+        cursor.execute(
+            """
+            SELECT st.generated_term, COUNT(jp.id) AS posting_count
+            FROM search_terms st
+            LEFT JOIN job_postings jp ON jp.search_term_id = st.id
+            GROUP BY st.id
+            ORDER BY posting_count DESC
+            LIMIT 5
+            """
+        )
+        term_yield = [
+            {"term": r["generated_term"], "count": r["posting_count"]} for r in cursor.fetchall()
+        ]
+
+        return {
+            "total_postings": total,
+            "active_postings": active,
+            "closed_postings": total - active,
+            "unique_companies": unique_companies,
+            "top_companies": top_companies,
+            "term_yield": term_yield,
+        }
+
     def _row_to_model(self, row: sqlite3.Row) -> JobPosting:
         raw_req = row["requirements_extracted"]
         requirements = json.loads(raw_req) if raw_req else []
@@ -578,26 +624,91 @@ class ApplicationRepository:
         status: ApplicationStatus,
         notes: Optional[str] = None,
         applied_at: Optional[datetime] = None,
+        contact_person: Optional[str] = None,
+        contact_email: Optional[str] = None,
     ) -> ApplicationRecord:
-        """Update status and metadata for an existing application."""
-        now = datetime.now(timezone.utc).isoformat()
-        applied_str = applied_at.isoformat() if applied_at else None
+        """Update status and metadata for an existing application (US-015, FR-023, FR-024)."""
+        existing = self.get_application(application_id)
+        if not existing:
+            raise ValueError(f"Application {application_id} not found.")
+
+        now_dt = datetime.now(timezone.utc)
+        now_str = now_dt.isoformat()
+
+        # If transitioning to APPLIED and applied_at not given and not already set, default to now
+        if (
+            status == ApplicationStatus.APPLIED
+            and applied_at is None
+            and existing.applied_at is None
+        ):
+            applied_at = now_dt
+
+        applied_str = (
+            applied_at.isoformat()
+            if applied_at
+            else (existing.applied_at.isoformat() if existing.applied_at else None)
+        )
+
+        # Handle timestamped note appending if notes given
+        updated_notes = existing.notes
+        if notes and notes.strip():
+            now_iso_short = now_dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+            formatted_entry = f"[{now_iso_short}] {notes.strip()}"
+            if existing.notes:
+                updated_notes = f"{existing.notes}\n{formatted_entry}"
+            else:
+                updated_notes = formatted_entry
+
+        updated_person = contact_person if contact_person is not None else existing.contact_person
+        updated_email = contact_email if contact_email is not None else existing.contact_email
+
         with self.conn:
             self.conn.execute(
                 """
                 UPDATE application_records
                 SET status = ?,
-                    notes = COALESCE(?, notes),
-                    applied_at = COALESCE(?, applied_at),
+                    notes = ?,
+                    applied_at = ?,
+                    contact_person = ?,
+                    contact_email = ?,
                     updated_at = ?
                 WHERE id = ?
                 """,
-                (status.value, notes, applied_str, now, application_id),
+                (
+                    status.value,
+                    updated_notes,
+                    applied_str,
+                    updated_person,
+                    updated_email,
+                    now_str,
+                    application_id,
+                ),
             )
         record = self.get_application(application_id)
         if not record:
             raise ValueError(f"Application {application_id} not found.")
         return record
+
+    def get_pipeline_summary(self, profile_id: Optional[str] = None) -> Dict[str, int]:
+        """Aggregate counts of applications grouped by lifecycle status (US-016, FR-025)."""
+        cursor = self.conn.cursor()
+        query = "SELECT status, COUNT(*) as count FROM application_records"
+        params: List[Any] = []
+        if profile_id:
+            query += " WHERE profile_id = ?"
+            params.append(profile_id)
+        query += " GROUP BY status"
+
+        cursor.execute(query, params)
+        counts = {s.value: 0 for s in ApplicationStatus}
+        total = 0
+        for row in cursor.fetchall():
+            s = row["status"]
+            c = row["count"]
+            counts[s] = c
+            total += c
+        counts["TOTAL"] = total
+        return counts
 
     def list_applications_for_profile(self, profile_id: str) -> List[ApplicationRecord]:
         """List all application records for a given user profile."""

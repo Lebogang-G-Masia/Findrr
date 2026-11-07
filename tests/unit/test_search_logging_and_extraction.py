@@ -148,3 +148,68 @@ def test_search_run_parser_accepts_limit_alias():
     parser = build_parser()
     parsed = parser.parse_args(["search", "run", "--limit", "5"])
     assert parsed.max == 5
+
+
+def test_is_captcha_or_bot_challenge_detection():
+    """Verify detection of Google sorry/index redirect and CAPTCHA DOM markers."""
+    engine = JobDiscoveryEngine()
+
+    # URL match
+    mock_driver_url = MagicMock()
+    mock_driver_url.current_url = "https://www.google.com/sorry/index?continue=..."
+    assert engine.is_captcha_or_bot_challenge(mock_driver_url) is True
+
+    # Title match
+    mock_driver_title = MagicMock()
+    mock_driver_title.current_url = "https://www.google.com/search?q=test"
+    mock_driver_title.title = "Sorry... We have detected unusual traffic from your computer network"
+    assert engine.is_captcha_or_bot_challenge(mock_driver_title) is True
+
+    # Clean normal page
+    mock_clean = MagicMock()
+    mock_clean.current_url = "https://www.google.com/search?q=test"
+    mock_clean.title = "Software Engineer - Google Search"
+    mock_clean.find_elements.return_value = []
+    assert engine.is_captcha_or_bot_challenge(mock_clean) is False
+
+
+def test_handle_human_captcha_challenge_resolved():
+    """Verify human-in-the-loop prompt flow when user solves challenge."""
+    prompt_called = []
+
+    def fake_prompt(msg: str):
+        prompt_called.append(msg)
+
+    engine = JobDiscoveryEngine(headless=False, prompt_hook=fake_prompt)
+
+    mock_driver = MagicMock()
+    # Initially on sorry/index, but after prompt returns clean search page
+    mock_driver.current_url = "https://www.google.com/sorry/index"
+    mock_driver.title = "Sorry..."
+
+    def simulate_user_solving(msg: str):
+        prompt_called.append(msg)
+        mock_driver.current_url = "https://www.google.com/search?q=test"
+        mock_driver.title = "Results"
+        mock_driver.find_elements.return_value = []
+
+    engine.prompt_hook = simulate_user_solving
+
+    resolved = engine._handle_human_captcha_challenge(mock_driver)
+    assert resolved is True
+    assert len(prompt_called) == 1
+
+
+def test_handle_human_captcha_challenge_headless():
+    """Verify headless mode refuses to prompt and cleanly returns False."""
+    prompt_called = []
+    engine = JobDiscoveryEngine(
+        headless=True,
+        prompt_hook=lambda msg: prompt_called.append(msg),
+    )
+    mock_driver = MagicMock()
+    mock_driver.current_url = "https://www.google.com/sorry/index"
+
+    resolved = engine._handle_human_captcha_challenge(mock_driver)
+    assert resolved is False
+    assert len(prompt_called) == 0

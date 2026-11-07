@@ -6,8 +6,14 @@ from typing import List, Optional
 
 from findrr.cli.config_cli import display_search_config, run_search_config_prompt
 from findrr.cli.profile_cli import handle_synthesize_title, run_interactive_questionnaire
+from findrr.cli.search_cli import handle_search_cli, register_search_subparsers
 from findrr.db.connection import get_connection, init_db
-from findrr.db.repository import ProfileRepository, SearchConfigRepository, TitleRepository
+from findrr.db.repository import (
+    PostingRepository,
+    ProfileRepository,
+    SearchConfigRepository,
+    TitleRepository,
+)
 from findrr.ml.registry import ModelRegistry
 from findrr.services.inference_service import InferenceService
 from findrr.services.profile_service import ProfileService
@@ -97,6 +103,9 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser.add_argument("text_a", help="First title or text")
     compare_parser.add_argument("text_b", help="Second title or text")
 
+    # Subparser: search (Module 4)
+    register_search_subparsers(subparsers)
+
     return parser
 
 
@@ -114,6 +123,7 @@ def main(args: Optional[List[str]] = None) -> int:
     profile_repo = ProfileRepository(conn)
     title_repo = TitleRepository(conn)
     config_repo = SearchConfigRepository(conn)
+    posting_repo = PostingRepository(conn)
 
     profile_service = ProfileService(profile_repo, title_repo)
     config_service = SearchConfigService(config_repo, profile_repo)
@@ -277,6 +287,15 @@ def main(args: Optional[List[str]] = None) -> int:
         else:
             parser.parse_args(["model", "--help"])
             return 0
+
+    elif parsed_args.command == "search":
+        return handle_search_cli(
+            args=parsed_args,
+            posting_repo=posting_repo,
+            profile_repo=profile_repo,
+            title_repo=title_repo,
+            config_repo=config_repo,
+        )
 
     return 0
 

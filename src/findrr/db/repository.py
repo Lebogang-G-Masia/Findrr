@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Any, List, Optional
 
+from findrr.models.posting import JobPosting, PostingAvailability
 from findrr.models.profile import (
     ProfileCategory,
     ProfileEntry,
@@ -354,4 +355,146 @@ class SearchConfigRepository:
             max_results_per_title=row["max_results_per_title"],
             created_at=_parse_timestamp(row["created_at"]),
             updated_at=_parse_timestamp(row["updated_at"]),
+        )
+
+
+class PostingRepository:
+    """Repository for storing and querying discovered job postings (Module 4)."""
+
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
+
+    def save_posting(self, posting: JobPosting) -> JobPosting:
+        """Insert or update a job posting, enforcing content_hash uniqueness."""
+        with self.conn:
+            self.conn.execute(
+                """
+                INSERT INTO job_postings (
+                    id, search_term_id, title, company, location,
+                    description, requirements_extracted, source_url,
+                    direct_apply_url, content_hash, status, posting_date,
+                    discovered_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(content_hash) DO UPDATE SET
+                    title = excluded.title,
+                    company = excluded.company,
+                    location = excluded.location,
+                    description = excluded.description,
+                    requirements_extracted = excluded.requirements_extracted,
+                    direct_apply_url = excluded.direct_apply_url,
+                    status = excluded.status,
+                    posting_date = excluded.posting_date
+                """,
+                (
+                    posting.id,
+                    posting.search_term_id,
+                    posting.title,
+                    posting.company,
+                    posting.location,
+                    posting.description,
+                    json.dumps(posting.requirements_extracted or []),
+                    posting.source_url,
+                    posting.direct_apply_url,
+                    posting.content_hash,
+                    posting.status.value,
+                    posting.posting_date,
+                    posting.discovered_at.isoformat(),
+                ),
+            )
+        return self.get_by_content_hash(posting.content_hash) or posting
+
+    def get_posting(self, posting_id: str) -> Optional[JobPosting]:
+        """Fetch a job posting by primary ID."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, search_term_id, title, company, location,
+                   description, requirements_extracted, source_url,
+                   direct_apply_url, content_hash, status, posting_date,
+                   discovered_at
+            FROM job_postings WHERE id = ?
+            """,
+            (posting_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return self._row_to_model(row)
+
+    def get_by_content_hash(self, content_hash: str) -> Optional[JobPosting]:
+        """Fetch a job posting by unique content hash."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, search_term_id, title, company, location,
+                   description, requirements_extracted, source_url,
+                   direct_apply_url, content_hash, status, posting_date,
+                   discovered_at
+            FROM job_postings WHERE content_hash = ?
+            """,
+            (content_hash,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return self._row_to_model(row)
+
+    def list_postings_by_term(self, search_term_id: str) -> List[JobPosting]:
+        """List all postings associated with a specific search term."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, search_term_id, title, company, location,
+                   description, requirements_extracted, source_url,
+                   direct_apply_url, content_hash, status, posting_date,
+                   discovered_at
+            FROM job_postings
+            WHERE search_term_id = ?
+            ORDER BY discovered_at DESC
+            """,
+            (search_term_id,),
+        )
+        return [self._row_to_model(r) for r in cursor.fetchall()]
+
+    def list_all_postings(self, limit: int = 100) -> List[JobPosting]:
+        """List discovered postings with a limit."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, search_term_id, title, company, location,
+                   description, requirements_extracted, source_url,
+                   direct_apply_url, content_hash, status, posting_date,
+                   discovered_at
+            FROM job_postings
+            ORDER BY discovered_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        return [self._row_to_model(r) for r in cursor.fetchall()]
+
+    def count_postings(self) -> int:
+        """Count total postings stored."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS total FROM job_postings")
+        row = cursor.fetchone()
+        return row["total"] if row else 0
+
+    def _row_to_model(self, row: sqlite3.Row) -> JobPosting:
+        raw_req = row["requirements_extracted"]
+        requirements = json.loads(raw_req) if raw_req else []
+        return JobPosting(
+            id=row["id"],
+            search_term_id=row["search_term_id"],
+            title=row["title"],
+            company=row["company"],
+            location=row["location"],
+            description=row["description"],
+            requirements_extracted=requirements,
+            source_url=row["source_url"],
+            direct_apply_url=row["direct_apply_url"],
+            content_hash=row["content_hash"],
+            status=PostingAvailability(row["status"]),
+            posting_date=row["posting_date"],
+            discovered_at=_parse_timestamp(row["discovered_at"]),
         )

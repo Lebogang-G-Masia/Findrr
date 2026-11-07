@@ -32,11 +32,11 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Model 2 (MiniLM) |
 | **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
 | **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
-| **FR-012** | Headful Selenium Automation | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/integration/test_selenium_search.py` | N/A |
-| **FR-013** | Extract 2–10 Postings/Title | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/integration/test_search_limits.py` | N/A |
+| **FR-012** | Headful Selenium Automation | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_query_builder.py`, `tests/integration/test_search_cli.py` | N/A |
+| **FR-013** | Extract 2–10 Postings/Title | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_search_limits.py`, `tests/integration/test_posting_service.py` | N/A |
 | **FR-014** | Employer Destination Priority | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_link_resolver.py` | N/A |
 | **FR-015** | Structured Posting Extraction | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_parser.py` | N/A |
-| **FR-016** | Duplicate Posting Filtering | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_dedup.py` | N/A |
+| **FR-016** | Duplicate Posting Filtering | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_parser.py`, `tests/unit/test_search_limits.py`, `tests/integration/test_posting_repository.py` | N/A |
 | **FR-017** | No Fabricated Search Results | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_search_limits.py` | N/A |
 | **FR-018** | Job Requirement Extraction | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_requirement_extract.py` | N/A |
 | **FR-019** | Profile-to-Job Fact Matching | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_fact_matcher.py` | N/A |

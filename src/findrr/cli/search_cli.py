@@ -29,7 +29,12 @@ def register_search_subparsers(subparsers: argparse._SubParsersAction) -> None:
     )
     run_parser.add_argument("--min", type=int, default=2, help="Minimum results to extract [2, 10]")
     run_parser.add_argument(
-        "--max", type=int, default=10, help="Maximum results to extract [2, 10]"
+        "--max",
+        "--limit",
+        dest="max",
+        type=int,
+        default=10,
+        help="Maximum results to extract [2, 10] (default: 10)",
     )
     run_parser.add_argument(
         "--headless",

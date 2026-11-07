@@ -267,10 +267,28 @@ class PostingParser:
             ".employer",
             ".company",
             "[class*='company']",
+            "[class*='employer']",
+            "[class*='hiring-org']",
         ]:
             elem = soup.select_one(selector)
             if elem and elem.get_text(strip=True):
                 return elem.get_text(strip=True)
+
+        meta_selectors = [
+            ("meta[property='og:site_name']", "content"),
+            ("meta[name='author']", "content"),
+            ("meta[name='twitter:site']", "content"),
+            ("meta[name='publisher']", "content"),
+        ]
+        for sel, attr in meta_selectors:
+            meta_tag = soup.select_one(sel)
+            if meta_tag and meta_tag.get(attr):
+                val = meta_tag.get(attr, "").strip()
+                if val.startswith("@"):
+                    val = val[1:].strip()
+                if val and len(val) <= 100:
+                    return val
+
         return None
 
     @classmethod
@@ -294,8 +312,12 @@ class PostingParser:
             ".job-description",
             ".description",
             "[class*='description']",
+            "[class*='job-details']",
+            "[class*='job-content']",
+            "[class*='posting-content']",
             "article",
             "main",
+            "[role='main']",
         ]:
             elem = soup.select_one(selector)
             if elem:

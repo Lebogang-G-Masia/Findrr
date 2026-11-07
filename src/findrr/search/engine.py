@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
@@ -19,12 +20,19 @@ def clean_search_result_url(url: str) -> Optional[str]:
     """Extract destination URL from search engine redirect links (e.g., /url?q=...)."""
     if not url:
         return None
+    url = url.strip()
     parsed = urlparse(url)
-    if "google.com" in parsed.netloc and parsed.path == "/url":
+
+    # Check for Google search redirect paths (both relative and absolute across regional TLDs)
+    is_google_host = not parsed.netloc or "google." in parsed.netloc.lower()
+    if is_google_host and parsed.path.rstrip("/") == "/url":
         qs = parse_qs(parsed.query)
-        target = qs.get("q")
-        if target:
-            return target[0]
+        target = qs.get("q") or qs.get("url")
+        if target and target[0]:
+            target_url = target[0].strip()
+            if target_url.startswith("http://") or target_url.startswith("https://"):
+                return target_url
+
     if url.startswith("http://") or url.startswith("https://"):
         return url
     return None
@@ -135,23 +143,53 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
         driver = None
         try:
             driver = self.driver_factory(headless=self.headless)
-            logger.info("Navigating to search URL: %s", search_url)
+            logger.info(
+                "WebDriver initialized successfully. Navigating to search URL: %s",
+                search_url,
+            )
             driver.get(search_url)
             polite_delay()
+
+            # Handle Google consent popup or redirect if encountered
+            self._handle_google_consent_if_present(driver)
 
             search_page_source = driver.page_source
             candidate_urls = self._extract_result_links_from_search_page(search_page_source)
             metrics.results_retrieved = len(candidate_urls)
-            logger.info("Retrieved %d search result links", len(candidate_urls))
+            logger.info("Retrieved %d candidate search result links from page", len(candidate_urls))
 
-            for target_url in candidate_urls:
+            if len(candidate_urls) == 0:
+                curr_url = getattr(driver, "current_url", "unknown")
+                logger.warning(
+                    "0 candidate result links extracted from search page (current URL: %s). "
+                    "Dumping debug snapshot to logs/...",
+                    curr_url,
+                )
+                html_snap, png_snap = self._dump_debug_snapshot(driver, search_page_source)
+                logger.warning(
+                    "Diagnostic snapshot written: HTML=%s, Screenshot=%s",
+                    html_snap,
+                    png_snap,
+                )
+
+            for idx, target_url in enumerate(candidate_urls, 1):
                 if len(extracted_postings) >= eff_max:
+                    logger.info(
+                        "Reached maximum requested postings (%d). Stopping discovery.",
+                        eff_max,
+                    )
                     break
                 try:
-                    logger.info("Visiting posting destination: %s", target_url)
+                    logger.info(
+                        "[%d/%d] Visiting posting destination: %s",
+                        idx,
+                        len(candidate_urls),
+                        target_url,
+                    )
                     polite_delay()
                     driver.get(target_url)
                     posting_html = driver.page_source
+                    logger.debug("Destination page HTML length: %d chars", len(posting_html))
 
                     posting = PostingParser.parse_html(
                         html_content=posting_html,
@@ -159,23 +197,31 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
                         search_term_id=search_term_id,
                         fallback_title=title,
                     )
-                    if posting:
-                        metrics.postings_extracted += 1
-                        if posting.content_hash in seen_hashes:
-                            metrics.duplicates_detected += 1
-                            logger.info(
-                                "Skipped duplicate posting: %s at %s",
-                                posting.title,
-                                posting.company,
-                            )
-                            continue
-                        seen_hashes.add(posting.content_hash)
-                        extracted_postings.append(posting)
+                    if not posting:
                         logger.info(
-                            "Extracted valid posting: '%s' at '%s'",
+                            "PostingParser could not extract mandatory fields from: %s",
+                            target_url,
+                        )
+                        continue
+
+                    metrics.postings_extracted += 1
+                    if posting.content_hash in seen_hashes:
+                        metrics.duplicates_detected += 1
+                        logger.info(
+                            "Skipped duplicate posting: '%s' at '%s' (hash: %s)",
                             posting.title,
                             posting.company,
+                            posting.content_hash,
                         )
+                        continue
+
+                    seen_hashes.add(posting.content_hash)
+                    extracted_postings.append(posting)
+                    logger.info(
+                        "Successfully extracted and retained posting: '%s' at '%s'",
+                        posting.title,
+                        posting.company,
+                    )
                 except Exception as err:
                     logger.warning("Failed processing candidate posting %s: %s", target_url, err)
                     continue
@@ -199,6 +245,79 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
         )
         return extracted_postings, metrics
 
+    def _handle_google_consent_if_present(self, driver: Any) -> bool:
+        """Detect and accept Google cookie/privacy consent dialogs if encountered."""
+        if not driver:
+            return False
+        logger.debug("Checking for Google consent banner or redirect...")
+        try:
+            current_url = getattr(driver, "current_url", "")
+            if "consent.google" in current_url:
+                logger.info("Detected Google consent redirect page: %s", current_url)
+
+            selectors = [
+                ("id", "L2AGLb"),
+                ("css selector", "button#L2AGLb"),
+                ("css selector", "form[action*='consent'] button"),
+                (
+                    "xpath",
+                    "//button[contains(., 'Accept all') or contains(., 'I agree') or "
+                    "contains(., 'Tout accepter') or contains(., 'Alle akzeptieren')]",
+                ),
+            ]
+            for by_type, selector_val in selectors:
+                try:
+                    elements = driver.find_elements(by_type, selector_val)
+                    for btn in elements:
+                        if btn.is_displayed():
+                            logger.info(
+                                "Dismissing Google consent modal via selector (%s: %s)...",
+                                by_type,
+                                selector_val,
+                            )
+                            btn.click()
+                            polite_delay(1.0, 2.0)
+                            return True
+                except Exception as sel_err:
+                    logger.debug(
+                        "Consent check with selector (%s: %s) produced: %s",
+                        by_type,
+                        selector_val,
+                        sel_err,
+                    )
+        except Exception as exc:
+            logger.debug("Consent banner check encountered exception: %s", exc)
+        return False
+
+    def _dump_debug_snapshot(
+        self, driver: Any, html_source: str, log_dir: str = "logs"
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Save HTML snapshot and browser screenshot when search yields 0 candidate links."""
+        out_dir = Path(log_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        html_path = out_dir / "last_search_page.html"
+        png_path = out_dir / "last_search_page.png"
+
+        html_saved: Optional[str] = None
+        png_saved: Optional[str] = None
+
+        try:
+            html_path.write_text(html_source or "", encoding="utf-8")
+            html_saved = str(html_path)
+            logger.info("Saved search page HTML snapshot to: %s", html_path)
+        except Exception as err:
+            logger.warning("Failed saving search page HTML snapshot: %s", err)
+
+        if driver and hasattr(driver, "save_screenshot"):
+            try:
+                driver.save_screenshot(str(png_path))
+                png_saved = str(png_path)
+                logger.info("Saved search page screenshot to: %s", png_path)
+            except Exception as err:
+                logger.warning("Failed saving search page screenshot: %s", err)
+
+        return html_saved, png_saved
+
     def _extract_result_links_from_search_page(self, html_content: str) -> List[str]:
         """Parse search engine result page and extract job posting target URLs."""
         urls: List[str] = []
@@ -206,8 +325,14 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
             return urls
 
         soup = BeautifulSoup(html_content, "html.parser")
-        for anchor in soup.find_all("a", href=True):
-            raw_href = anchor.get("href", "")
+        all_anchors = soup.find_all("a", href=True)
+        logger.debug("Scanning %d <a> tags on search page for target links", len(all_anchors))
+
+        for anchor in all_anchors:
+            raw_href = anchor.get("href", "").strip()
+            if not raw_href or raw_href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                continue
+
             cleaned = clean_search_result_url(raw_href)
             if not cleaned:
                 continue
@@ -215,20 +340,59 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
             # Skip search engine navigation and internal pages
             parsed = urlparse(cleaned)
             hostname = (parsed.hostname or "").lower()
+            path = parsed.path.lower()
+
             if any(
                 domain in hostname
                 for domain in (
-                    "google.",
                     "bing.",
                     "yahoo.",
                     "duckduckgo.",
                     "youtube.",
                     "wikipedia.",
+                    "w3.org",
+                    "schema.org",
                 )
             ):
                 continue
 
+            # Skip Google internal navigation and services
+            if "google." in hostname:
+                if "careers.google" not in hostname:
+                    google_internal_prefixes = (
+                        "/search",
+                        "/preferences",
+                        "/advanced_search",
+                        "/webhp",
+                        "/intl",
+                        "/policies",
+                        "/terms",
+                        "/about",
+                        "/services",
+                    )
+                    if path in ("", "/") or path.startswith(google_internal_prefixes):
+                        continue
+                    if any(
+                        sub in hostname
+                        for sub in (
+                            "accounts.",
+                            "support.",
+                            "policies.",
+                            "maps.",
+                            "mail.",
+                            "news.",
+                            "drive.",
+                        )
+                    ):
+                        continue
+
             if cleaned not in urls:
                 urls.append(cleaned)
+                logger.debug("Candidate search link discovered: %s", cleaned)
 
+        logger.debug(
+            "Extracted %d valid candidate destination URLs out of %d anchors",
+            len(urls),
+            len(all_anchors),
+        )
         return urls

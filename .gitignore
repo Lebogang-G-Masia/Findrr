@@ -81,6 +81,7 @@ data/applications/
 
 # Selenium and scrapers
 chrome_profile/
+logs/
 *.log
 geckodriver.log
 chromedriver.log

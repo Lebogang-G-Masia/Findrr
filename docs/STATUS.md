@@ -10,23 +10,23 @@
 |---|---|
 | Last updated | 2026-11-07 |
 | Current milestone | Milestone 1 (Core CLI Baseline Complete) |
-| Current phase | Bug Fix & Search Bot Handling |
+| Current phase | Bug Fix & Search Reliability |
 | Current iteration | Hotfix |
-| Current branch | fix/search-captcha-handling-and-profile-persistence |
-| Open PR | PR #12 (https://github.com/Lebogang-G-Masia/Findrr/pull/12) |
+| Current branch | fix/support-google-goto-redirects |
+| Open PR | PR #13 (https://github.com/Lebogang-G-Masia/Findrr/pull/13) |
 | Latest release | None |
 
 ## Current task
 
-Bug fix: PR #12 opened to implement human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile (`chrome_profile/`) per Decision D-001. Awaiting user review and merge.
+Bug fix: PR #13 opened to support Google's `/goto?url=` redirect link extraction and CI check ignore rules. Awaiting user review and merge.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #12
+- Awaiting merge: PR #13
 
 ## Next step
 
-User reviews and merges PR #12.
+User reviews and merges PR #13.
 
 ## Blockers
 
@@ -93,8 +93,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
+| 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |
 | 2026-11-07 | Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile (chrome_profile/) implemented per Decision D-001. 119 tests passing with 85% coverage. Opened PR #12. | fix/search-captcha-handling-and-profile-persistence / PR #12 |
 | 2026-11-07 | PR #11 merged into `main` by user. Switched to `main`, pulled merge commit `f8f4f38`. Deleted local fix branch. Search link extraction, cookie consent dismissal, snapshot diagnostics, and logs/findrr.log verified. | main |
 | 2026-11-07 | Fix for search link extraction (relative /url?q= and regional Google domains), cookie consent dismissal, debug snapshot dumping on 0 results, and comprehensive file logging (logs/findrr.log) implemented. 116 tests passing with 85% coverage. Opened PR #11. | fix/search-logging-and-link-extraction / PR #11 |
-| 2026-11-07 | PR #10 merged into `main` by user. Switched to `main`, pulled merge commit `f1653fe`. Deleted local fix branch. Model 2 real ONNX inference verified live on CPU (0.7755). Milestone 1 baseline complete. | main |
-| 2026-11-07 | Fix for ONNX LayerNormalization batch size mismatch implemented and verified against real trained Model 2 artifacts (similarity score: 0.7755). Added FINDRR_DOCS_DIR support. 106 tests passing with 85% coverage. Opened PR #10. | fix/onnx-evaluator-batching / PR #10 |

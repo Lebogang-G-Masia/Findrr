@@ -27,6 +27,17 @@ def test_clean_search_result_url_regional_google():
     assert clean_search_result_url(uk_url) == "https://londondevs.co.uk/engineer"
 
 
+def test_clean_search_result_url_goto_redirects():
+    """Verify Google /goto?url= redirect URLs are formatted as absolute navigable links."""
+    goto_token = "/goto?url=CAESbAHEIkXXg14gAqZ661sO76G-9VvAB-DR254b8M"
+    cleaned = clean_search_result_url(goto_token)
+    assert cleaned == "https://www.google.com/goto?url=CAESbAHEIkXXg14gAqZ661sO76G-9VvAB-DR254b8M"
+
+    # Absolute google host with /goto
+    abs_goto = "https://www.google.co.za/goto?url=CAESbAHEIkXXg14g"
+    assert clean_search_result_url(abs_goto) == "https://www.google.co.za/goto?url=CAESbAHEIkXXg14g"
+
+
 def test_clean_search_result_url_direct_urls():
     """Verify direct HTTP/HTTPS URLs are passed through as-is."""
     direct = "https://boards.greenhouse.io/acmecorp/jobs/999"
@@ -58,6 +69,28 @@ def test_extract_result_links_from_search_page_with_relative_links():
     assert links == [
         "https://company-a.com/job/1",
         "https://company-b.com/job/2",
+    ]
+
+
+def test_extract_result_links_from_search_page_with_goto_links():
+    """Verify link extraction from Google SERP with /goto?url= redirect links."""
+    engine = JobDiscoveryEngine()
+    serp_html = """
+    <html>
+    <body>
+      <div id="search">
+        <a href="/goto?url=CAESbAHEIkXX1">OfferZen Job</a>
+        <a href="/goto?url=CAESdAHEIkXX2">CareerJunction Job</a>
+        <a href="https://support.google.com/websearch">Support</a>
+        <a href="/search?q=test">Search Navigation</a>
+      </div>
+    </body>
+    </html>
+    """
+    links = engine._extract_result_links_from_search_page(serp_html)
+    assert links == [
+        "https://www.google.com/goto?url=CAESbAHEIkXX1",
+        "https://www.google.com/goto?url=CAESdAHEIkXX2",
     ]
 
 

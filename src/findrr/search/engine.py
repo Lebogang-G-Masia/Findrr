@@ -17,22 +17,35 @@ from findrr.search.query_builder import build_google_search_url, build_search_qu
 logger = logging.getLogger(__name__)
 
 
-def clean_search_result_url(url: str) -> Optional[str]:
-    """Extract destination URL from search engine redirect links (e.g., /url?q=...)."""
+def clean_search_result_url(url: str, base_host: str = "https://www.google.com") -> Optional[str]:
+    """Extract destination URL from search engine redirect links (/url?q=..., /goto?url=...)."""
     if not url:
         return None
     url = url.strip()
     parsed = urlparse(url)
 
-    # Check for Google search redirect paths (both relative and absolute across regional TLDs)
     is_google_host = not parsed.netloc or "google." in parsed.netloc.lower()
-    if is_google_host and parsed.path.rstrip("/") == "/url":
+    path = parsed.path.rstrip("/")
+
+    # Check for Google search redirect paths (/url?q=... or /url?url=...)
+    if is_google_host and path == "/url":
         qs = parse_qs(parsed.query)
         target = qs.get("q") or qs.get("url")
         if target and target[0]:
             target_url = target[0].strip()
             if target_url.startswith("http://") or target_url.startswith("https://"):
                 return target_url
+
+    # Check for Google search redirect paths (/goto?url=...)
+    if is_google_host and path == "/goto":
+        qs = parse_qs(parsed.query)
+        target = qs.get("url")
+        if target and target[0]:
+            target_token = target[0].strip()
+            if target_token.startswith("http://") or target_token.startswith("https://"):
+                return target_token
+            host_prefix = f"https://{parsed.netloc}" if parsed.netloc else base_host.rstrip("/")
+            return f"{host_prefix}/goto?url={target_token}"
 
     if url.startswith("http://") or url.startswith("https://"):
         return url
@@ -204,11 +217,16 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
                     polite_delay()
                     driver.get(target_url)
                     posting_html = driver.page_source
-                    logger.debug("Destination page HTML length: %d chars", len(posting_html))
+                    resolved_url = getattr(driver, "current_url", target_url)
+                    logger.debug(
+                        "Landed on destination: %s (HTML length: %d chars)",
+                        resolved_url,
+                        len(posting_html),
+                    )
 
                     posting = PostingParser.parse_html(
                         html_content=posting_html,
-                        source_url=target_url,
+                        source_url=resolved_url,
                         search_term_id=search_term_id,
                         fallback_title=title,
                     )
@@ -452,7 +470,11 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
 
             # Skip Google internal navigation and services
             if "google." in hostname:
-                if "careers.google" not in hostname:
+                if "/goto" in path:
+                    pass
+                elif "careers.google" in hostname:
+                    pass
+                else:
                     google_internal_prefixes = (
                         "/search",
                         "/preferences",

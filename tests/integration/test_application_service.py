@@ -134,4 +134,4 @@ def test_prepare_application_generates_documents_and_stores(service_env):
     # Update status
     updated = service.update_status(app.id, status=ApplicationStatus.SAVED, notes="Draft ready")
     assert updated.status == ApplicationStatus.SAVED
-    assert updated.notes == "Draft ready"
+    assert "Draft ready" in updated.notes

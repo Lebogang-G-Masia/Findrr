@@ -1,10 +1,14 @@
-"""CLI commands for application preparation and requirement gap analysis (Module 5)."""
+"""CLI commands for application preparation and requirement gap analysis (Module 5 & 6)."""
 
 import argparse
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 
 from findrr.db.repository import ApplicationRepository, PostingRepository, ProfileRepository
+from findrr.models.application import ApplicationStatus
 from findrr.services.application_service import ApplicationService
+from findrr.services.document_generator import DocumentGenerator
 
 
 def register_app_subparsers(subparsers: argparse._SubParsersAction) -> None:
@@ -27,10 +31,29 @@ def register_app_subparsers(subparsers: argparse._SubParsersAction) -> None:
     draft_parser = app_sub.add_parser("draft", help="Generate tailored CV and cover letter drafts")
     draft_parser.add_argument("posting_id", help="UUID of the job posting")
     draft_parser.add_argument("--profile-id", help="Target profile ID")
+    draft_parser.add_argument("--docs-dir", help="Custom output directory for generated drafts")
     draft_parser.add_argument("--no-cv", action="store_true", help="Skip CV generation")
     draft_parser.add_argument(
         "--no-letter", action="store_true", help="Skip cover letter generation"
     )
+
+    # findrr apply status <application_id> <status>
+    status_parser = app_sub.add_parser(
+        "status", help="Update application lifecycle status and notes (Module 6)"
+    )
+    status_parser.add_argument("application_id", help="UUID of the application record")
+    status_parser.add_argument(
+        "status",
+        choices=[s.value for s in ApplicationStatus],
+        help="Target lifecycle status (e.g. SAVED, APPLIED, INTERVIEWING, OFFERED)",
+    )
+    status_parser.add_argument("--notes", help="Notes or developments regarding this update")
+    status_parser.add_argument(
+        "--applied-at",
+        help="Submission date in ISO format YYYY-MM-DD (defaults to now for APPLIED)",
+    )
+    status_parser.add_argument("--contact-person", help="Contact person or recruiter name")
+    status_parser.add_argument("--contact-email", help="Contact person email address")
 
     # findrr apply list
     list_parser = app_sub.add_parser("list", help="List prepared applications and statuses")
@@ -50,10 +73,16 @@ def handle_app_cli(
     profile_repo: ProfileRepository,
 ) -> int:
     """Dispatch and execute application CLI subcommands."""
+    doc_gen = (
+        DocumentGenerator(storage_dir=Path(args.docs_dir))
+        if getattr(args, "docs_dir", None)
+        else None
+    )
     service = ApplicationService(
         application_repo=app_repo,
         posting_repo=posting_repo,
         profile_repo=profile_repo,
+        document_generator=doc_gen,
     )
 
     cmd = args.apply_cmd
@@ -62,6 +91,8 @@ def handle_app_cli(
         return _handle_analyze(args, service)
     elif cmd == "draft":
         return _handle_draft(args, service)
+    elif cmd == "status":
+        return _handle_status(args, service)
     elif cmd == "list":
         return _handle_list(args, service)
     elif cmd == "show":
@@ -136,6 +167,53 @@ def _handle_draft(args: argparse.Namespace, service: ApplicationService) -> int:
             print("... [preview truncated]")
 
     print("\nReview and edit generated files prior to submission.")
+    return 0
+
+
+def _handle_status(args: argparse.Namespace, service: ApplicationService) -> int:
+    applied_dt = None
+    if args.applied_at:
+        try:
+            applied_dt = datetime.fromisoformat(args.applied_at).replace(tzinfo=timezone.utc)
+        except ValueError:
+            print(
+                f"Error: Invalid applied-at date format '{args.applied_at}'. Use YYYY-MM-DD.",
+                file=sys.stderr,
+            )
+            return 1
+
+    try:
+        status_enum = ApplicationStatus(args.status.upper())
+    except ValueError:
+        print(f"Error: Invalid application status '{args.status}'.", file=sys.stderr)
+        return 1
+
+    try:
+        updated = service.update_status(
+            application_id=args.application_id,
+            status=status_enum,
+            notes=args.notes,
+            applied_at=applied_dt,
+            contact_person=args.contact_person,
+            contact_email=args.contact_email,
+        )
+    except Exception as err:
+        print(f"Error updating application status: {err}", file=sys.stderr)
+        return 1
+
+    print("================================================================================")
+    print("                      Application Status Updated (Module 6)                     ")
+    print("================================================================================")
+    print(f"Application ID: {updated.id}")
+    print(f"Status:         {updated.status.value}")
+    print(f"Applied Date:   {updated.applied_at or 'Not submitted'}")
+    if updated.contact_person or updated.contact_email:
+        print(f"Contact:        {updated.contact_person or ''} <{updated.contact_email or ''}>")
+    print(f"Updated At:     {updated.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    if updated.notes:
+        print("\n--- Notes History ---")
+        print(updated.notes)
+    print("================================================================================")
     return 0
 
 

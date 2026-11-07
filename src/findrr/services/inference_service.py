@@ -2,10 +2,14 @@
 
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from findrr.ml.application_tailor_runner import (
+    MockApplicationTailorRunner,
+    ONNXApplicationTailorRunner,
+)
 from findrr.ml.base import IModelRunner
 from findrr.ml.registry import ModelRegistry
 from findrr.ml.similarity_evaluator_runner import (
@@ -110,6 +114,29 @@ class InferenceService:
         self._runners[model_id] = runner
         return runner
 
+    def _get_application_tailor(self) -> IModelRunner:
+        model_id = "ML-003"
+        if model_id in self._runners:
+            return self._runners[model_id]
+
+        if self.force_mock:
+            runner = MockApplicationTailorRunner()
+        else:
+            status = self.registry.inspect_model_status(model_id)
+            if status["integrity_verified"]:
+                artifact_dir = self.registry.get_artifact_dir(model_id)
+                runner = ONNXApplicationTailorRunner(artifact_dir)
+            else:
+                logger.warning(
+                    "Real Model 3 artifacts not available or unverified (%s). "
+                    "Falling back to explicit MOCK runner.",
+                    status.get("error"),
+                )
+                runner = MockApplicationTailorRunner()
+
+        self._runners[model_id] = runner
+        return runner
+
     def expand_titles(
         self,
         generalized_title: str,
@@ -197,6 +224,22 @@ class InferenceService:
                 )
 
         return evaluated
+
+    def tailor_statement(
+        self,
+        target_role: str,
+        company: str,
+        job_requirements: List[str],
+        verified_user_facts: List[str],
+    ) -> Dict[str, Any]:
+        """Generate tailored fact-grounded statement using Model 3 (ML-003, US-013)."""
+        runner = self._get_application_tailor()
+        return runner.generate_statement(
+            target_role=target_role,
+            company=company,
+            job_requirements=job_requirements,
+            verified_user_facts=verified_user_facts,
+        )
 
     def unload_model(self, model_id: str) -> None:
         """Explicitly unload a model from memory to respect host memory limits."""

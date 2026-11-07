@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from findrr.cli.app_cli import handle_app_cli, register_app_subparsers
 from findrr.cli.config_cli import display_search_config, run_search_config_prompt
+from findrr.cli.dashboard_cli import handle_dashboard_cli, register_dashboard_subparsers
 from findrr.cli.profile_cli import handle_synthesize_title, run_interactive_questionnaire
 from findrr.cli.search_cli import handle_search_cli, register_search_subparsers
 from findrr.db.connection import get_connection, init_db
@@ -156,8 +157,11 @@ def build_parser() -> argparse.ArgumentParser:
     # Subparser: search (Module 4)
     register_search_subparsers(subparsers)
 
-    # Subparser: apply (Module 5)
+    # Subparser: apply (Module 5 & 6)
     register_app_subparsers(subparsers)
+
+    # Subparser: dashboard (Module 7)
+    register_dashboard_subparsers(subparsers)
 
     return parser
 
@@ -358,6 +362,14 @@ def main(args: Optional[List[str]] = None) -> int:
 
     elif parsed_args.command == "apply":
         return handle_app_cli(
+            args=parsed_args,
+            app_repo=app_repo,
+            posting_repo=posting_repo,
+            profile_repo=profile_repo,
+        )
+
+    elif parsed_args.command == "dashboard":
+        return handle_dashboard_cli(
             args=parsed_args,
             app_repo=app_repo,
             posting_repo=posting_repo,

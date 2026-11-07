@@ -74,7 +74,7 @@ CATALOG: Dict[str, ModelRegistration] = {
         architecture="Qwen2.5-0.5B-Instruct / Flan-T5-base",
         required_files=[
             "manifest.json",
-            "model.safetensors",
+            "model.onnx",
             "config.json",
             "tokenizer.json",
             "tokenizer_config.json",

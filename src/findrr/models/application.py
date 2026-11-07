@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -75,3 +75,19 @@ class TailoredDraftResult(BaseModel):
     file_path: str
     content_text: str
     is_grounded: bool = True
+
+
+class DashboardMetrics(BaseModel):
+    """Aggregate metrics for employment search and application pipeline (Module 7, FR-025)."""
+
+    total_postings: int = 0
+    active_postings: int = 0
+    closed_postings: int = 0
+    unique_companies: int = 0
+    pipeline_counts: Dict[str, int] = Field(default_factory=dict)
+    submitted_count: int = 0
+    interview_rate_pct: float = 0.0
+    offer_rate_pct: float = 0.0
+    top_companies: List[Dict[str, Any]] = Field(default_factory=list)
+    term_yield: List[Dict[str, Any]] = Field(default_factory=list)
+    recent_activity: List[Dict[str, Any]] = Field(default_factory=list)

@@ -4,6 +4,7 @@ from findrr.models.application import (
     ApplicationDocument,
     ApplicationRecord,
     ApplicationStatus,
+    DashboardMetrics,
     DocumentType,
     RequirementAnalysisResult,
     TailoredDraftResult,
@@ -58,4 +59,5 @@ __all__ = [
     "ApplicationDocument",
     "RequirementAnalysisResult",
     "TailoredDraftResult",
+    "DashboardMetrics",
 ]

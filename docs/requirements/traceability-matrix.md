@@ -43,9 +43,9 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-020** | Tailored CV Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/unit/test_document_generator.py`, `tests/unit/test_grounding_validator.py`, `tests/integration/test_application_service.py`, `tests/integration/test_app_cli.py` | Model 3 |
 | **FR-021** | Tailored Cover Letter Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/unit/test_document_generator.py`, `tests/unit/test_grounding_validator.py`, `tests/integration/test_application_service.py`, `tests/integration/test_app_cli.py` | Model 3 |
 | **FR-022** | Company Research Summary | Mod 5 (App Prep) | `US-014` | `AC-005` | `tests/unit/test_company_research.py` | N/A |
-| **FR-023** | Application Status Transitions | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_lifecycle.py` | N/A |
-| **FR-024** | Submission Logging & Notes | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_records.py` | N/A |
-| **FR-025** | Search & Pipeline Metrics | Mod 7 (Dashboard) | `US-016` | `AC-005` | `tests/unit/test_dashboard_metrics.py` | N/A |
+| **FR-023** | Application Status Transitions | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_status_cli.py`, `tests/integration/test_app_status_cli.py`, `tests/integration/test_application_repository.py`, `tests/integration/test_application_service.py` | N/A |
+| **FR-024** | Submission Logging & Notes | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/integration/test_app_status_cli.py`, `tests/integration/test_application_repository.py`, `tests/integration/test_application_service.py` | N/A |
+| **FR-025** | Search & Pipeline Metrics | Mod 7 (Dashboard) | `US-016` | `AC-005` | `tests/unit/test_dashboard_service.py`, `tests/integration/test_dashboard_cli.py`, `tests/integration/test_application_repository.py` | N/A |
 | **FR-026** | Local Model Artifact Loading | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_runners.py` | Model Registry |
 | **FR-027** | SHA-256 Checksum Validation | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_manifest.py` | Manifests |
 | **FR-028** | Graceful Diagnostic Failure | Mod 9 (Model Mgmt) | `US-004` | `AC-006` | `tests/unit/test_ml_manifest.py`, `tests/unit/test_ml_registry.py` | N/A |
@@ -78,4 +78,4 @@ This matrix maintains explicit bi-directional traceability across all project la
 |---|---|---|---|---|---|
 | **ML-001** | Job Title Expander | `google/flan-t5-small` | `notebooks/01_title_expansion_training.ipynb` | `title_expander.safetensors`, `config.json`, `manifest.json` | ROUGE-L >= 0.80 |
 | **ML-002** | Semantic Evaluator | `all-MiniLM-L6-v2` | `notebooks/02_similarity_evaluator_training.ipynb` | `similarity_evaluator.onnx`, `tokenizer.json`, `manifest.json` | Pearson r >= 0.85 |
-| **ML-003** | Application Tailoring Assistant | `Qwen2.5-0.5B-Instruct` INT8 | `notebooks/03_application_tailoring_training.ipynb` | `tailor_assistant.onnx`, `config.json`, `manifest.json` | Entity precision = 1.0 |
+| **ML-003** | Application Tailoring Assistant | `Qwen2.5-0.5B-Instruct` / `Flan-T5-base` INT8 | `notebooks/03_train_application_tailor.ipynb` | `model.onnx`, `tokenizer/`, `manifest.json` | Entity precision = 1.0 (Zero Fabrication) |

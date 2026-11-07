@@ -32,7 +32,7 @@ Every model catalog entry defines:
 |---|---|---|---|---|---|---|
 | **ML-001** | `title-expander` | `v1.0.0-draft` | PyTorch / ONNX | Job title & search term expansion (Module 3) | Specification Proposed | Pending user training on Kaggle |
 | **ML-002** | `similarity-evaluator` | `v1.0.0-draft` | ONNX Runtime | Semantic similarity & deduplication (Modules 3 & 4) | Specification Proposed | Pending user training on Kaggle |
-| **ML-003** | `application-tailor` | `v1.0.0-draft` | ONNX Runtime | Tailored CV/cover letter assistant (Module 5) | Specification Proposed | Pending user training on Kaggle |
+| **ML-003** | `application-tailor` | `v1.0.0-draft` | ONNX Runtime | Tailored CV/cover letter assistant (Module 5) | Notebook Authored (`notebooks/03_train_application_tailor.ipynb`) | Pending user training on Kaggle |
 
 ---
 

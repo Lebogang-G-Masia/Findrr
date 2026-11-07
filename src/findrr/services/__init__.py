@@ -1,5 +1,9 @@
 """Service layer package."""
 
+from findrr.services.application_service import ApplicationService
+from findrr.services.document_generator import DocumentGenerator
+from findrr.services.fact_matcher import FactMatcher
+from findrr.services.grounding_validator import FabricationDetectedError, FactGroundingValidator
 from findrr.services.inference_service import (
     InferenceService,
     SimilarityResult,
@@ -21,4 +25,9 @@ __all__ = [
     "SimilarityResult",
     "ValidatedCandidate",
     "PostingService",
+    "ApplicationService",
+    "FactMatcher",
+    "FactGroundingValidator",
+    "FabricationDetectedError",
+    "DocumentGenerator",
 ]

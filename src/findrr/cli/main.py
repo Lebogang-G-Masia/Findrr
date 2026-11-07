@@ -4,11 +4,13 @@ import argparse
 import sys
 from typing import List, Optional
 
+from findrr.cli.app_cli import handle_app_cli, register_app_subparsers
 from findrr.cli.config_cli import display_search_config, run_search_config_prompt
 from findrr.cli.profile_cli import handle_synthesize_title, run_interactive_questionnaire
 from findrr.cli.search_cli import handle_search_cli, register_search_subparsers
 from findrr.db.connection import get_connection, init_db
 from findrr.db.repository import (
+    ApplicationRepository,
     PostingRepository,
     ProfileRepository,
     SearchConfigRepository,
@@ -106,6 +108,9 @@ def build_parser() -> argparse.ArgumentParser:
     # Subparser: search (Module 4)
     register_search_subparsers(subparsers)
 
+    # Subparser: apply (Module 5)
+    register_app_subparsers(subparsers)
+
     return parser
 
 
@@ -124,6 +129,7 @@ def main(args: Optional[List[str]] = None) -> int:
     title_repo = TitleRepository(conn)
     config_repo = SearchConfigRepository(conn)
     posting_repo = PostingRepository(conn)
+    app_repo = ApplicationRepository(conn)
 
     profile_service = ProfileService(profile_repo, title_repo)
     config_service = SearchConfigService(config_repo, profile_repo)
@@ -295,6 +301,14 @@ def main(args: Optional[List[str]] = None) -> int:
             profile_repo=profile_repo,
             title_repo=title_repo,
             config_repo=config_repo,
+        )
+
+    elif parsed_args.command == "apply":
+        return handle_app_cli(
+            args=parsed_args,
+            app_repo=app_repo,
+            posting_repo=posting_repo,
+            profile_repo=profile_repo,
         )
 
     return 0

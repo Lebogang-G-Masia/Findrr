@@ -22,7 +22,16 @@ SUSPICIOUS_PATTERNS = [
     ),
 ]
 
-IGNORED_DIRS = {".git", ".venv", "venv", "__pycache__", "models", "data"}
+IGNORED_DIRS = {
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "models",
+    "data",
+    "chrome_profile",
+    "logs",
+}
 IGNORED_FILES = {".env.example"}
 
 

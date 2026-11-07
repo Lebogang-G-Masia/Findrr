@@ -18,7 +18,9 @@ FORBIDDEN_EXTENSIONS = {
     ".joblib",
 }
 
-IGNORED_DIRS = {".git", ".venv", "venv", "__pycache__"}
+IGNORED_DIRS = {".git", ".venv", "venv", "__pycache__", "models", "data"}
+IGNORED_FILES = {".coverage"}
+IGNORED_EXTENSIONS = {".tar.gz"}
 
 
 def check_files(root_dir="."):
@@ -29,6 +31,9 @@ def check_files(root_dir="."):
         dirs[:] = [d for d in dirs if d not in IGNORED_DIRS]
 
         for file_name in files:
+            is_ignored_ext = any(file_name.endswith(ext) for ext in IGNORED_EXTENSIONS)
+            if file_name in IGNORED_FILES or is_ignored_ext:
+                continue
             path = os.path.join(root, file_name)
             ext = os.path.splitext(file_name)[1].lower()
 

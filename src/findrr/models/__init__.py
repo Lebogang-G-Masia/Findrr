@@ -1,5 +1,11 @@
 """Domain models package."""
 
+from findrr.models.posting import (
+    DiscoveryMetrics,
+    JobPosting,
+    JobPostingCreate,
+    PostingAvailability,
+)
 from findrr.models.profile import (
     ProfileCategory,
     ProfileEntry,
@@ -34,4 +40,8 @@ __all__ = [
     "SearchConfigurationCreate",
     "GeneralizedTitle",
     "GeneralizedTitleCreate",
+    "PostingAvailability",
+    "JobPosting",
+    "JobPostingCreate",
+    "DiscoveryMetrics",
 ]

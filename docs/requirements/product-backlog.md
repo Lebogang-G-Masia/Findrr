@@ -117,7 +117,7 @@ Work items are organized hierarchically:
 
 #### US-008: Headful Selenium Search Automation
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 4)
+- **Target Milestone:** Milestone 1 (Iteration 3)
 - **Addresses:** `FR-012`, `FR-013`, `NFR-003`, `BR-004`, `AC-004`
 - **Description:** As a job seeker, I want the system to run automated Google Search queries for accepted titles in headful mode with polite throttling so that search engines are queried without anti-bot blocks.
 - **Tasks:**
@@ -128,7 +128,7 @@ Work items are organized hierarchically:
 
 #### US-009: Job Posting Content Extraction & Employer Link Resolution
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 4)
+- **Target Milestone:** Milestone 1 (Iteration 3)
 - **Addresses:** `FR-014`, `FR-015`, `FR-016`, `FR-017`, `AC-004`
 - **Description:** As a job seeker, I want job posting details extracted and employer-authorized application links prioritized so that I can apply directly rather than through third-party boards.
 - **Tasks:**
@@ -144,7 +144,7 @@ Work items are organized hierarchically:
 
 #### US-010: Job Requirement Keyword Analysis
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 5)
+- **Target Milestone:** Milestone 1 (Iteration 4)
 - **Addresses:** `FR-018`, `FR-019`
 - **Description:** As a job seeker, I want the system to compare a job description against my profile, identifying matching skills and surfacing missing prerequisites.
 - **Tasks:**
@@ -155,7 +155,7 @@ Work items are organized hierarchically:
 
 #### US-011: Basic Tailored Application Draft Generation
 - **Priority:** Must Have (M)
-- **Target Milestone:** Milestone 1 (Iteration 5)
+- **Target Milestone:** Milestone 1 (Iteration 4)
 - **Addresses:** `FR-020`, `NFR-009`, `BR-002`, `AC-005`
 - **Description:** As a job seeker, I want a tailored CV summary and cover letter text generated strictly from my verified profile facts without fabrication.
 - **Tasks:**

@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -24,6 +24,9 @@ class SeniorityLevel(str, Enum):
 
 class SearchBounds(BaseModel):
     """Enforces search limits strictly between 2 and 10 postings per title."""
+
+    MIN_LIMIT: ClassVar[int] = 2
+    MAX_LIMIT: ClassVar[int] = 10
 
     min_results: int = Field(default=2, ge=2, le=10, description="Minimum results (2-10)")
     max_results: int = Field(default=10, ge=2, le=10, description="Maximum results (2-10)")

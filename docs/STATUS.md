@@ -8,27 +8,26 @@
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-11-04 |
+| Last updated | 2026-11-07 |
 | Current milestone | Milestone 1 (Core CLI Application Baseline) |
-| Current phase | Milestone 1, Iteration 2 (Review & Verification) |
-| Current iteration | Milestone 1, Iteration 2 |
-| Current branch | feature/iteration-2-ml-models |
-| Open PR | PR #7 (https://github.com/Lebogang-G-Masia/Findrr/pull/7) |
+| Current phase | Milestone 1, Iteration 3 (Review & Verification) |
+| Current iteration | Milestone 1, Iteration 3 |
+| Current branch | feature/iteration-3-selenium-search |
+| Open PR | PR #8 |
 | Latest release | None |
 
 ## Current task
 
-Milestone 1, Iteration 2: PR #7 opened for Kaggle Training Notebooks, Module 9 Model Management, and Inference Service. Awaiting user review and merge.
+Milestone 1, Iteration 3: PR #8 opened for Headful Selenium Web Search, Job Posting Extraction, Link Resolution, and Deduplication (Epic 4, US-008 & US-009). Awaiting user review and merge.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #7
+- Awaiting merge: PR #8
 
 ## Next step
 
-1. User reviews and merges PR #7.
-2. User executes Kaggle training notebooks (`notebooks/01_train_title_expander.ipynb` and `notebooks/02_train_similarity_evaluator.ipynb`) on GPU and places exported artifact bundles in `models/`.
-3. Run `/close-iteration` to complete Milestone 1, Iteration 2.
+1. User reviews and merges PR #8.
+2. Run `/close-iteration` to complete Milestone 1, Iteration 3 and plan Iteration 4 (Epic 5: Application Preparation & Tailoring).
 
 ## Blockers
 
@@ -97,8 +96,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-07 | Milestone 1, Iteration 3 implemented and verified (US-008, US-009). Headful Selenium web search with politeness jitter, destination link resolution prioritizing ATS portals, HTML posting extraction with SHA-256 deduplication, canonical search limits [2, 10], and CLI subcommands added. 85 tests passing with 83% coverage. Opened PR #8. | feature/iteration-3-selenium-search / PR #8 |
+| 2026-11-05 | PR #7 merged into `main` by user. Switched to `main`, pulled merge commit `a2f1de547285c5b169826f4b360b067f94e9f7ee`. Deleted local feature branch. Closed Milestone 1, Iteration 2. Ready for Milestone 1, Iteration 3. | main |
 | 2026-11-04 | Milestone 1, Iteration 2 implemented and verified (US-004, US-005, US-006, US-007). Kaggle notebooks for Model 1 and Model 2, Module 9 model management, SHA-256 integrity checks, and InferenceService added. 51 tests passing with 86% coverage. Opened PR #7. | feature/iteration-2-ml-models / PR #7 |
 | 2026-11-04 | PR #6 merged into `main` by user. Switched to `main`, pulled merge commit `cb20dea71f1f2aa6c382ea0824bba7dc9036c1e5`. Deleted local feature branch. Closed Milestone 1, Iteration 1. Ready for Milestone 1, Iteration 2. | main |
 | 2026-11-03 | Milestone 1, Iteration 1 implemented and verified (US-001, US-002, US-003). Profile questionnaire, title synthesizer, search configuration, and SQLite persistence added. 32 tests passing with 91% coverage. Opened PR #6. | feature/iteration-1-profile / PR #6 |
-| 2026-11-03 | PR #5 merged into `main` by user. Switched to `main`, pulled merge commit `98f9bca7ac3d15687e3dd26ed96dad31fc4e4e5f`. Deleted local feature branch. Closed Bootstrap Step 5. Bootstrap phase complete (Gates 1–5 approved). Ready for Milestone 1, Iteration 1. | main |
-| 2026-11-02 | Penpot MCP connection verified. User approved Gate 4 and instructed to continue operations. Checked out `docs/bootstrap-5-design`. Authored Software Architecture Document, Database Design, Technical Specs, API Spec, Test Plan, and ADRs 0001–0004. Presented Gate 5 and complete Bootstrap Review Package for final approval to begin implementation. | docs/bootstrap-5-design |

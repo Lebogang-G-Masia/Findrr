@@ -61,16 +61,19 @@ dmypy.json
 data/*.db
 data/findrr.db
 
-# Model weights and datasets (strictly forbidden in git)
+# Model weights, artifacts, bundles, and datasets (strictly forbidden in git)
 *.pt
 *.pth
 *.bin
 *.safetensors
 *.onnx
+*.onnx.data
 *.h5
 *.tflite
 *.mlmodel
-models/weights/
+*.tar.gz
+/models/
+!/models/.gitkeep
 data/raw/
 data/processed/
 

@@ -1,6 +1,7 @@
 """Search execution engine and posting discovery workflow (Module 4)."""
 
 import logging
+import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple
@@ -64,10 +65,16 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
         headless: bool = False,
         driver_factory: Optional[Callable[..., Any]] = None,
         page_fetcher: Optional[Callable[[str], str]] = None,
+        prompt_hook: Optional[Callable[[str], None]] = None,
     ):
         self.headless = headless
         self.driver_factory = driver_factory or WebDriverFactory.create_driver
         self.page_fetcher = page_fetcher  # Custom hook for testing / offline evaluation
+        self.prompt_hook = prompt_hook or self._default_prompt_hook
+
+    @staticmethod
+    def _default_prompt_hook(message: str) -> None:
+        input(message)
 
     def discover(
         self,
@@ -152,6 +159,14 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
 
             # Handle Google consent popup or redirect if encountered
             self._handle_google_consent_if_present(driver)
+
+            # Check if gated by CAPTCHA / bot challenge (D-001)
+            if self.is_captcha_or_bot_challenge(driver):
+                resolved = self._handle_human_captcha_challenge(driver)
+                if not resolved:
+                    logger.warning(
+                        "Search discovery halted or gated by unresolved CAPTCHA challenge."
+                    )
 
             search_page_source = driver.page_source
             candidate_urls = self._extract_result_links_from_search_page(search_page_source)
@@ -244,6 +259,85 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
             metrics.unique_postings_retained,
         )
         return extracted_postings, metrics
+
+    def is_captcha_or_bot_challenge(self, driver: Any) -> bool:
+        """Detect if Google or search provider presented a CAPTCHA or bot verification challenge."""
+        if not driver:
+            return False
+        try:
+            current_url = getattr(driver, "current_url", "")
+            if "/sorry/index" in current_url:
+                return True
+
+            title = getattr(driver, "title", "").lower()
+            if any(
+                term in title
+                for term in ("sorry...", "unusual traffic", "robot", "human verification")
+            ):
+                return True
+
+            # Check DOM indicators for reCAPTCHA or Google sorry forms
+            selectors = [
+                "form#captcha-form",
+                "div.g-recaptcha",
+                "#recaptcha",
+                "iframe[src*='recaptcha']",
+                "iframe[src*='captcha']",
+            ]
+            for sel in selectors:
+                try:
+                    if driver.find_elements("css selector", sel):
+                        return True
+                except Exception:
+                    continue
+        except Exception as exc:
+            logger.debug("Exception checking CAPTCHA state: %s", exc)
+        return False
+
+    def _handle_human_captcha_challenge(self, driver: Any) -> bool:
+        """Prompt user in headful mode to manually solve the CAPTCHA in the visible browser."""
+        if self.headless:
+            logger.warning(
+                "CAPTCHA encountered in headless mode; cannot prompt for human completion."
+            )
+            return False
+
+        current_url = getattr(driver, "current_url", "unknown")
+        logger.warning("Google CAPTCHA challenge detected at: %s", current_url)
+
+        sys.stderr.write("\n" + "=" * 76 + "\n")
+        sys.stderr.write("                   [HUMAN VERIFICATION REQUIRED]                    \n")
+        sys.stderr.write("=" * 76 + "\n")
+        sys.stderr.write(
+            "Google has detected automated activity and presented a CAPTCHA challenge.\n"
+        )
+        sys.stderr.write(
+            "Per Findrr invariants, the app will never attempt to bypass or automate CAPTCHAs.\n"
+        )
+        sys.stderr.write(
+            "Please complete the verification directly in the open Chrome browser window.\n\n"
+        )
+        sys.stderr.write(
+            "Press [Enter] once completed and search results appear (or Ctrl+C to abort).\n"
+        )
+        sys.stderr.write("=" * 76 + "\n\n")
+
+        try:
+            prompt_msg = (
+                "Waiting for you to complete the challenge in Chrome... (Press Enter when done): "
+            )
+            self.prompt_hook(prompt_msg)
+            polite_delay(2.0, 3.0)
+
+            if not self.is_captcha_or_bot_challenge(driver):
+                logger.info("CAPTCHA resolved by user. Resuming job discovery...")
+                return True
+            else:
+                logger.warning("Browser still appears to be on a CAPTCHA or verification page.")
+                return False
+        except (KeyboardInterrupt, EOFError):
+            logger.info("Human verification aborted by user.")
+            return False
 
     def _handle_google_consent_if_present(self, driver: Any) -> bool:
         """Detect and accept Google cookie/privacy consent dialogs if encountered."""

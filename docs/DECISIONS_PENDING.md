@@ -33,10 +33,8 @@ Copy this block for each new decision. Number entries `D-001`, `D-002`, and so o
 
 Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
 
-```markdown
-- **Decision:** <what the user chose>
-- **Decided:** YYYY-MM-DD
-- **Recorded in:** <SRS section, ADR or other document>
-```
-
-(none yet)
+### D-001: Handling CAPTCHA Interception and Browser Session Persistence in Job Discovery
+- **Decision:** Option A: Human-in-the-loop manual completion prompt in headful CLI + persistent Chrome profile directory (`chrome_profile/`).
+- **Decided:** 2026-11-07
+- **Recorded in:** `src/findrr/search/driver.py`, `src/findrr/search/engine.py`, `docs/spec/modules/04-find-postings.md`
+- **Summary:** When Google redirects to `google.com/sorry/index` or displays a bot challenge, Findrr halts execution, alerts the user in the CLI, and keeps the headful Chrome window open for the user to solve the challenge manually. Using a persistent `chrome_profile/` ensures solved tokens and session cookies are remembered across searches.

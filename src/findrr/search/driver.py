@@ -4,6 +4,8 @@ import logging
 import os
 import random
 import time
+from pathlib import Path
+from typing import Optional
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MIN_JITTER_SECONDS = 2.0
 DEFAULT_MAX_JITTER_SECONDS = 5.0
+DEFAULT_CHROME_PROFILE_DIR = "chrome_profile"
 
 
 def check_display_server_available() -> bool:
@@ -39,6 +42,7 @@ class WebDriverFactory:
         headless: bool = False,
         browser: str = "chrome",
         page_load_timeout: int = 30,
+        user_data_dir: Optional[str] = None,
     ) -> webdriver.Remote:
         """Create and configure a WebDriver instance.
 
@@ -74,6 +78,25 @@ class WebDriverFactory:
                 "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                 "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
             )
+
+            profile_target = (
+                user_data_dir
+                if user_data_dir is not None
+                else os.getenv("FINDRR_CHROME_PROFILE_DIR", DEFAULT_CHROME_PROFILE_DIR)
+            )
+            if profile_target:
+                try:
+                    profile_path = Path(profile_target).resolve()
+                    profile_path.mkdir(parents=True, exist_ok=True)
+                    options.add_argument(f"--user-data-dir={profile_path}")
+                    logger.debug("Configured persistent Chrome profile: %s", profile_path)
+                except Exception as err:
+                    logger.warning(
+                        "Could not configure Chrome profile dir '%s': %s",
+                        profile_target,
+                        err,
+                    )
+
             driver = webdriver.Chrome(options=options)
 
         driver.set_page_load_timeout(page_load_timeout)

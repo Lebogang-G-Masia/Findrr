@@ -9,24 +9,27 @@
 | Field | Value |
 |---|---|
 | Last updated | 2026-11-07 |
-| Current milestone | Milestone 1 (Core CLI Baseline Complete) |
-| Current phase | Bug Fix & Search Reliability |
-| Current iteration | Hotfix |
-| Current branch | fix/support-google-goto-redirects |
-| Open PR | PR #13 (https://github.com/Lebogang-G-Masia/Findrr/pull/13) |
+| Current milestone | Milestone 2 (Additional Functionality) |
+| Current phase | Milestone 2, Iteration 5 (In Progress) |
+| Current iteration | Milestone 2, Iteration 5 |
+| Current branch | feature/iteration-5-app-tracking-and-model-3 |
+| Open PR | None |
 | Latest release | None |
 
 ## Current task
 
-Bug fix: PR #13 opened to support Google's `/goto?url=` redirect link extraction and CI check ignore rules. Awaiting user review and merge.
+Milestone 2, Iteration 5: Implement Application Lifecycle Pipeline Tracking (US-015, FR-023, FR-024), CLI Search & Application Dashboard (US-016, FR-025), and Model 3 Application Tailoring Kaggle Notebook (US-013, ML-003).
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #13
+- None.
 
 ## Next step
 
-User reviews and merges PR #13.
+1. Implement `ApplicationRepository.get_pipeline_metrics()` and pipeline status transitions.
+2. Implement `DashboardService` and `findrr dashboard` CLI subcommand.
+3. Author Kaggle training notebook `notebooks/03_train_application_tailor.ipynb` for Model 3.
+4. Verify full test suite, code quality, and security scans.
 
 ## Blockers
 
@@ -93,6 +96,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |
 | 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
 | 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |
 | 2026-11-07 | Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile (chrome_profile/) implemented per Decision D-001. 119 tests passing with 85% coverage. Opened PR #12. | fix/search-captcha-handling-and-profile-persistence / PR #12 |

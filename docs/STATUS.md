@@ -10,23 +10,23 @@
 |---|---|
 | Last updated | 2026-11-07 |
 | Current milestone | Milestone 1 (Core CLI Baseline Complete) |
-| Current phase | Bug Fix & Model Integration Verification |
+| Current phase | Bug Fix & Search Reliability |
 | Current iteration | Hotfix |
-| Current branch | fix/onnx-evaluator-batching |
-| Open PR | PR #10 (https://github.com/Lebogang-G-Masia/Findrr/pull/10) |
+| Current branch | fix/search-logging-and-link-extraction |
+| Open PR | PR #11 (https://github.com/Lebogang-G-Masia/Findrr/pull/11) |
 | Latest release | None |
 
 ## Current task
 
-Bug fix: PR #10 opened to resolve ONNX LayerNormalization buffer shape mismatch in `SimilarityEvaluatorRunner` during real Model 2 inference. Awaiting user review and merge.
+Bug fix: PR #11 opened to resolve Google Search link extraction failure (handling relative `/url?q=` paths and regional Google domains), cookie consent dialog dismissal, automated HTML/screenshot diagnostic dumps on 0 results, and comprehensive file logging (`logs/findrr.log`). Awaiting user review and merge.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #10
+- Awaiting merge: PR #11
 
 ## Next step
 
-User reviews and merges PR #10.
+User reviews and merges PR #11.
 
 ## Blockers
 
@@ -93,8 +93,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-07 | Fix for search link extraction (relative /url?q= and regional Google domains), cookie consent dismissal, debug snapshot dumping on 0 results, and comprehensive file logging (logs/findrr.log) implemented. 116 tests passing with 85% coverage. Opened PR #11. | fix/search-logging-and-link-extraction / PR #11 |
+| 2026-11-07 | PR #10 merged into `main` by user. Switched to `main`, pulled merge commit `f1653fe`. Deleted local fix branch. Model 2 real ONNX inference verified live on CPU (0.7755). Milestone 1 baseline complete. | main |
 | 2026-11-07 | Fix for ONNX LayerNormalization batch size mismatch implemented and verified against real trained Model 2 artifacts (similarity score: 0.7755). Added FINDRR_DOCS_DIR support. 106 tests passing with 85% coverage. Opened PR #10. | fix/onnx-evaluator-batching / PR #10 |
 | 2026-11-07 | PR #9 merged into `main` by user. Switched to `main`, pulled merge commit `b80705a8ce0b09804e84e55e094f6153648eb4cb`. Deleted local feature branch. Closed Milestone 1, Iteration 4. Milestone 1 Core CLI baseline complete (105 tests passing, 86% coverage). Ready for Milestone 2. | main |
 | 2026-11-07 | Milestone 1, Iteration 4 implemented and verified (US-010, US-011). Job requirement keyword extraction, profile-to-job fact matching, zero-fabrication grounding validation, deterministic CV and cover letter drafting, and `findrr apply` CLI commands added. 105 tests passing with 86% coverage. Opened PR #9. | feature/iteration-4-app-prep / PR #9 |
-| 2026-11-07 | PR #8 merged into `main` by user. Switched to `main`, pulled merge commit `0a6148682a88a0866b864a787383a1835bc45cf2`. Deleted local feature branch. Closed Milestone 1, Iteration 3. Ready for Milestone 1, Iteration 4. | main |
-| 2026-11-05 | PR #7 merged into `main` by user. Switched to `main`, pulled merge commit `a2f1de547285c5b169826f4b360b067f94e9f7ee`. Deleted local feature branch. Closed Milestone 1, Iteration 2. Ready for Milestone 1, Iteration 3. | main |

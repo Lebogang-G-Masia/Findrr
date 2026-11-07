@@ -121,9 +121,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-012`, `FR-013`, `NFR-003`, `BR-004`, `AC-004`
 - **Description:** As a job seeker, I want the system to run automated Google Search queries for accepted titles in headful mode with polite throttling so that search engines are queried without anti-bot blocks.
 - **Tasks:**
-  - [ ] Configure headful Selenium WebDriver with random delay jitter (2.0–5.0s).
-  - [ ] Implement search query builder combining title and location preferences.
-  - [ ] Extract 2 to 10 search results per title, recording actual retrieved counts.
+  - [x] Configure headful Selenium WebDriver with random delay jitter (2.0–5.0s).
+  - [x] Implement search query builder combining title and location preferences.
+  - [x] Extract 2 to 10 search results per title, recording actual retrieved counts.
 - **Dependencies:** `US-003`, `US-007`.
 
 #### US-009: Job Posting Content Extraction & Employer Link Resolution
@@ -132,10 +132,10 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-014`, `FR-015`, `FR-016`, `FR-017`, `AC-004`
 - **Description:** As a job seeker, I want job posting details extracted and employer-authorized application links prioritized so that I can apply directly rather than through third-party boards.
 - **Tasks:**
-  - [ ] Implement HTML parser extracting Title, Company, Location, Description, and Link.
-  - [ ] Add destination link resolver prioritizing direct ATS/company URLs over boards.
-  - [ ] Implement deduplication filter using title and company content hashing.
-  - [ ] Store extracted postings in `JobPosting` table.
+  - [x] Implement HTML parser extracting Title, Company, Location, Description, and Link.
+  - [x] Add destination link resolver prioritizing direct ATS/company URLs over boards.
+  - [x] Implement deduplication filter using title and company content hashing.
+  - [x] Store extracted postings in `JobPosting` table.
 - **Dependencies:** `US-008`.
 
 ---
@@ -148,9 +148,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-018`, `FR-019`
 - **Description:** As a job seeker, I want the system to compare a job description against my profile, identifying matching skills and surfacing missing prerequisites.
 - **Tasks:**
-  - [ ] Implement keyword and skill extraction from posting text.
-  - [ ] Map extracted requirements to verified `UserProfile` skills and experiences.
-  - [ ] Generate structured gap analysis table in CLI.
+  - [x] Implement keyword and skill extraction from posting text.
+  - [x] Map extracted requirements to verified `UserProfile` skills and experiences.
+  - [x] Generate structured gap analysis table in CLI (`findrr apply analyze`).
 - **Dependencies:** `US-001`, `US-009`.
 
 #### US-011: Basic Tailored Application Draft Generation
@@ -159,9 +159,9 @@ Work items are organized hierarchically:
 - **Addresses:** `FR-020`, `NFR-009`, `BR-002`, `AC-005`
 - **Description:** As a job seeker, I want a tailored CV summary and cover letter text generated strictly from my verified profile facts without fabrication.
 - **Tasks:**
-  - [ ] Implement Jinja2 plain-text templating engine strictly bound to verified profile data.
-  - [ ] Enforce zero-fabrication validation check verifying all generated claims exist in profile.
-  - [ ] Save draft text to local storage.
+  - [x] Implement deterministic plain-text templating engine strictly bound to verified profile data.
+  - [x] Enforce zero-fabrication validation check verifying all generated claims exist in profile (`FactGroundingValidator`).
+  - [x] Save draft text to local storage (`findrr apply draft`, `findrr apply list`, `findrr apply show`).
 - **Dependencies:** `US-010`.
 
 ---

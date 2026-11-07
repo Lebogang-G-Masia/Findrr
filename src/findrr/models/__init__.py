@@ -1,5 +1,13 @@
 """Domain models package."""
 
+from findrr.models.application import (
+    ApplicationDocument,
+    ApplicationRecord,
+    ApplicationStatus,
+    DocumentType,
+    RequirementAnalysisResult,
+    TailoredDraftResult,
+)
 from findrr.models.posting import (
     DiscoveryMetrics,
     JobPosting,
@@ -44,4 +52,10 @@ __all__ = [
     "JobPosting",
     "JobPostingCreate",
     "DiscoveryMetrics",
+    "ApplicationStatus",
+    "DocumentType",
+    "ApplicationRecord",
+    "ApplicationDocument",
+    "RequirementAnalysisResult",
+    "TailoredDraftResult",
 ]

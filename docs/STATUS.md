@@ -10,24 +10,24 @@
 |---|---|
 | Last updated | 2026-11-07 |
 | Current milestone | Milestone 1 (Core CLI Application Baseline) |
-| Current phase | Milestone 1, Iteration 3 (Review & Verification) |
-| Current iteration | Milestone 1, Iteration 3 |
-| Current branch | feature/iteration-3-selenium-search |
-| Open PR | PR #8 (https://github.com/Lebogang-G-Masia/Findrr/pull/8) |
+| Current phase | Milestone 1, Iteration 4 (In Progress) |
+| Current iteration | Milestone 1, Iteration 4 |
+| Current branch | feature/iteration-4-app-prep |
+| Open PR | None |
 | Latest release | None |
 
 ## Current task
 
-Milestone 1, Iteration 3: PR #8 opened for Headful Selenium Web Search, Job Posting Extraction, Link Resolution, and Deduplication (Epic 4, US-008 & US-009). Awaiting user review and merge.
+Milestone 1, Iteration 4: Planning, Requirements Analysis, and System Design for Epic 5 (Job Requirement Keyword Analysis, Zero-Fabrication Fact Grounding, and Application Draft Preparation).
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #8
+- None.
 
 ## Next step
 
-1. User reviews and merges PR #8.
-2. Run `/close-iteration` to complete Milestone 1, Iteration 3 and plan Iteration 4 (Epic 5: Application Preparation & Tailoring).
+1. Execute Iteration 4 Planning, Requirements Analysis, and System Design (Steps 1–3 of `/start-iteration`).
+2. Implement Job Requirement Keyword Extraction, Profile-to-Job Fact Matching, and Zero-Fabrication Application Draft Generation.
 
 ## Blockers
 
@@ -96,7 +96,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
-| 2026-11-07 | Milestone 1, Iteration 3 implemented and verified (US-008, US-009). Headful Selenium web search with politeness jitter, destination link resolution prioritizing ATS portals, HTML posting extraction with SHA-256 deduplication, canonical search limits [2, 10], and CLI subcommands added. 85 tests passing with 83% coverage. Opened PR #8. | feature/iteration-3-selenium-search / PR #8 |
+| 2026-11-07 | PR #8 merged into `main` by user. Switched to `main`, pulled merge commit `0a6148682a88a0866b864a787383a1835bc45cf2`. Deleted local feature branch. Closed Milestone 1, Iteration 3. Ready for Milestone 1, Iteration 4. | main |
 | 2026-11-05 | PR #7 merged into `main` by user. Switched to `main`, pulled merge commit `a2f1de547285c5b169826f4b360b067f94e9f7ee`. Deleted local feature branch. Closed Milestone 1, Iteration 2. Ready for Milestone 1, Iteration 3. | main |
 | 2026-11-04 | Milestone 1, Iteration 2 implemented and verified (US-004, US-005, US-006, US-007). Kaggle notebooks for Model 1 and Model 2, Module 9 model management, SHA-256 integrity checks, and InferenceService added. 51 tests passing with 86% coverage. Opened PR #7. | feature/iteration-2-ml-models / PR #7 |
 | 2026-11-04 | PR #6 merged into `main` by user. Switched to `main`, pulled merge commit `cb20dea71f1f2aa6c382ea0824bba7dc9036c1e5`. Deleted local feature branch. Closed Milestone 1, Iteration 1. Ready for Milestone 1, Iteration 2. | main |

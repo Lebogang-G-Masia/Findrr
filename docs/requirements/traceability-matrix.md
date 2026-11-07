@@ -38,10 +38,10 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-015** | Structured Posting Extraction | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_parser.py` | N/A |
 | **FR-016** | Duplicate Posting Filtering | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_parser.py`, `tests/unit/test_search_limits.py`, `tests/integration/test_posting_repository.py` | N/A |
 | **FR-017** | No Fabricated Search Results | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_search_limits.py` | N/A |
-| **FR-018** | Job Requirement Extraction | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_requirement_extract.py` | N/A |
-| **FR-019** | Profile-to-Job Fact Matching | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_fact_matcher.py` | N/A |
-| **FR-020** | Tailored CV Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/integration/test_cv_tailor.py` | Model 3 |
-| **FR-021** | Tailored Cover Letter Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/integration/test_cover_letter.py` | Model 3 |
+| **FR-018** | Job Requirement Extraction | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_fact_matcher.py`, `tests/integration/test_application_service.py` | N/A |
+| **FR-019** | Profile-to-Job Fact Matching | Mod 5 (App Prep) | `US-010` | `AC-005` | `tests/unit/test_fact_matcher.py`, `tests/unit/test_grounding_validator.py`, `tests/integration/test_application_service.py` | N/A |
+| **FR-020** | Tailored CV Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/unit/test_document_generator.py`, `tests/unit/test_grounding_validator.py`, `tests/integration/test_application_service.py`, `tests/integration/test_app_cli.py` | Model 3 |
+| **FR-021** | Tailored Cover Letter Generation | Mod 5 (App Prep) | `US-011`, `US-012` | `AC-005` | `tests/unit/test_document_generator.py`, `tests/unit/test_grounding_validator.py`, `tests/integration/test_application_service.py`, `tests/integration/test_app_cli.py` | Model 3 |
 | **FR-022** | Company Research Summary | Mod 5 (App Prep) | `US-014` | `AC-005` | `tests/unit/test_company_research.py` | N/A |
 | **FR-023** | Application Status Transitions | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_lifecycle.py` | N/A |
 | **FR-024** | Submission Logging & Notes | Mod 6 (App Mgmt) | `US-015` | `AC-005` | `tests/unit/test_app_records.py` | N/A |

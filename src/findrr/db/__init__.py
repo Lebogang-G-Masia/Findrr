@@ -2,6 +2,7 @@
 
 from findrr.db.connection import DEFAULT_DB_PATH, get_connection, init_db
 from findrr.db.repository import (
+    ApplicationRepository,
     PostingRepository,
     ProfileRepository,
     SearchConfigRepository,
@@ -18,4 +19,5 @@ __all__ = [
     "TitleRepository",
     "SearchConfigRepository",
     "PostingRepository",
+    "ApplicationRepository",
 ]

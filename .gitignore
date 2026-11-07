@@ -76,6 +76,8 @@ data/findrr.db
 !/models/.gitkeep
 data/raw/
 data/processed/
+data/applications/
+!data/applications/.gitkeep
 
 # Selenium and scrapers
 chrome_profile/

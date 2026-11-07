@@ -1,6 +1,7 @@
 """Deterministic, fact-grounded document generation engine (Module 5, FR-020, FR-021)."""
 
 import logging
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -16,7 +17,12 @@ class DocumentGenerator:
     """Generates tailored application materials strictly grounded in verified facts."""
 
     def __init__(self, storage_dir: Optional[Path] = None):
-        self.storage_dir = storage_dir or Path("data/applications")
+        if storage_dir is not None:
+            self.storage_dir = Path(storage_dir)
+        elif "FINDRR_DOCS_DIR" in os.environ:
+            self.storage_dir = Path(os.environ["FINDRR_DOCS_DIR"])
+        else:
+            self.storage_dir = Path("data/applications")
 
     def generate_tailored_cv(
         self,

@@ -2,7 +2,10 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
+
+if TYPE_CHECKING:
+    import numpy as np
 
 from findrr.ml.base import IModelRunner
 from findrr.ml.manifest import load_manifest, verify_artifact_integrity
@@ -146,30 +149,22 @@ class SimilarityEvaluatorRunner(IModelRunner):
         results = self.evaluate_batch([(text_a, text_b)])
         return results[0]
 
-    def evaluate_batch(self, pairs: List[Tuple[str, str]]) -> List[float]:
-        """Execute batch forward passes and compute cosine similarity."""
-        if not self.is_loaded():
-            self.load()
-
+    def _embed_text(self, text: str) -> "np.ndarray":
+        """Compute normalized dense embedding for a single text using batch size 1."""
         import numpy as np
 
-        texts_a = [p[0] for p in pairs]
-        texts_b = [p[1] for p in pairs]
-        all_texts = texts_a + texts_b
-
         encoded = self._tokenizer(
-            all_texts,
-            padding=True,
+            text,
             truncation=True,
             max_length=128,
             return_tensors="np",
         )
-
         ort_inputs = {
             "input_ids": encoded["input_ids"],
             "attention_mask": encoded["attention_mask"],
         }
-        if "token_type_ids" in self._session.get_inputs():
+        input_names = [inp.name for inp in self._session.get_inputs()]
+        if "token_type_ids" in input_names:
             ort_inputs["token_type_ids"] = encoded.get(
                 "token_type_ids",
                 np.zeros_like(encoded["input_ids"]),
@@ -177,7 +172,7 @@ class SimilarityEvaluatorRunner(IModelRunner):
 
         outputs = self._session.run(None, ort_inputs)
         # Apply mean pooling over token embeddings
-        token_embeddings = outputs[0]  # shape: (batch_size, seq_len, hidden_dim)
+        token_embeddings = outputs[0]  # shape: (1, seq_len, hidden_dim)
         attention_mask = encoded["attention_mask"]
         input_mask_expanded = np.broadcast_to(
             np.expand_dims(attention_mask, -1),
@@ -190,12 +185,30 @@ class SimilarityEvaluatorRunner(IModelRunner):
         # Normalize embeddings
         norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
         normalized = embeddings / np.clip(norms, a_min=1e-9, a_max=None)
+        return normalized[0]
 
-        n = len(pairs)
-        emb_a = normalized[:n]
-        emb_b = normalized[n:]
+    def evaluate_batch(self, pairs: List[Tuple[str, str]]) -> List[float]:
+        """Execute forward passes and compute cosine similarity with embedding caching."""
+        if not pairs:
+            return []
 
-        # Cosine similarity is dot product of normalized vectors
-        sims = np.sum(emb_a * emb_b, axis=1)
-        clamped = [float(np.clip(s, 0.0, 1.0)) for s in sims]
-        return clamped
+        if not self.is_loaded():
+            self.load()
+
+        import numpy as np
+
+        embedding_cache: Dict[str, np.ndarray] = {}
+        for text_a, text_b in pairs:
+            if text_a not in embedding_cache:
+                embedding_cache[text_a] = self._embed_text(text_a)
+            if text_b not in embedding_cache:
+                embedding_cache[text_b] = self._embed_text(text_b)
+
+        results: List[float] = []
+        for text_a, text_b in pairs:
+            emb_a = embedding_cache[text_a]
+            emb_b = embedding_cache[text_b]
+            sim = float(np.dot(emb_a, emb_b))
+            results.append(float(np.clip(sim, 0.0, 1.0)))
+
+        return results

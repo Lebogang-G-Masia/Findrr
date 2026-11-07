@@ -59,3 +59,11 @@ def test_real_similarity_evaluator_fails_on_missing_dir(tmp_path):
     runner = SimilarityEvaluatorRunner(artifact_dir=empty_dir)
     with pytest.raises(FileNotFoundError):
         runner.load()
+
+
+def test_similarity_evaluator_empty_batch(tmp_path):
+    mock_runner = MockSimilarityEvaluatorRunner()
+    assert mock_runner.evaluate_batch([]) == []
+
+    real_runner = SimilarityEvaluatorRunner(artifact_dir=tmp_path)
+    assert real_runner.evaluate_batch([]) == []

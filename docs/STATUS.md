@@ -13,7 +13,7 @@
 | Current phase | Milestone 2, Iteration 5 (In Progress) |
 | Current iteration | Milestone 2, Iteration 5 |
 | Current branch | feature/iteration-5-app-tracking-and-model-3 |
-| Open PR | None |
+| Open PR | PR #14 |
 | Latest release | None |
 
 ## Current task
@@ -22,14 +22,12 @@ Milestone 2, Iteration 5: Implement Application Lifecycle Pipeline Tracking (US-
 
 ## Awaiting merge or approval
 
-- None.
+- Awaiting merge: PR #14
 
 ## Next step
 
-1. Implement `ApplicationRepository.get_pipeline_metrics()` and pipeline status transitions.
-2. Implement `DashboardService` and `findrr dashboard` CLI subcommand.
-3. Author Kaggle training notebook `notebooks/03_train_application_tailor.ipynb` for Model 3.
-4. Verify full test suite, code quality, and security scans.
+1. User reviews and merges PR #14.
+2. Run `/close-iteration` for Milestone 2, Iteration 5.
 
 ## Blockers
 
@@ -96,6 +94,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-07 | Milestone 2, Iteration 5 implemented: application lifecycle status transitions (`findrr apply status`), search & application metrics dashboard (`findrr dashboard`), Model 3 Kaggle notebook (`notebooks/03_train_application_tailor.ipynb`), and Model 3 runners. 133 tests passing with 84% coverage. Opened PR #14. | feature/iteration-5-app-tracking-and-model-3 / PR #14 |
 | 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |
 | 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
 | 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |

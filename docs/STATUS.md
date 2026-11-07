@@ -13,7 +13,7 @@
 | Current phase | Milestone 1, Iteration 3 (Review & Verification) |
 | Current iteration | Milestone 1, Iteration 3 |
 | Current branch | feature/iteration-3-selenium-search |
-| Open PR | PR #8 |
+| Open PR | PR #8 (https://github.com/Lebogang-G-Masia/Findrr/pull/8) |
 | Latest release | None |
 
 ## Current task

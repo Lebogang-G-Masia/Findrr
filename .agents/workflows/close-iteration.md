@@ -18,11 +18,11 @@ Manage the formal closure of development iterations, ensuring seamless backlog g
 
 ## 1. Iteration Closure Workflow
 
-**Precondition:** The user has told you the PR was merged into `main`. If they have not, do not start. Check `docs/STATUS.md` for `Awaiting merge`, and ask.
+**Precondition:** The PR has been merged into `main`, either by you under the merge policy (`open-pr` §3) or by the user. Verify the merge before starting.
 
 Execute and document the following steps upon completing an iteration:
 
-0. **Sync and Verify:** Switch to `main` and pull. Confirm the merge actually happened (merge commit or PR state). Do not assume it.
+0. **Sync and Verify:** Switch to `main` and pull. Confirm the merge actually happened (`gh pr view <N> --json state,mergedAt`). Do not assume it.
 
 1. **Update Product Backlog:** Reconcile the product backlog, marking completed user stories and tasks as done, adjusting estimates, and incorporating newly identified requirements.
 2. **Update Project Documentation:** Ensure all documentation (SRS, architecture, database schemas, API specs, model registries, and operational runbooks) is fully updated to reflect changes introduced during the iteration (use the Documentation Maintenance Checklist in the `pull-request` skill).
@@ -31,7 +31,7 @@ Execute and document the following steps upon completing an iteration:
 5. **Identify Potential Improvements:** Capture process, architectural, tooling, or workflow enhancements surfaced during the iteration.
 6. **Recommend Next Priorities:** Formulate data-driven recommendations and priority queues for the upcoming iteration.
 7. **Versioning and Release Notes:** Follow `docs/process/versioning.md`. If the iteration completes a release, choose the SemVer version (`vMAJOR.MINOR.PATCH`), write release notes, and follow `docs/process/release-deployment.md`. Milestones are not releases. Record model versions separately from the app version. Do not tag or publish a release without the user's approval.
-8. **Update STATUS.md:** Update `docs/STATUS.md`: remove the `Awaiting merge: PR #N` entry, clear "Open PR" and "Current branch", update "Current iteration", "Current milestone" and "Latest release" if they changed, update the Documents and Model status tables, add a session-log entry, and set "Next step" (normally `/start-iteration`).
+8. **Update STATUS.md:** Update `docs/STATUS.md`: remove any `Awaiting merge: PR #N` entry, clear "Open PR" and "Current branch", update "Current iteration", "Current milestone" and "Latest release" if they changed, update the Documents and Model status tables, add a session-log entry, and set "Next step" (normally `/start-iteration`).
 9. **Update DECISIONS_PENDING.md:** Move resolved decisions out of the open list, add newly found ambiguities, and update the open-item count in `STATUS.md`.
 
 ---

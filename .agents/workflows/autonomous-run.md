@@ -10,6 +10,7 @@ Drive Findrr toward completion with as little user involvement as possible, **wi
 Authorised by the user in chat on 2026-11-26 ("run autonomously to finish the development of this project"). The authorisation covers:
 - Starting the next iteration without waiting for `/start-iteration`. This overrides the final "Stop" step of `close-iteration`.
 - Checking for merges with `gh` instead of waiting for the user to say so.
+- Merging your own PRs under the merge policy in `open-pr` §3 (authorised 2026-11-26).
 - Working on independent backlog items while a PR awaits merge.
 
 It does **not** cover anything the user must do or approve. See Section 2.
@@ -22,7 +23,7 @@ These stay human-only during an autonomous run. When you reach one, queue it (Se
 
 | Gate | User action | Source |
 |---|---|---|
-| Merge | The user merges every PR. You never merge, approve or enable auto-merge. | AGENTS.md §2 |
+| Merge of user-review PRs | The user merges PRs in a user-review category (`open-pr` §3). You merge routine PRs only when their checks are green. Never `--admin`, never bypass protection. | AGENTS.md §2, `open-pr` §3 |
 | Material change | Anything on the list in `docs/process/approval-gates.md` | approval-gates.md |
 | Ambiguity | Every open entry in `docs/DECISIONS_PENDING.md` | AGENTS.md §3 |
 | New significant dependency | Evaluation, then approval | dependency-policy.md |
@@ -54,7 +55,7 @@ Choose from `docs/requirements/product-backlog.md`. Take the current milestone f
 - it has no unchecked dependency on unmerged work,
 - it is not blocked by an open decision or a Section 1 gate,
 - its requirements and design are approved, or the only work left on it is routine under `approval-gates.md`,
-- no more than **2** PRs are awaiting merge (to limit rebase conflicts).
+- no more than **2** user-review PRs are awaiting merge (to limit rebase conflicts).
 
 Work that serves a gated item can still be eligible. For example, you can write the proposal the user needs to approve (Section 4).
 
@@ -64,10 +65,10 @@ If the item needs approval first, do the preparatory work and queue the approval
 1. Run `start-iteration`. Branch from up-to-date `main`, never from another unmerged branch. If Steps 2-3 of that workflow reveal a material question, record it in `DECISIONS_PENDING.md`, queue it, and return to Step B.
 2. Implement it with the relevant skill (`selenium-search`, `model-inference`, `testing-and-qa`, `srs-and-traceability` and so on).
 3. Verify it under `docs/process/definition-of-done.md`: run the full test suite, lint and the CI scripts locally. Label any mocked inference `MOCK`.
-4. Run `open-pr`. Record "Awaiting merge: PR #N" in STATUS.md. **Do not end the run.** Go back to Step A.
+4. Run `open-pr`. It waits for CI, then either self-merges and closes the iteration (Step D) or records "Awaiting merge: PR #N" for the user. **Do not end the run.** Go back to Step A.
 
 ### Step D: Close a merged item
-Run `close-iteration` after confirming the merge from the PR state. Skip its final "Stop and wait" step. Commit the closure documentation on a `docs/` branch and open it as a PR, or fold it into the next iteration's branch as its first commit. Never commit to `main`. Then go back to Step A.
+Run `close-iteration` after confirming the merge from the PR state. Skip its final "Stop and wait" step. Fold the closure documentation into the next iteration's branch as its first commit. If no next iteration follows, commit it on a `docs/` branch and merge it through a PR under the merge policy. Never commit to `main`. Then go back to Step A.
 
 ---
 
@@ -99,7 +100,7 @@ Each prepared item goes in a PR like any other change.
 Keep this section current in `docs/STATUS.md` under "Awaiting merge or approval". Sort it so the item that unblocks the most work comes first. Each line names one action and what it unblocks, for example:
 
 ```markdown
-- Awaiting merge: PR #16 (US-014 company research). Unblocks: closure of Iteration 6.
+- Awaiting merge: PR #17 (new model spec: user review required). Unblocks: notebook for <model>.
 - Approve D-002 (multi-profile storage). Unblocks: US-017.
 - Run `notebooks/03_train_application_tailor.ipynb` on Kaggle and supply the artifacts plus manifest. Unblocks: real ML-003 integration.
 - Install `torch` in `.venv` (dependency approved?). Unblocks: real ML-001 inference.

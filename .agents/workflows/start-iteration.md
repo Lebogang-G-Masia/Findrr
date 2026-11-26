@@ -19,7 +19,7 @@ Govern the preparatory phases of each development iteration, ensuring rigorous p
 
 Before planning anything:
 1. **Read State:** Read `docs/STATUS.md` and `docs/DECISIONS_PENDING.md`.
-2. **Check Preconditions:** Confirm bootstrap gates 1-5 and "Final approval to begin implementation" are **Approved** in `STATUS.md`. If not, stop and tell the user which are outstanding. Confirm there is no `Awaiting merge` entry. If there is one, stop and wait for the user.
+2. **Check Preconditions:** Confirm bootstrap gates 1-5 and "Final approval to begin implementation" are **Approved** in `STATUS.md`. If not, stop and tell the user which are outstanding. If an `Awaiting merge` entry exists, do not start work that depends on that PR.
 3. **Respect Open Decisions:** Do not work on anything blocked by an open item in `docs/DECISIONS_PENDING.md`.
 4. **Sync:** Switch to `main` and pull the latest changes.
 5. **Create the Branch:** Create a new branch from `main` using the prefix that fits the work: `feature/`, `fix/`, `docs/` or `refactor/` (for example `feature/iteration-N-short-name`). Never work on `main`.
@@ -69,4 +69,4 @@ Design the technical implementation approach and architecture for the iteration:
 
 ## Hand-off to Development
 
-When Steps 1-3 are complete, update `docs/STATUS.md` (current task, "Next step" = implement on the current branch). Record any new ambiguity in `docs/DECISIONS_PENDING.md`. If Step 2 or Step 3 needs material approval from the user, stop and wait before implementing. Otherwise implement on the branch, run `/open-pr` when finished, and never merge.
+When Steps 1-3 are complete, update `docs/STATUS.md` (current task, "Next step" = implement on the current branch). Record any new ambiguity in `docs/DECISIONS_PENDING.md`. If Step 2 or Step 3 needs material approval from the user, stop and wait before implementing. Otherwise implement on the branch, and run `/open-pr` when finished. It merges under the merge policy or hands the PR to the user.

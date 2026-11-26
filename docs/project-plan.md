@@ -192,7 +192,7 @@ To ensure legal compliance, data integrity, and operational safety:
 ## 7. Project Governance & Definition of Done
 
 Findrr strictly adheres to:
-1. **Branch Protection & Review:** Work occurs exclusively on feature/fix/docs branches; only the user merges PRs into `main`.
+1. **Branch Protection & Review:** Work occurs exclusively on feature/fix/docs branches; `main` is branch-protected (PR plus four green CI checks, admins included). The agent may merge routine PRs under the merge policy in `.agents/workflows/open-pr.md` §3, approved by the user on 2026-11-26. User-review PRs are merged only by the user.
 2. **Synchronized Documentation:** No PR is approved without corresponding updates to requirements, architecture, or test docs.
 3. **Verified ML Status:** Explicit differentiation in PRs between `MOCK` fixtures and `Verified with Real Artifacts`.
 4. **Approval Gates:** Progression between roadmap milestones and bootstrap phases requires explicit user sign-off.

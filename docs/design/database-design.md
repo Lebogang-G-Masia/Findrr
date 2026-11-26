@@ -132,6 +132,16 @@ CREATE INDEX idx_search_terms_status ON search_terms(generalized_title_id, valid
 ```
 **Migration (2026-11-26):** `is_mock`, `search_status` and `last_searched_at` are additive columns that `init_db()` adds idempotently. Exact (normalised-string) duplicates of the primary title or of earlier accepted terms are stored as `REJECTED_DUPLICATE` with score 1.0.
 
+### 3.5a Table: `app_settings` (added 2026-11-26, US-017)
+Key/value application settings. Currently holds only `active_profile_id`.
+```sql
+CREATE TABLE app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+```
+It is created by `CREATE TABLE IF NOT EXISTS`, so existing databases gain it automatically. A stale `active_profile_id` (pointing at a deleted profile) is ignored.
+
 ### 3.6 Table: `job_postings`
 Stores scraped employment opportunities. This section matches `src/findrr/db/schema.py`; it was synchronised on 2026-11-26.
 ```sql

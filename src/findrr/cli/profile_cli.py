@@ -9,6 +9,7 @@ from findrr.models.profile import (
     UserProfile,
     UserProfileCreate,
 )
+from findrr.services.active_profile import ProfileSelectionError, resolve_profile_id
 from findrr.services.profile_service import ProfileService
 from findrr.services.synthesizer import InsufficientProfileDataError
 
@@ -173,12 +174,11 @@ def handle_synthesize_title(
     print_fn: Callable[..., None] = print,
 ) -> None:
     """Trigger title synthesis for a profile."""
-    if not profile_id:
-        profiles = profile_service.list_profiles()
-        if not profiles:
-            print_fn("No profiles found. Create a profile first via 'findrr profile create'.")
-            return
-        profile_id = profiles[0].id
+    try:
+        profile_id = resolve_profile_id(profile_service.profile_repo, profile_id)
+    except ProfileSelectionError as err:
+        print_fn(f"Error: {err}")
+        return
 
     try:
         title = profile_service.synthesize_generalized_title(profile_id)

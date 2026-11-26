@@ -11,6 +11,7 @@ from findrr.db.repository import (
     TitleRepository,
 )
 from findrr.ml.registry import ModelRegistry
+from findrr.services.active_profile import ProfileSelectionError, resolve_profile_id
 from findrr.services.inference_service import InferenceService
 from findrr.services.search_term_service import (
     MockInferenceNotAllowedError,
@@ -47,13 +48,11 @@ def handle_terms_cli(
     config_repo: SearchConfigRepository,
     inference: Optional[InferenceService] = None,
 ) -> int:
-    profile_id = args.profile_id
-    if not profile_id:
-        profiles = profile_repo.list_profiles()
-        if not profiles:
-            print("No profiles found. Run 'findrr onboard' first.", file=sys.stderr)
-            return 1
-        profile_id = profiles[0].id
+    try:
+        profile_id = resolve_profile_id(profile_repo, args.profile_id)
+    except ProfileSelectionError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
 
     service = SearchTermService(
         inference=inference or InferenceService(registry=ModelRegistry()),

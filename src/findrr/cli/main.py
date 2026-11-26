@@ -23,6 +23,12 @@ from findrr.db.repository import (
     TitleRepository,
 )
 from findrr.ml.registry import ModelRegistry
+from findrr.services.active_profile import (
+    ActiveProfileStore,
+    ProfileSelectionError,
+    remember_active_after_create,
+    resolve_profile_id,
+)
 from findrr.services.inference_service import InferenceService
 from findrr.services.profile_service import ProfileService
 from findrr.services.search_config_service import SearchConfigService
@@ -120,6 +126,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Profile ID (optional if only one profile exists)",
     )
 
+    use_parser = profile_sub.add_parser(
+        "use", help="Switch the active profile used by commands without a profile ID (US-017)"
+    )
+    use_parser.add_argument("profile_id", help="Profile ID to make active")
+
     verify_parser = profile_sub.add_parser("verify", help="Verify a profile entry (FR-004)")
     verify_parser.add_argument("entry_id", help="Profile Entry UUID to verify")
 
@@ -181,6 +192,17 @@ def main(args: Optional[List[str]] = None) -> int:
         return 130
 
 
+def _report_active_after_create(profile_repo: ProfileRepository, new_id: str) -> None:
+    active = remember_active_after_create(profile_repo, new_id)
+    if active == new_id:
+        print(f"Active profile set to the new profile ({new_id}).")
+    else:
+        print(
+            "Your active profile is unchanged. "
+            f"To work with the new profile, run: findrr profile use {new_id}"
+        )
+
+
 def _main(args: Optional[List[str]] = None) -> int:
     # Load `.env` from the working directory if present; real environment variables win.
     load_dotenv(override=False)
@@ -218,6 +240,7 @@ def _main(args: Optional[List[str]] = None) -> int:
         if not profile:
             print("Onboarding aborted.")
             return 1
+        _report_active_after_create(profile_repo, profile.id)
         handle_synthesize_title(profile_service, profile.id)
         run_search_config_prompt(config_service, profile.id)
         print("\n=== Onboarding Complete! You are ready for job discovery. ===")
@@ -226,29 +249,44 @@ def _main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "profile":
         action = parsed_args.profile_action
         if action == "create":
-            run_interactive_questionnaire(profile_service)
+            created = run_interactive_questionnaire(profile_service)
+            if created:
+                _report_active_after_create(profile_repo, created.id)
             return 0
         elif action == "list":
             profiles = profile_service.list_profiles()
             if not profiles:
                 print("No profiles found.")
                 return 0
-            print("\nRegistered Profiles:")
+            try:
+                active_id = resolve_profile_id(profile_repo)
+            except ProfileSelectionError:
+                active_id = None
+            print("\nRegistered Profiles (* = active):")
             for p in profiles:
+                marker = "*" if p.id == active_id else " "
                 info_line = (
-                    f"  ID: {p.id} | Name: {p.full_name} | "
+                    f" {marker} ID: {p.id} | Name: {p.full_name} | "
                     f"Email: {p.email} | Entries: {len(p.entries)}"
                 )
                 print(info_line)
+            if active_id is None:
+                print("\nNo active profile. Run 'findrr profile use <profile_id>'.")
+            return 0
+        elif action == "use":
+            if not profile_service.get_profile(parsed_args.profile_id):
+                print(f"Profile {parsed_args.profile_id} not found.", file=sys.stderr)
+                return 1
+            ActiveProfileStore(conn).set(parsed_args.profile_id)
+            p = profile_service.get_profile(parsed_args.profile_id)
+            print(f"Active profile: {p.full_name} ({p.id})")
             return 0
         elif action == "show":
-            pid = parsed_args.profile_id
-            if not pid:
-                profiles = profile_service.list_profiles()
-                if not profiles:
-                    print("No profiles found.")
-                    return 0
-                pid = profiles[0].id
+            try:
+                pid = resolve_profile_id(profile_repo, parsed_args.profile_id)
+            except ProfileSelectionError as err:
+                print(f"Error: {err}", file=sys.stderr)
+                return 1
             p = profile_service.get_profile(pid)
             if not p:
                 print(f"Profile {pid} not found.")
@@ -279,24 +317,17 @@ def _main(args: Optional[List[str]] = None) -> int:
 
     elif parsed_args.command == "config":
         action = parsed_args.config_action
+        try:
+            pid = resolve_profile_id(profile_repo, getattr(parsed_args, "profile_id", None))
+        except ProfileSelectionError as err:
+            if action in ("set", "show"):
+                print(f"Error: {err}", file=sys.stderr)
+                return 1
+            pid = None
         if action == "set":
-            pid = parsed_args.profile_id
-            if not pid:
-                profiles = profile_service.list_profiles()
-                if not profiles:
-                    print("No profiles found. Create a profile first.")
-                    return 1
-                pid = profiles[0].id
             run_search_config_prompt(config_service, pid)
             return 0
         elif action == "show":
-            pid = parsed_args.profile_id
-            if not pid:
-                profiles = profile_service.list_profiles()
-                if not profiles:
-                    print("No profiles found.")
-                    return 1
-                pid = profiles[0].id
             display_search_config(config_service, pid)
             return 0
         else:

@@ -144,7 +144,6 @@ class ApplicationService:
         return self.app_repo.get_pipeline_summary(pid)
 
     def _get_default_profile_id(self) -> str:
-        profiles = self.profile_repo.list_profiles()
-        if not profiles:
-            raise ValueError("No user profiles exist. Complete onboarding first.")
-        return profiles[0].id
+        from findrr.services.active_profile import resolve_profile_id
+
+        return resolve_profile_id(self.profile_repo)

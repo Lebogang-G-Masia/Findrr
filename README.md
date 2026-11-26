@@ -8,7 +8,19 @@ Findrr is an employment-search and application-preparation application designed 
 
 ## Status
 
-Currently in Pre-Milestone 1 (Bootstrap phase).
+Milestone 2 (additional CLI functionality). See [`docs/STATUS.md`](docs/STATUS.md).
+
+## Typical CLI flow
+
+```bash
+findrr onboard                 # profile -> generalized title -> search configuration
+findrr terms generate          # Model 1 expansion + Model 2 validation (needs verified artifacts)
+findrr search run              # headful search: primary title + accepted terms (2-10 each)
+findrr apply analyze <posting> # requirement gap analysis
+findrr apply draft <posting>   # fact-grounded CV + cover letter (Markdown)
+findrr apply status <app> APPLIED
+findrr dashboard
+```
 
 ## Development Setup
 
@@ -22,7 +34,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies in editable mode
-pip install -e ".[dev]"
+pip install -e ".[dev]"          # add ",ml" for local ONNX inference: ".[dev,ml]"
+cp .env.example .env              # optional overrides
 ```
 
 ## Documentation

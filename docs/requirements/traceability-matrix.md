@@ -28,10 +28,10 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-005** | Generalized Job Title Synthesis | Mod 1 (Profile) | `US-002` | `AC-002` | `tests/unit/test_synthesizer.py` | N/A |
 | **FR-006** | Search Configuration | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_services.py` | N/A |
 | **FR-007** | Search Limits (2–10) | Mod 2 (Search Config) | `US-003` | `AC-004` | `tests/unit/test_models.py`, `tests/integration/test_db.py` | N/A |
-| **FR-008** | Generative Search Expansion | Mod 3 (Search Terms) | `US-006` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Model 1 (Flan-T5) |
-| **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/integration/test_ml_cli.py` | Model 2 (MiniLM) |
-| **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
-| **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py` | Model 2 (MiniLM) |
+| **FR-008** | Generative Search Expansion | Mod 3 (Search Terms) | `US-006` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py`, `tests/integration/test_ml_cli.py` | Model 1 (Flan-T5) |
+| **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py`, `tests/integration/test_ml_cli.py` | Model 2 (MiniLM) |
+| **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py` | Model 2 (MiniLM) |
+| **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py` | Model 2 (MiniLM) |
 | **FR-012** | Headful Selenium Automation | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_query_builder.py`, `tests/integration/test_search_cli.py` | N/A |
 | **FR-013** | Extract 2–10 Postings/Title | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_search_limits.py`, `tests/integration/test_posting_service.py` | N/A |
 | **FR-014** | Employer Destination Priority | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_link_resolver.py` | N/A |

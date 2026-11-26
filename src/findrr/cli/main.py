@@ -13,6 +13,7 @@ from findrr.cli.config_cli import display_search_config, run_search_config_promp
 from findrr.cli.dashboard_cli import handle_dashboard_cli, register_dashboard_subparsers
 from findrr.cli.profile_cli import handle_synthesize_title, run_interactive_questionnaire
 from findrr.cli.search_cli import handle_search_cli, register_search_subparsers
+from findrr.cli.terms_cli import handle_terms_cli, register_terms_subparsers
 from findrr.db.connection import get_connection, init_db
 from findrr.db.repository import (
     ApplicationRepository,
@@ -155,6 +156,9 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser = model_sub.add_parser("compare", help="Test semantic similarity scoring")
     compare_parser.add_argument("text_a", help="First title or text")
     compare_parser.add_argument("text_b", help="Second title or text")
+
+    # Subparser: terms (Module 3)
+    register_terms_subparsers(subparsers)
 
     # Subparser: search (Module 4)
     register_search_subparsers(subparsers)
@@ -363,6 +367,14 @@ def _main(args: Optional[List[str]] = None) -> int:
         else:
             parser.parse_args(["model", "--help"])
             return 0
+
+    elif parsed_args.command == "terms":
+        return handle_terms_cli(
+            args=parsed_args,
+            profile_repo=profile_repo,
+            title_repo=title_repo,
+            config_repo=config_repo,
+        )
 
     elif parsed_args.command == "search":
         return handle_search_cli(

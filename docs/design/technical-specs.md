@@ -88,6 +88,7 @@ class JobPostingDTO(BaseModel):
 **Discovery contract notes (2026-11-26):**
 - `findrr search run` takes its result bounds from the profile's saved search configuration. `--min` and `--max` override it only when given. `--title` replaces only the searched title; locations, remote preference and seniority still come from the profile.
 - An unsolved CAPTCHA stops discovery. `DiscoveryMetrics.halted_reason` is set, the challenge page is never parsed for links, and the CLI exits with code 2.
+- `findrr search run` searches the primary title, then each accepted non-MOCK term (`PostingService.discover_all_for_profile`). Each term is bounded 2–10 independently, its postings are linked through `search_term_id`, and the term is marked `SEARCHED`. A halt stops the remaining queries. `--primary-only` opts out.
 - Debug snapshots (`last_search_page.html/.png`) are written to the directory of `--log-file`.
 - The parser never substitutes the search query for a missing posting title. It never sets `posting_date` unless the page states one.
 - Availability classification follows `docs/design/database-design.md` §3.6.
@@ -133,6 +134,15 @@ class ISearchTermService(ABC):
         """Invoke Model 2 to score semantic similarity and reject duplicates."""
         pass
 ```
+
+**Implementation (2026-11-26):** `findrr.services.search_term_service.SearchTermService.generate_for_profile(profile_id, allow_mock=False)` runs **one** generation pass (no retry loop) in this order:
+1. Model 1 expands the active title, using verified skills and the saved seniority.
+2. Exact duplicates are rejected, using normalised strings against the primary title and earlier accepted terms.
+3. Model 2 scores relevance and near-duplicates (FR-010 and FR-011 thresholds from `findrr.config`).
+4. The optional cap `FINDRR_MAX_ACCEPTED_TERMS` applies. It has no default, because no value is approved.
+5. Every outcome is persisted.
+
+If either model would run as MOCK, it raises `MockInferenceNotAllowedError` unless `allow_mock` is set. MOCK terms are stored with `is_mock=1` and are never searched. CLI: `findrr terms generate [--allow-mock]` and `findrr terms list`.
 
 ### 2.3 Module 4: `JobDiscoveryService`
 ```python

@@ -109,7 +109,7 @@ Work items are organized hierarchically:
   - [x] Author Kaggle notebook for sentence-transformer fine-tuning and ONNX export.
   - [x] Implement cosine similarity evaluation and threshold filtering (provisional threshold: 0.70).
   - [x] Implement duplicate rejection (provisional threshold: 0.88).
-  - [ ] Wire Model 1 expansion and Model 2 validation into the discovery workflow: persist search terms with status and model version, and search each accepted term. *Gap found 2026-11-26: the adapters exist, but nothing calls them outside `findrr model expand/compare`. `search_terms` is never written, and search uses only the primary title.*
+  - [x] Wire Model 1 expansion and Model 2 validation into the discovery workflow (`findrr terms generate`, `SearchTermService`; searched by `findrr search run`). Verified with test doubles and MOCK runners only. Real-model verification is pending re-supplied artifacts. persist search terms with status and model version, and search each accepted term. *Gap found and fixed 2026-11-26.*
 - **Dependencies:** `US-005`, `US-006`.
 
 ---

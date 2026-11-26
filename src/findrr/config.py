@@ -6,6 +6,7 @@ until evaluated and approved, and can be overridden without code changes.
 
 import logging
 import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -38,3 +39,23 @@ def relevance_threshold() -> float:
 def dedup_threshold() -> float:
     """Return the configured near-duplicate threshold (env FINDRR_DEDUP_THRESHOLD)."""
     return _float_env("FINDRR_DEDUP_THRESHOLD", DEFAULT_DEDUP_THRESHOLD)
+
+
+def max_accepted_terms() -> Optional[int]:
+    """Optional cap on accepted search terms per run (env FINDRR_MAX_ACCEPTED_TERMS).
+
+    No default: the Module 3 spec requires a maximum, but no value has been evaluated or
+    approved, so none is invented. Unset means no cap beyond what Model 1 returns.
+    """
+    raw = os.getenv("FINDRR_MAX_ACCEPTED_TERMS")
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        logger.error("Invalid FINDRR_MAX_ACCEPTED_TERMS=%r (not an integer); no cap applied", raw)
+        return None
+    if value < 1:
+        logger.error("Invalid FINDRR_MAX_ACCEPTED_TERMS=%r (must be >= 1); no cap applied", raw)
+        return None
+    return value

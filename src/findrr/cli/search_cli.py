@@ -9,6 +9,7 @@ from findrr.db.repository import (
     PostingRepository,
     ProfileRepository,
     SearchConfigRepository,
+    SearchTermRepository,
     TitleRepository,
 )
 from findrr.search.engine import JobDiscoveryEngine
@@ -41,6 +42,12 @@ def register_search_subparsers(subparsers: argparse._SubParsersAction) -> None:
         type=int,
         default=None,
         help="Maximum results to extract [2, 10] (default: saved search configuration, else 10)",
+    )
+    run_parser.add_argument(
+        "--primary-only",
+        action="store_true",
+        default=False,
+        help="Search only the primary title, not accepted generated search terms",
     )
     run_parser.add_argument(
         "--headless",
@@ -78,6 +85,7 @@ def handle_search_cli(
         title_repo=title_repo,
         config_repo=config_repo,
         discovery_engine=engine,
+        term_repo=SearchTermRepository(posting_repo.conn),
     )
 
     cmd = args.search_cmd
@@ -116,12 +124,14 @@ def _run_search(
 
     if args.title:
         print(f"Searching explicitly for: {args.title}")
-        res = service.discover_for_profile(
-            profile_id=profile_id,
-            custom_min=args.min,
-            custom_max=args.max,
-            title_override=args.title,
-        )
+        results = [
+            service.discover_for_profile(
+                profile_id=profile_id,
+                custom_min=args.min,
+                custom_max=args.max,
+                title_override=args.title,
+            )
+        ]
     else:
         active_title = title_repo.get_active_title(profile_id)
         if not active_title:
@@ -131,16 +141,38 @@ def _run_search(
             )
             return 1
         print(f"Searching for active profile title: {active_title.primary_title}")
-        res = service.discover_for_profile(
+        if not getattr(args, "primary_only", False):
+            print("Accepted search terms from 'findrr terms generate' are searched next.")
+        results = service.discover_all_for_profile(
             profile_id=profile_id,
             custom_min=args.min,
             custom_max=args.max,
+            primary_only=getattr(args, "primary_only", False),
         )
 
+    total_retained = 0
+    for res in results:
+        total_retained += _print_result(res)
+
+    halted = results[-1]["metrics"].halted_reason
+    if halted:
+        print(f"\n[DISCOVERY HALTED] {halted}", file=sys.stderr)
+        print("Re-run 'findrr search run' and complete the challenge in the Chrome window.")
+        return 2
+
+    if total_retained == 0:
+        print(
+            "\nNo postings were retained for this search. "
+            "(Zero synthetic results fabricated per FR-017)"
+        )
+    return 0
+
+
+def _print_result(res: dict) -> int:
     metrics = res["metrics"]
     postings = res["postings"]
 
-    print("\n------------------------- Discovery Session Metrics -------------------------")
+    print(f"\n---------------- Discovery Session Metrics: {res['title']} ----------------")
     print(f"Search Query:            {metrics.query}")
     print(f"Results Retrieved:       {metrics.results_retrieved}")
     print(f"Postings Extracted:      {metrics.postings_extracted}")
@@ -148,19 +180,8 @@ def _run_search(
     print(f"Unique Postings Retained:{metrics.unique_postings_retained}")
     print("-----------------------------------------------------------------------------")
 
-    if metrics.halted_reason:
-        print(f"\n[DISCOVERY HALTED] {metrics.halted_reason}", file=sys.stderr)
-        print("Re-run 'findrr search run' and complete the challenge in the Chrome window.")
-        return 2
-
-    if not postings:
-        print(
-            "\nNo postings were retained for this query. "
-            "(Zero synthetic results fabricated per FR-017)"
-        )
-        return 0
-
-    print(f"\nRetained Opportunities ({len(postings)}):")
+    if postings:
+        print(f"\nRetained Opportunities ({len(postings)}):")
     for idx, p in enumerate(postings, 1):
         print(f"\n[{idx}] {p.title} at {p.company}")
         if p.location:
@@ -172,8 +193,7 @@ def _run_search(
         if p.requirements_extracted:
             print(f"    Skills:     {', '.join(p.requirements_extracted[:6])}")
         print(f"    Posting ID: {p.id}")
-
-    return 0
+    return len(postings)
 
 
 def _list_postings(args: argparse.Namespace, service: PostingService) -> int:

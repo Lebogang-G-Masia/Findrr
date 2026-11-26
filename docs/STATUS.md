@@ -92,7 +92,7 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 6
+See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 ## Session log (newest first)
 

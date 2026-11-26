@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 6**
+**Open items: 5**
 
 ## Open decisions
 

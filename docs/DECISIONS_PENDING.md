@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 5**
+**Open items: 6**
 
 ## Open decisions
 
@@ -87,6 +87,41 @@
   - pinned libraries;
   - the app manifest schema.
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
+- **Status:** Open
+
+### D-009: ML-001 occupation precision 0.478; the 0.75 threshold was calibrated against an unfair baseline
+- **Raised:** 2026-11-26, after the user's third Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, constrained decoding with the PR #31 fix)
+- **Area:** ML
+- **Evidence (Kaggle run 3, held-out test occupations):**
+
+  | Criterion | Value | Target | Result |
+  |---|---|---|---|
+  | Occupation precision | 0.478 | >= 0.75 | Failed |
+  | Valid title ratio | 1.000 | >= 0.85 | Passed |
+  | Repetition rate | 0.0001 | < 0.05 | Passed |
+  | AC-ML-001.1 distinct titles | 5 | >= 3 | Passed |
+
+  The constraint now works as intended: every title is real, there are no repeats, and outputs carry 5 titles. The sample predictions were not yet shared.
+- **Evidence (local, no training; same O*NET 31.0 split rebuilt with the notebook's own code):**
+  - The split is occupation-disjoint: the 87 test occupations never appear in training. Only **17.5%** of their reference titles ever appear as a training target, so the model has almost never generated the right titles for a test occupation. The best it can do is emit titles of a *related training* occupation.
+  - That is reachable in principle: every test occupation has a Primary-Short related occupation in training, so a perfect choice among training titles scores 1.0.
+  - **My 0.736 baseline (PR #27) was unfair.** It drew random titles from the same SOC broad group (e.g. 15-125x; PR #27 called it the minor group) *including the test occupation's own titles*, which the model never saw. Restricted to titles the model saw as training targets:
+
+    | Baseline (random training-target titles) | Occupation precision |
+    |---|---|
+    | Same SOC broad group (e.g. 15-125x) | 0.579 |
+    | Same detailed SOC code, sibling O*NET occupations (e.g. 15-1252.xx) | 0.489 |
+    | Same SOC major group (e.g. 15) | 0.094 |
+
+  - The model (0.478) scores below a random training title from the right broad group (0.579). The samples will show whether it picks the wrong family or the wrong occupation within it.
+- **Ambiguity:** the approved threshold (0.75) asks for better than the broad-group baseline, but that baseline assumed the model could output the test occupation's own titles. With an occupation-disjoint split it cannot have learned them. In the app, by contrast, every O*NET occupation is known: the dictionary is fixed, and a user's title maps to one of those occupations. The current split therefore tests a harder task than the deployed one.
+- **Why it matters:** ML-001 blocks real Module 3 inference. The threshold and the split are approved acceptance criteria and spec content, so only you can change them.
+- **Options:**
+  1. **Split by input title within occupations (recommended).** Every occupation contributes to training; test examples use anchor titles (inputs) and skill combinations never seen in training. Keep the 0.75 threshold, which is now a fair test against the 0.736 baseline. Also report held-out-occupation precision without gating it, as a generalisation check. Trade-offs: it matches the deployed task (known dictionary, unseen user wording); test targets overlap training targets, so it measures correct association rather than open-ended generalisation. It needs a spec change (§10 split, §14) and a notebook change, and you re-run notebook 01.
+  2. **Keep the occupation-disjoint split and recalibrate the threshold** against the fair baseline (for example >= 0.60, just above 0.579). Trade-offs: smallest change, but the current model (0.478) still fails, so it also needs option 3.
+  3. **Stronger model or training on the current split** (more epochs, or `flan-t5-base` at 250M parameters). Trade-offs: no spec change for the metric; success is uncertain; a larger model affects CPU latency and touches D-004.
+- **Recommendation:** Option 1. It evaluates what Findrr does with the model and keeps the approved threshold meaningful. Please also paste the 15 sample predictions from the evaluation cell: they show whether errors are near-misses (related family) or unrelated.
+- **Blocked work:** ML-001 export and real Module 3 inference.
 - **Status:** Open
 
 ## Entry template

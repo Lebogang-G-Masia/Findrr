@@ -190,3 +190,20 @@ def test_registry_rejects_wrong_model_or_version(tmp_path):
     (bundle / "manifest.json").write_text(json.dumps(manifest))
     status = ModelRegistry(base_models_dir=tmp_path).inspect_model_status("ML-001")
     assert status["integrity_verified"] is False and "version" in status["error"]
+
+
+COMPILED_PACKAGES = ("sentencepiece", "torch", "tokenizers", "safetensors", "numpy", "onnx",
+                     "onnxruntime", "scipy")
+
+
+@pytest.mark.parametrize(
+    "notebook", ["01_train_title_expander.ipynb", "02_train_similarity_evaluator.ipynb"]
+)
+def test_notebooks_do_not_pin_compiled_packages_exactly(notebook):
+    """Exact pins on compiled packages force source builds on newer Kaggle Python versions."""
+    nb = json.loads((NOTEBOOKS / notebook).read_text(encoding="utf-8"))
+    installs = " ".join(
+        "".join(c["source"]) for c in nb["cells"] if "pip install" in "".join(c["source"])
+    )
+    for pkg in COMPILED_PACKAGES:
+        assert f" {pkg}==" not in installs and f'"{pkg}==' not in installs, pkg

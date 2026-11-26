@@ -58,6 +58,22 @@ def notebook(cells: list) -> dict:
 # Shared cells (both notebooks)
 # --------------------------------------------------------------------------------------------
 
+ENV_REPORT = code(
+    r'''
+    # Environment report (useful if an install or training step fails).
+    import platform, subprocess, sys
+    print('Python', sys.version)
+    print(platform.platform())
+    print(subprocess.run([sys.executable, '-m', 'pip', 'list'], capture_output=True, text=True).stdout
+          .count('\n'), 'packages preinstalled')
+    for pkg in ('torch', 'transformers', 'tokenizers', 'numpy', 'onnxruntime'):
+        try:
+            print(pkg, __import__(pkg).__version__)
+        except Exception as err:
+            print(pkg, 'not available:', type(err).__name__)
+    '''
+)
+
 ONET_CONFIG = code(
     r'''
     # O*NET database (CC BY 4.0, U.S. Department of Labor / ETA). Public occupational data only;
@@ -305,10 +321,15 @@ def title_expander_notebook() -> dict:
                 criteria (ROUGE-L >= 0.75, valid title ratio >= 0.85, repetition < 0.05).
                 """
             ),
+            ENV_REPORT,
             code(
                 """
-                !pip install -q transformers==4.46.3 datasets==3.1.0 accelerate==1.1.1 \\
-                    sentencepiece==0.2.0 rouge-score==0.1.2 sacrebleu==2.4.3 safetensors==0.4.5
+                # Pure-Python libraries whose APIs this notebook uses are pinned exactly.
+                # Compiled packages (torch, tokenizers, safetensors, numpy) come from the Kaggle
+                # image: pinning old releases forces source builds on newer Python versions.
+                # sentencepiece is not needed: flan-t5 loads its fast tokenizer from tokenizer.json.
+                !pip install -q --prefer-binary transformers==4.46.3 datasets==3.1.0 accelerate==1.1.1 \\
+                    rouge-score==0.1.2 sacrebleu==2.4.3
                 """
             ),
             ONET_CONFIG,
@@ -566,10 +587,14 @@ def similarity_evaluator_notebook() -> dict:
                 `similarity_evaluator_bundle.tar.gz` into `models/similarity-evaluator/v{ML002_VERSION}/`.
                 """
             ),
+            ENV_REPORT,
             code(
                 """
-                !pip install -q sentence-transformers==3.3.1 transformers==4.46.3 datasets==3.1.0 \\
-                    accelerate==1.1.1 onnx==1.17.0 onnxruntime==1.20.1
+                # Pure-Python libraries are pinned exactly; compiled ones (onnx, onnxruntime) get a
+                # minimum version so pip can choose a prebuilt wheel for Kaggle's Python version.
+                # The versions actually used are recorded in the manifest metadata.
+                !pip install -q --prefer-binary sentence-transformers==3.3.1 transformers==4.46.3 \\
+                    datasets==3.1.0 accelerate==1.1.1 "onnx>=1.17.0" "onnxruntime>=1.20.1"
                 """
             ),
             ONET_CONFIG,

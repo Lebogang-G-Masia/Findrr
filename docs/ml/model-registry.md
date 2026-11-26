@@ -79,5 +79,5 @@ Every model catalog entry defines:
 A bundle is loaded only if **all** of the following hold. Otherwise `findrr model inspect` reports the reason, and inference stays MOCK-labelled.
 1. Every file listed in `manifest.json` exists and its SHA-256 matches.
 2. `manifest.model_id` equals the registered ID, and `manifest.version` equals the registered active version.
-3. Every `required_files` entry exists and is covered by the manifest.
+3. Every `required_files` entry exists and is covered by the manifest. For ML-001 this includes `titles.json`, the constrained-decoding dictionary (D-007).
 4. `manifest.metadata.acceptance.passed` is not `false`. The notebooks record whether the approved acceptance criteria were met, and refuse to export a model that fails them unless explicitly overridden.

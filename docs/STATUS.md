@@ -22,9 +22,9 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
 - **Decide D-008** (ML-002 failed acceptance on Pearson r, 0.745 against 0.85; proxy labels cap it). It blocks ML-002 export. Also paste the full cell 12 output of notebook 02.
-- **Decide D-007** (ML-001 failed acceptance; ROUGE-L target unreachable). It blocks ML-001. Notebook 02 (ML-002) can still be run now.
+- **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
+- **Awaiting merge: PR #27** (user review: ML-001 constrained decoding, D-007). Merging also **confirms the PROPOSED occupation-precision threshold of 0.75**; say so if you want a different value. Then re-run notebook 01 on Kaggle. Notebook 02 can be run any time.
 - Decide D-002 (discovery source), D-003 (DOCX/PDF), D-004 (ML-001 runtime), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
@@ -92,13 +92,14 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 7
+See `docs/DECISIONS_PENDING.md`. Count of open items: 6
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
 | 2026-11-26 | First Kaggle run of ML-002 v1.1.0 (user): the acceptance gate stopped the export. Pearson r 0.745 (target 0.85) failed; precision at 0.70 0.963, AC-ML-002.1 0.894 and AC-ML-002.2 0.248 passed. Local analysis on the rebuilt test pairs: the untrained base model scores Pearson 0.614, and the O*NET proxy labels disagree with title meaning in both directions. Raised D-008. | docs/d-008-ml-002-acceptance |
+| 2026-11-26 | D-007 resolved by the user: option 1. Implemented `findrr.ml.title_constraint` (token trie over 45,712 O*NET titles; no invented or repeated titles), embedded verbatim in notebook 01. The runner decodes with it and requires `titles.json`. Occupation precision replaces ROUGE-L (threshold 0.75 PROPOSED, from baselines 0.007/0.12/0.736). Fixed a stray-bracket bug in title cleaning. End-to-end smoke test passed (untrained base model, no training). 189 tests pass. Opened PR #27. | feature/ml-001-constrained-decoding / PR #27 |
 | 2026-11-26 | First Kaggle run of ML-001 v2.0.0 (user): the acceptance gate stopped the export. ROUGE-L 0.194, valid ratio 0.554, repetition 0.580, AC-ML-001.1 passed. Local analysis: ideal answers score ROUGE-L 0.27–0.66, so the 0.75 target is unreachable; repetition and invalid titles are real model defects. Raised D-007. | docs/d-007-ml-001-evaluation |
 | 2026-11-26 | User report: notebook 01 failed on Kaggle (Python 3.13) with `cannot import name 'is_flax_available'`. The environment cell imported the preinstalled transformers 5.x before the pinned 4.46.3 install, mixing versions. The report now reads metadata only, and a version-guard cell says to restart if the versions are mixed. Verified in a Python 3.13 + torch 2.15 environment: all imports, both trainer argument sets and both tokenizers work (no training). Regression test added. | fix/notebook-import-order |
 | 2026-11-26 | User report: notebook 01 failed on Kaggle building `sentencepiece==0.2.0` (no wheel for Kaggle's Python). Removed sentencepiece (not needed; fast tokenizer), kept exact pins only on pure-Python libraries, set minimum versions for onnx and onnxruntime, added an environment report cell, and added a regression test. | fix/kaggle-notebook-installs |

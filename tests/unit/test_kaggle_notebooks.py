@@ -226,3 +226,27 @@ def test_no_library_import_before_pinned_install(notebook):
         if "from transformers" in s or "from sentence_transformers" in s
     )
     assert pip_i < guard_i < first_lib
+
+
+def test_notebook_embeds_constraint_module_verbatim():
+    nb = json.loads((NOTEBOOKS / "01_train_title_expander.ipynb").read_text(encoding="utf-8"))
+    module = (NOTEBOOKS.parent / "src/findrr/ml/title_constraint.py").read_text(encoding="utf-8")
+    sources = ["".join(c["source"]) for c in nb["cells"]]
+    embedded = [src for src in sources if "class TitleTrieConstraint" in src]
+    assert len(embedded) == 1
+    hint = "regenerate notebooks: python scripts/generate_kaggle_notebooks.py"
+    assert module.strip() in embedded[0], hint
+
+
+def test_occupation_precision_and_dictionary(onet_dir):
+    ns = _testable_namespace("01_train_title_expander.ipynb")
+    onet = ns["load_onet"](onet_dir)
+    index = ns["title_occupations"](onet)
+    titles = ns["dictionary_titles"](onet)
+    assert titles and all("," not in t for t in titles)
+    assert "Nurse, Registered" not in titles
+    rows = [("15-1252.00", ["Software Engineer", "Systems Analyst", "Staff Nurse"])]
+    # Software Engineer: same occupation; Systems Analyst: Primary-Short related; Staff Nurse: no.
+    assert ns["occupation_precision"](rows, onet, index) == 2 / 3
+    stray = "Registered Radiologic Technologist)"
+    assert ns["clean_title"](stray) == "Registered Radiologic Technologist"

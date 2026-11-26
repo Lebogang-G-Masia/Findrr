@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 7**
+**Open items: 6**
 
 ## Open decisions
 
@@ -89,50 +89,6 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
-### D-007: ML-001 failed acceptance; ROUGE-L target is unreachable by design
-- **Raised:** 2026-11-26, after the user's first Kaggle run of `01_train_title_expander.ipynb` (v2.0.0)
-- **Area:** ML
-- **Evidence (Kaggle run, held-out occupations, 2,585 test examples):**
-
-  | Metric | Value | Target |
-  |---|---|---|
-  | ROUGE-L | 0.194 | >= 0.75 |
-  | Valid title ratio | 0.554 | >= 0.85 |
-  | Repetition rate | 0.580 | < 0.05 |
-  | AC-ML-001.1 distinct titles | 3 | >= 3 (passed) |
-
-  The notebook correctly refused to export.
-- **Evidence (local, no training):** ROUGE-L of *ideal* answers against the same test references.
-
-  | Answer | ROUGE-L |
-  |---|---|
-  | 5 different valid titles of the same occupation | 0.273 |
-  | The exact reference titles in another order | 0.643 |
-  | 3 reference titles + 2 other valid ones | 0.656 |
-
-  A test occupation has a median of 39 valid titles; the reference is one arbitrary sorted list of 5.
-- **Ambiguity:** Is the problem the model, the metric, or both? The answer is both:
-  - **Metric:** ROUGE-L >= 0.75 is unreachable by any correct answer except the exact reference list in exact order. It measures agreement with one arbitrary sample, not title quality.
-  - **Model:** repetition (0.58) and invalid titles (0.55) are genuine defects. Unconstrained Flan-T5-small loops and invents titles for occupations it has not seen.
-- **Why it matters:** ML-001 feeds Module 3. Invented titles become real search queries, and the spec's acceptance criteria cannot be met as written. Changing metrics, thresholds, decoding or architecture all need approval.
-- **Options:**
-  1. **Constrained generation (recommended).** Keep fine-tuned Flan-T5. Restrict decoding to real O*NET titles via a prefix trie over the 46k-title dictionary (shipped in the bundle as `titles.json`, about 1 MB), and block repeating an already-generated title.
-
-     The dictionary contains every O*NET title. That is not test leakage at inference: the app ships the same dictionary. Training stays occupation-disjoint.
-
-     Replace ROUGE-L with set metrics against the occupation's full title set:
-     - **occupation precision:** generated titles that belong to the same occupation, or to a Primary-Short related one;
-     - **distinct titles per request.**
-
-     Valid ratio becomes 1.0 and repetition 0.0 by construction, so they turn into hard invariants. Trade-offs: needs approval of the new metric and its threshold; adds a trie step to the runner; the model can only suggest titles O*NET knows.
-  2. **Unconstrained generation, tuned.** Add `no_repeat_ngram_size=3` and dedupe, train longer or use `flan-t5-base` (about 250M parameters, model change), and replace ROUGE-L with the same set metrics. Trade-offs: keeps open vocabulary, but invented titles remain likely, and the valid-ratio target may still fail.
-  3. **Retrieval instead of generation.** Use the ML-002 embeddings to return the nearest O*NET titles; no generative model. Trade-offs: simplest and most reliable, but drops Model 1 and changes FR-008 ("generative transformer model"). That is a requirements change.
-- **Recommendation:** Option 1. It keeps the approved generative, fine-tuned design (FR-008); it makes invented titles impossible, which matters because they become live search queries; and it replaces a metric no correct answer can pass with one that measures what Module 3 needs.
-
-  The occupation-precision threshold must come from you. A reference point I can compute before you choose: the score of the current gold lists under the new metric (1.0 by construction) and of a same-major-group random baseline.
-- **Blocked work:** ML-001 retraining; real Module 3 inference.
-- **Status:** Open
-
 ### D-008: ML-002 failed acceptance on Pearson r; the proxy labels cap it
 - **Raised:** 2026-11-26, after the user's first Kaggle run of `02_train_similarity_evaluator.ipynb` (v1.1.0)
 - **Area:** ML
@@ -190,6 +146,52 @@ Copy this block for each new decision. Number entries `D-001`, `D-002`, and so o
 ## Resolved decisions
 
 Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
+### D-007: ML-001 failed acceptance; ROUGE-L target is unreachable by design
+- **Raised:** 2026-11-26, after the user's first Kaggle run of `01_train_title_expander.ipynb` (v2.0.0)
+- **Area:** ML
+- **Evidence (Kaggle run, held-out occupations, 2,585 test examples):**
+
+  | Metric | Value | Target |
+  |---|---|---|
+  | ROUGE-L | 0.194 | >= 0.75 |
+  | Valid title ratio | 0.554 | >= 0.85 |
+  | Repetition rate | 0.580 | < 0.05 |
+  | AC-ML-001.1 distinct titles | 3 | >= 3 (passed) |
+
+  The notebook correctly refused to export.
+- **Evidence (local, no training):** ROUGE-L of *ideal* answers against the same test references.
+
+  | Answer | ROUGE-L |
+  |---|---|
+  | 5 different valid titles of the same occupation | 0.273 |
+  | The exact reference titles in another order | 0.643 |
+  | 3 reference titles + 2 other valid ones | 0.656 |
+
+  A test occupation has a median of 39 valid titles; the reference is one arbitrary sorted list of 5.
+- **Ambiguity:** Is the problem the model, the metric, or both? The answer is both:
+  - **Metric:** ROUGE-L >= 0.75 is unreachable by any correct answer except the exact reference list in exact order. It measures agreement with one arbitrary sample, not title quality.
+  - **Model:** repetition (0.58) and invalid titles (0.55) are genuine defects. Unconstrained Flan-T5-small loops and invents titles for occupations it has not seen.
+- **Why it matters:** ML-001 feeds Module 3. Invented titles become real search queries, and the spec's acceptance criteria cannot be met as written. Changing metrics, thresholds, decoding or architecture all need approval.
+- **Options:**
+  1. **Constrained generation (recommended).** Keep fine-tuned Flan-T5. Restrict decoding to real O*NET titles via a prefix trie over the 46k-title dictionary (shipped in the bundle as `titles.json`, about 1 MB), and block repeating an already-generated title.
+
+     The dictionary contains every O*NET title. That is not test leakage at inference: the app ships the same dictionary. Training stays occupation-disjoint.
+
+     Replace ROUGE-L with set metrics against the occupation's full title set:
+     - **occupation precision:** generated titles that belong to the same occupation, or to a Primary-Short related one;
+     - **distinct titles per request.**
+
+     Valid ratio becomes 1.0 and repetition 0.0 by construction, so they turn into hard invariants. Trade-offs: needs approval of the new metric and its threshold; adds a trie step to the runner; the model can only suggest titles O*NET knows.
+  2. **Unconstrained generation, tuned.** Add `no_repeat_ngram_size=3` and dedupe, train longer or use `flan-t5-base` (about 250M parameters, model change), and replace ROUGE-L with the same set metrics. Trade-offs: keeps open vocabulary, but invented titles remain likely, and the valid-ratio target may still fail.
+  3. **Retrieval instead of generation.** Use the ML-002 embeddings to return the nearest O*NET titles; no generative model. Trade-offs: simplest and most reliable, but drops Model 1 and changes FR-008 ("generative transformer model"). That is a requirements change.
+- **Recommendation:** Option 1. It keeps the approved generative, fine-tuned design (FR-008); it makes invented titles impossible, which matters because they become live search queries; and it replaces a metric no correct answer can pass with one that measures what Module 3 needs.
+
+  The occupation-precision threshold must come from you. A reference point I can compute before you choose: the score of the current gold lists under the new metric (1.0 by construction) and of a same-major-group random baseline.
+- **Blocked work:** ML-001 retraining; real Module 3 inference.
+- **Status:** Resolved
+- **Decision:** Option 1, constrained generation. Owner decision 2026-11-26. The occupation-precision threshold 0.75 is PROPOSED and is confirmed by merging the implementing PR.
+- **Recorded in:** `src/findrr/ml/title_constraint.py`, `TitleExpanderRunner`, `notebooks/01_train_title_expander.ipynb`, `docs/ml/models/title-expander.md` §8, §10, §12 and §14
 
 ### D-001: Handling CAPTCHA Interception and Browser Session Persistence in Job Discovery
 - **Decision:** Option A: Human-in-the-loop manual completion prompt in headful CLI + persistent Chrome profile directory (`chrome_profile/`).

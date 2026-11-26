@@ -1,11 +1,14 @@
 """Model 1 runner: Job Title Expander (Flan-T5 Seq2Seq)."""
 
+import json
 import logging
 from pathlib import Path
 from typing import List, Optional
 
 from findrr.ml.base import IModelRunner
+from findrr.ml.exceptions import InferenceExecutionError
 from findrr.ml.manifest import load_manifest, verify_artifact_integrity
+from findrr.ml.title_constraint import TitleTrieConstraint
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +121,9 @@ class TitleExpanderRunner(IModelRunner):
         self._version = version
         self._model = None
         self._tokenizer = None
+        self._constraint: Optional[TitleTrieConstraint] = None
+        self._max_new_tokens = 64
+        self._max_titles = 5
 
     def load(self) -> None:
         """Verify integrity and load model into memory."""
@@ -140,9 +146,22 @@ class TitleExpanderRunner(IModelRunner):
                 "Ensure torch and transformers are installed."
             ) from err
 
+        # D-007: decoding is constrained to the dictionary shipped in the verified bundle.
+        prep_path = self.artifact_dir / "preprocess_config.json"
+        if prep_path.exists():
+            prep = json.loads(prep_path.read_text(encoding="utf-8"))
+            self._max_new_tokens = int(prep.get("max_new_tokens", self._max_new_tokens))
+            self._max_titles = int(prep.get("max_titles", self._max_titles))
+        titles = json.loads((self.artifact_dir / "titles.json").read_text(encoding="utf-8"))
+        self._constraint = TitleTrieConstraint(titles, self._tokenizer, self._max_titles)
+        logger.info(
+            "Model 1 decoding constrained to %d dictionary titles", len(self._constraint.titles)
+        )
+
     def unload(self) -> None:
         self._model = None
         self._tokenizer = None
+        self._constraint = None
         logger.info("Unloaded Model 1 from memory")
 
     def is_loaded(self) -> bool:
@@ -184,17 +203,17 @@ class TitleExpanderRunner(IModelRunner):
         with torch.no_grad():
             outputs = self._model.generate(
                 **inputs,
-                max_new_tokens=48,
+                max_new_tokens=self._max_new_tokens,
                 num_beams=2,
                 do_sample=False,
                 repetition_penalty=1.2,
+                prefix_allowed_tokens_fn=self._constraint.prefix_allowed_tokens_fn(
+                    self._model.config.decoder_start_token_id
+                ),
             )
 
-        decoded = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
-        raw_titles = [t.strip() for t in decoded.split(",") if t.strip()]
-
-        cleaned: List[str] = []
-        for t in raw_titles:
-            if t.lower() != generalized_title.lower() and t not in cleaned:
-                cleaned.append(t)
-        return cleaned
+        titles = self._constraint.complete_titles(outputs[0].tolist(), self._tokenizer)
+        if not titles:
+            raise InferenceExecutionError("Model 1 produced no complete dictionary title.")
+        primary = generalized_title.strip().lower()
+        return [t for t in titles if t.lower() != primary]

@@ -160,7 +160,7 @@ ONET_LOADER = code(
     def clean_title(title: str, short: str = '') -> str:
         """Prefer the O*NET short title; drop parenthetical expansions; collapse whitespace."""
         base = short if short and short.strip().lower() not in ('n/a', '') else title
-        base = _PAREN.sub('', base)
+        base = _PAREN.sub('', base).replace('(', ' ').replace(')', ' ')
         return ' '.join(base.replace('/', ' / ').split()).strip(' ,;')
 
     def norm(title: str) -> str:
@@ -318,6 +318,25 @@ def verify_cell(bundle: str) -> dict:
 ML001_VERSION = "2.0.0"
 
 
+CONSTRAINT_SOURCE = Path(__file__).resolve().parents[1] / "src/findrr/ml/title_constraint.py"
+
+
+def constraint_cell() -> dict:
+    """Embed findrr.ml.title_constraint verbatim so the notebook and the app decode identically."""
+    source = CONSTRAINT_SOURCE.read_text(encoding="utf-8")
+    header = (
+        "# Copied verbatim from src/findrr/ml/title_constraint.py by\n"
+        "# scripts/generate_kaggle_notebooks.py. Do not edit here.\n"
+    )
+    return {
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {"tags": [TESTABLE]},
+        "outputs": [],
+        "source": _source(header + source),
+    }
+
+
 def title_expander_notebook() -> dict:
     return notebook(
         [
@@ -335,8 +354,11 @@ def title_expander_notebook() -> dict:
                 Then download `title_expander_bundle.tar.gz` and extract it into
                 `models/title-expander/v{ML001_VERSION}/` in your Findrr folder.
 
-                The notebook stops before export if the model fails the approved acceptance
-                criteria (ROUGE-L >= 0.75, valid title ratio >= 0.85, repetition < 0.05).
+                Decoding is constrained to real O*NET titles (D-007), and the bundle ships the
+                title dictionary as `titles.json`. The notebook stops before export if the model
+                fails its acceptance criteria: occupation precision >= the PROPOSED threshold,
+                valid title ratio >= 0.85, repetition < 0.05, and >= 3 distinct titles for
+                "Software Developer". ROUGE-L and BLEU-4 are reported only.
                 """
             ),
             ENV_REPORT,
@@ -353,6 +375,7 @@ def title_expander_notebook() -> dict:
             ONET_CONFIG,
             ONET_DOWNLOAD,
             ONET_LOADER,
+            constraint_cell(),
             code(
                 r'''
                 # Dataset construction parameters (dataset shape, not acceptance thresholds).
@@ -425,6 +448,36 @@ def title_expander_notebook() -> dict:
                         for lst in table.values():
                             titles.update(norm(t) for t in lst)
                     return titles
+
+                def dictionary_titles(onet):
+                    """Comma-free O*NET titles: the constrained-decoding vocabulary (titles.json)."""
+                    titles = [t for t in onet['occupations'].values() if ',' not in t]
+                    for table in (onet['reported'], onet['job_titles']):
+                        for lst in table.values():
+                            titles += [t for t in lst if ',' not in t]
+                    return sorted(dict.fromkeys(titles), key=str.lower)
+
+                def title_occupations(onet):
+                    """Normalised title -> set of O*NET-SOC codes that list it."""
+                    index = defaultdict(set)
+                    for soc, t in onet['occupations'].items():
+                        index[norm(t)].add(soc)
+                    for table in (onet['reported'], onet['job_titles']):
+                        for soc, lst in table.items():
+                            for t in lst:
+                                index[norm(t)].add(soc)
+                    return index
+
+                def occupation_precision(soc_and_titles, onet, index):
+                    """Share of generated titles belonging to the input occupation or to an O*NET
+                    'Primary-Short' related occupation (D-007 metric, replaces ROUGE-L)."""
+                    hit = total = 0
+                    for soc, titles in soc_and_titles:
+                        ok = {soc} | {r for r, tier in onet['related'].get(soc, []) if tier == 'Primary-Short'}
+                        for t in titles:
+                            total += 1
+                            hit += bool(index.get(norm(t), set()) & ok)
+                    return hit / total if total else 0.0
 
                 def parse_titles(text):
                     return [t.strip() for t in text.split(',') if t.strip()]
@@ -499,40 +552,62 @@ def title_expander_notebook() -> dict:
                 from rouge_score import rouge_scorer
                 import sacrebleu
 
+                # D-007: decoding is constrained to real O*NET titles; repeats cannot be completed.
+                DICTIONARY_TITLES = dictionary_titles(onet)
+                constraint = TitleTrieConstraint(DICTIONARY_TITLES, tokenizer, max_titles=MAX_TARGET_TITLES)
+                print(f'Constrained vocabulary: {len(constraint.titles)} titles ({len(constraint.skipped)} skipped)')
+                MAX_NEW_TOKENS = 64  # == MAX_TARGET_LEN, so 5 titles are not cut off
+
                 def generate(texts, batch_size=64):
-                    model.eval(); outs = []
+                    """Returns (raw decoded text, complete distinct titles) per input, as the runner does."""
+                    model.eval(); raw, titles = [], []
+                    allowed = constraint.prefix_allowed_tokens_fn(model.config.decoder_start_token_id)
                     for i in range(0, len(texts), batch_size):
                         enc = tokenizer(texts[i:i + batch_size], return_tensors='pt', padding=True,
                                         truncation=True, max_length=MAX_INPUT_LEN).to(model.device)
                         with torch.no_grad():
-                            gen = model.generate(**enc, max_new_tokens=48, num_beams=2, do_sample=False,
-                                                 repetition_penalty=1.2)
-                        outs += tokenizer.batch_decode(gen, skip_special_tokens=True)
-                    return outs
+                            gen = model.generate(**enc, max_new_tokens=MAX_NEW_TOKENS, num_beams=2, do_sample=False,
+                                                 repetition_penalty=1.2, prefix_allowed_tokens_fn=allowed)
+                        raw += tokenizer.batch_decode(gen, skip_special_tokens=True)
+                        titles += [constraint.complete_titles(g.tolist(), tokenizer) for g in gen]
+                    return raw, titles
 
-                test_inputs = [r['input_text'] for r in examples['test']]
-                test_targets = [r['target_text'] for r in examples['test']]
-                preds = generate(test_inputs)
+                test_rows = examples['test']
+                raw_preds, title_preds = generate([r['input_text'] for r in test_rows])
+                test_targets = [r['target_text'] for r in test_rows]
+                INDEX = title_occupations(onet)
                 scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
                 measured = {
-                    'rougeL': float(np.mean([scorer.score(t, p)['rougeL'].fmeasure for t, p in zip(test_targets, preds)])),
-                    'bleu4': float(sacrebleu.corpus_bleu(preds, [test_targets]).score / 100.0),
-                    'valid_title_ratio': valid_title_ratio(preds, DICTIONARY),
-                    'repetition_rate': repetition_rate(preds),
-                    'test_examples': float(len(preds)),
+                    'occupation_precision': occupation_precision(
+                        [(r['soc'], t) for r, t in zip(test_rows, title_preds)], onet, INDEX),
+                    # Measured on the raw text, so a title cut off by max length counts as invalid.
+                    'valid_title_ratio': valid_title_ratio(raw_preds, DICTIONARY),
+                    'repetition_rate': repetition_rate(raw_preds),
+                    'mean_distinct_titles': float(np.mean([len(t) for t in title_preds])),
+                    # Reported only (D-007): agreement with one arbitrary 5-title reference.
+                    'rougeL': float(np.mean([scorer.score(t, p)['rougeL'].fmeasure for t, p in zip(test_targets, raw_preds)])),
+                    'bleu4': float(sacrebleu.corpus_bleu(raw_preds, [test_targets]).score / 100.0),
+                    'test_examples': float(len(raw_preds)),
                 }
-                demo = generate(['expand titles: Software Developer | skills: Python, SQL, Git | level: ANY'])[0]
-                measured['ac_ml_001_1_distinct_titles'] = float(len({norm(t) for t in parse_titles(demo)}))
-                print('Software Developer ->', demo)
+                demo_raw, demo_titles = generate(['expand titles: Software Developer | skills: Python, SQL, Git | level: ANY'])
+                measured['ac_ml_001_1_distinct_titles'] = float(len(demo_titles[0]))
+                print('Software Developer ->', demo_titles[0])
+                for r, t in list(zip(test_rows, title_preds))[:15]:
+                    print(f"  {r['input_text'][15:].split(' | ')[0]!r:40} -> {t}")
                 print(json.dumps(measured, indent=2))
                 '''
             ),
             MANIFEST_CELL,
             code(
                 r'''
-                # Thresholds copied verbatim from docs/ml/models/title-expander.md (approved).
+                # Criteria from docs/ml/models/title-expander.md as amended by D-007 (option 1).
+                # OCCUPATION_PRECISION_THRESHOLD is PROPOSED (BR-006): it must be confirmed by the
+                # project owner. Reference points (O*NET 31.0 test split): random dictionary title
+                # 0.007, random title from the same SOC major group 0.12, from the same SOC minor
+                # group (e.g. 15-125x) 0.736, gold references 1.0.
+                OCCUPATION_PRECISION_THRESHOLD = 0.75
                 ACCEPTANCE = check_acceptance(measured, {
-                    'rougeL': ('>=', 0.75),
+                    'occupation_precision': ('>=', OCCUPATION_PRECISION_THRESHOLD),
                     'valid_title_ratio': ('>=', 0.85),
                     'repetition_rate': ('<', 0.05),
                     'ac_ml_001_1_distinct_titles': ('>=', 3),
@@ -551,8 +626,11 @@ def title_expander_notebook() -> dict:
                     'max_input_length': MAX_INPUT_LEN, 'max_target_length': MAX_TARGET_LEN,
                     'input_template': 'expand titles: {{title}} | skills: {{skills}} | level: {{level}}',
                     'levels': LEVELS, 'num_beams': 2, 'do_sample': False,
-                    'repetition_penalty': 1.2, 'max_new_tokens': 48,
+                    'repetition_penalty': 1.2, 'max_new_tokens': MAX_NEW_TOKENS,
+                    'constrained_decoding': True, 'max_titles': MAX_TARGET_TITLES,
                 }}, indent=2))
+                # Constrained-decoding dictionary, read by findrr TitleExpanderRunner (D-007).
+                (EXPORT_DIR / 'titles.json').write_text(json.dumps(constraint.titles, ensure_ascii=False))
                 import transformers
                 manifest = build_manifest(
                     EXPORT_DIR, 'ML-001', 'title-expander', '{ML001_VERSION}', 'google/flan-t5-small (seq2seq, safetensors)',

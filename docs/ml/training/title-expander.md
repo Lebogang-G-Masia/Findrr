@@ -27,18 +27,31 @@
 - **Settings:** AdamW, learning rate 3e-4, cosine schedule with 10% warmup, 5 epochs, batch size 32. The best checkpoint is chosen by validation loss.
 - **FP32, not FP16:** T5 checkpoints overflow in FP16, and the T4 has no bf16 (deviation from the spec; see the spec's implementation notes).
 
-## Evaluation
-Evaluation runs on held-out occupations, with the runner's decoding settings (`num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=48`).
+## Evaluation (amended by D-007)
+Evaluation runs on held-out occupations, using the runner's **constrained** decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=64`, with a trie over the 45,712 comma-free O*NET titles. Titles that can't be followed cleanly by the separator token are skipped. That is 409 titles: 407 contain commas, and 2 have a last token that merges with ",".
 
-| Metric | Criterion (spec) |
+| Metric | Criterion |
 |---|---|
-| ROUGE-L | >= 0.75 |
-| Valid domain title ratio (generated titles found in the 46k-title O*NET dictionary) | >= 0.85 |
-| Repetition rate (duplicate titles within an output) | < 0.05 |
+| Occupation precision (generated titles in the input occupation or a Primary-Short related one) | >= 0.75 **PROPOSED** |
+| Valid title ratio (raw output; a cut-off title counts as invalid) | >= 0.85 |
+| Repetition rate (raw output) | < 0.05 |
 | AC-ML-001.1: distinct titles for "Software Developer" | >= 3 |
-| BLEU-4 | reported only |
+| ROUGE-L, BLEU-4, mean distinct titles | reported only |
 
-If any criterion fails, the notebook **does not export**. `ALLOW_EXPORT_BELOW_ACCEPTANCE = True` exports anyway, but records `acceptance.passed = false`, and the app then refuses to load the model.
+Reference points for occupation precision on this test split:
+
+| Baseline | Score |
+|---|---|
+| Random dictionary title | 0.007 |
+| Random title from the same SOC major group | 0.12 |
+| Random title from the same SOC minor group | 0.736 |
+| Gold references | 1.0 |
+
+The notebook prints 15 sample predictions with the metrics. If any criterion fails, it does **not export**.
+
+**Bundle:** it also ships `titles.json` (the constrained vocabulary). The app requires it and builds the same trie at load (about 2 s).
+
+**Verified locally on 2026-11-26 (no training):** the export code, run on the untrained base model, produced a bundle. The app registry accepted it, and `TitleExpanderRunner` returned only dictionary titles.
 
 ## Transfer
 1. Download `title_expander_bundle.tar.gz` from `/kaggle/working`.

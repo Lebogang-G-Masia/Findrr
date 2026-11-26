@@ -62,7 +62,8 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
   - Token-level: ROUGE-L and BLEU-4 against gold standard taxonomy synonyms.
   - Domain Coverage: Percentage of generated titles present in approved occupational dictionaries.
 - **Evaluation Criteria Thresholds:**
-  - ROUGE-L >= 0.75
+  - ~~ROUGE-L >= 0.75~~ *Replaced by D-007 (2026-11-26): unreachable by correct answers. ROUGE-L and BLEU-4 are now reported only.*
+  - Occupation precision (share of generated titles belonging to the input occupation or an O*NET Primary-Short related occupation) >= **0.75 (PROPOSED, pending owner confirmation)**. Reference points: random title 0.007, same SOC major group 0.12, same SOC minor group 0.736, gold 1.0.
   - Valid Domain Title Ratio >= 0.85
   - Generation repetition rate < 0.05
 
@@ -76,7 +77,8 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 - `model.safetensors` (trained weights, ~150 MB in FP16).
 - `config.json` (model architecture configuration).
 - `tokenizer.json`, `tokenizer_config.json`, `special_tokens_map.json`, `spiece.model`.
-- `preprocess_config.json` (max input length = 128, max output length = 64).
+- `preprocess_config.json` (max input length = 128, max output length = 64, `max_new_tokens` = 64, `max_titles` = 5, `constrained_decoding` = true).
+- `titles.json`: the constrained-decoding dictionary of real O*NET titles (D-007).
 - `manifest.json` (cryptographic SHA-256 hashes, date, base checkpoint, evaluation results).
 
 ## 11. Server-Side Loading Requirements (Module 9)
@@ -87,7 +89,8 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 
 ## 12. Inference Requirements
 - **Execution Mode:** CPU inference using `torch.no_grad()`, `eval()`.
-- **Generation Settings:** Greedy decoding or beam search (`num_beams=2`), temperature = 0.3, max new tokens = 48, repetition penalty = 1.2.
+- **Generation Settings:** Beam search (`num_beams=2`, `do_sample=False`), max new tokens = 64, repetition penalty = 1.2. *Amended by D-007: temperature is dropped (no effect with beam search), and max new tokens is raised from 48 to 64 so five titles are not cut off.*
+- **Constrained decoding (D-007):** every generated title must be a complete entry of `titles.json` (token trie via `prefix_allowed_tokens_fn`), separated by commas. A title already generated cannot be repeated. At most `max_titles` titles are generated. Implemented once in `findrr.ml.title_constraint` and embedded verbatim in the notebook.
 - **Latency Budget:** < 1,500 ms per generation request on host Intel i5 CPU.
 - **Memory Footprint:** < 300 MB active RAM.
 
@@ -102,3 +105,4 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 - **Precision:** FP32 instead of FP16, because T5 overflows in FP16 on a T4.
 - **Acceptance is enforced:** the notebook does not export a model that fails §8 unless explicitly overridden. An overridden bundle is marked `acceptance.passed=false`, and the app refuses to load it.
 - **Inference:** the bundle stays safetensors + `AutoModelForSeq2SeqLM` (§10–11). This conflicts with ADR-0003 (ONNX only); see D-004.
+- **D-007 (owner decision 2026-11-26, option 1):** constrained generation over the O*NET title dictionary, with occupation precision replacing ROUGE-L. Its first Kaggle run failed acceptance: ROUGE-L 0.194, valid ratio 0.554, repetition 0.580. Valid ratio and repetition stay as criteria; constrained decoding meets them by construction, except for a title cut off at the token limit.

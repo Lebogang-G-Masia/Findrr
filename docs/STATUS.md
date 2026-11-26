@@ -13,7 +13,7 @@
 | Current phase | Milestone 2, Iteration 5 (Completed) |
 | Current iteration | Milestone 2, Iteration 5 |
 | Current branch | feature/module-3-search-term-pipeline |
-| Open PR | PR #TBD |
+| Open PR | PR #18 |
 | Latest release | None |
 
 ## Current task
@@ -99,7 +99,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 3
 
 | Date | Summary | Branch / PR |
 |---|---|---|
-| 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #TBD. | feature/module-3-search-term-pipeline / PR #TBD |
+| 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
 | 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |
 | 2026-11-26 | Codebase audit: ran lint, the 133-test suite, the full CLI flow on a scratch DB and one live headful search (CAPTCHA). Fixed: saved search bounds ignored; CAPTCHA page scraped; misleading halt message; snapshot location; availability marked ACTIVE without evidence (now evidence-based, stored via additive migration); fabricated posting date and title; apply-link resolution; unverified claims in CV and cover-letter templates; wrong closed count; hard-coded thresholds; `.env` never loaded and `.env.example` listing unread variables; manifest path traversal; crash on closed input; undeclared ML runtime deps. 147 tests pass. Raised D-002, D-003 and D-004, and corrected the backlog (US-012, Module 3 wiring). Opened PR #17. | fix/execution-and-invariant-fixes / PR #17 |
 | 2026-11-26 | Repo made public by the user. Scanned tracked files and history for secrets and personal data: none found, apart from the author email in `pyproject.toml`. Configured and verified `main` branch protection. On user instruction, replaced the never-merge rule with a self-merge policy (`open-pr` §3) across AGENTS.md, workflows and the pull-request skill. Opened PR #16. | docs/self-merge-policy / PR #16 |

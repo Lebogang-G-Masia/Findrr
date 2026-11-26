@@ -8,6 +8,7 @@ from findrr.db.repository import (
     PostingRepository,
     ProfileRepository,
     SearchConfigRepository,
+    SearchTermRepository,
     TitleRepository,
 )
 from findrr.models.posting import JobPosting
@@ -27,7 +28,9 @@ class PostingService:
         title_repo: TitleRepository,
         config_repo: SearchConfigRepository,
         discovery_engine: Optional[IJobDiscoveryEngine] = None,
+        term_repo: Optional[SearchTermRepository] = None,
     ):
+        self.term_repo = term_repo
         self.posting_repo = posting_repo
         self.profile_repo = profile_repo
         self.title_repo = title_repo
@@ -40,6 +43,7 @@ class PostingService:
         custom_min: Optional[int] = None,
         custom_max: Optional[int] = None,
         title_override: Optional[str] = None,
+        search_term_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Execute discovery for a profile, using its saved search configuration.
 
@@ -79,10 +83,49 @@ class PostingService:
             target_locations=target_locations,
             remote_preference=remote_pref,
             seniority_level=seniority,
-            search_term_id=None,
+            search_term_id=search_term_id,
             min_results=min_results,
             max_results=max_results,
         )
+
+    def discover_all_for_profile(
+        self,
+        profile_id: str,
+        custom_min: Optional[int] = None,
+        custom_max: Optional[int] = None,
+        primary_only: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Search the primary title, then every accepted, non-MOCK search term (Module 3 -> 4).
+
+        Each query is bounded independently (2-10). Discovery stops early if a query is
+        halted (for example by an unsolved CAPTCHA); the halted result is the last one.
+        MOCK-generated terms are never searched.
+        """
+        results = [self.discover_for_profile(profile_id, custom_min, custom_max)]
+        if primary_only or self.term_repo is None or results[0]["metrics"].halted_reason:
+            return results
+
+        active_title = self.title_repo.get_active_title(profile_id)
+        all_accepted = self.term_repo.list_accepted(active_title.id, include_mock=True)
+        skipped_mock = [t for t in all_accepted if t.is_mock]
+        if skipped_mock:
+            logger.warning(
+                "Skipping %d MOCK search term(s); MOCK terms are never used for live searches.",
+                len(skipped_mock),
+            )
+        for term in (t for t in all_accepted if not t.is_mock):
+            res = self.discover_for_profile(
+                profile_id,
+                custom_min,
+                custom_max,
+                title_override=term.generated_term,
+                search_term_id=term.id,
+            )
+            results.append(res)
+            if res["metrics"].halted_reason:
+                break
+            self.term_repo.mark_searched(term.id)
+        return results
 
     def discover_postings_for_title(
         self,

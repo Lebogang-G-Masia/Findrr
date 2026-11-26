@@ -24,6 +24,7 @@ from findrr.models.search_config import (
     SearchConfiguration,
     SeniorityLevel,
 )
+from findrr.models.search_term import SearchTerm, TermSearchStatus, TermValidationStatus
 from findrr.models.title import GeneralizedTitle
 
 
@@ -362,6 +363,84 @@ class SearchConfigRepository:
             max_results_per_title=row["max_results_per_title"],
             created_at=_parse_timestamp(row["created_at"]),
             updated_at=_parse_timestamp(row["updated_at"]),
+        )
+
+
+class SearchTermRepository:
+    """Repository for generated search terms and their validation outcomes (Module 3)."""
+
+    _COLUMNS = (
+        "id, generalized_title_id, generated_term, similarity_score, validation_status, "
+        "model_version, is_mock, search_status, last_searched_at, created_at"
+    )
+
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
+
+    def save_terms(self, terms: List[SearchTerm]) -> None:
+        with self.conn:
+            self.conn.executemany(
+                f"INSERT INTO search_terms ({self._COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (
+                        t.id,
+                        t.generalized_title_id,
+                        t.generated_term,
+                        t.similarity_score,
+                        t.validation_status.value,
+                        t.model_version,
+                        1 if t.is_mock else 0,
+                        t.search_status.value,
+                        t.last_searched_at.isoformat() if t.last_searched_at else None,
+                        t.created_at.isoformat(),
+                    )
+                    for t in terms
+                ],
+            )
+
+    def list_terms(self, generalized_title_id: str) -> List[SearchTerm]:
+        cursor = self.conn.execute(
+            f"SELECT {self._COLUMNS} FROM search_terms WHERE generalized_title_id = ? "
+            "ORDER BY created_at, similarity_score DESC",
+            (generalized_title_id,),
+        )
+        return [self._row_to_model(r) for r in cursor.fetchall()]
+
+    def list_accepted(
+        self, generalized_title_id: str, include_mock: bool = False
+    ) -> List[SearchTerm]:
+        return [
+            t
+            for t in self.list_terms(generalized_title_id)
+            if t.validation_status == TermValidationStatus.ACCEPTED
+            and (include_mock or not t.is_mock)
+        ]
+
+    def mark_searched(self, term_id: str) -> None:
+        with self.conn:
+            self.conn.execute(
+                "UPDATE search_terms SET search_status = ?, last_searched_at = ? WHERE id = ?",
+                (
+                    TermSearchStatus.SEARCHED.value,
+                    datetime.now(timezone.utc).isoformat(),
+                    term_id,
+                ),
+            )
+
+    def _row_to_model(self, row: sqlite3.Row) -> SearchTerm:
+        return SearchTerm(
+            id=row["id"],
+            generalized_title_id=row["generalized_title_id"],
+            generated_term=row["generated_term"],
+            similarity_score=row["similarity_score"],
+            validation_status=TermValidationStatus(row["validation_status"]),
+            model_version=row["model_version"],
+            is_mock=bool(row["is_mock"]),
+            search_status=TermSearchStatus(row["search_status"]),
+            last_searched_at=(
+                _parse_timestamp(row["last_searched_at"]) if row["last_searched_at"] else None
+            ),
+            created_at=_parse_timestamp(row["created_at"]),
         )
 
 

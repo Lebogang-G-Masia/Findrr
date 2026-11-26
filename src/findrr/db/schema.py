@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS search_terms (
     similarity_score REAL NOT NULL,
     validation_status TEXT NOT NULL,
     model_version TEXT NOT NULL,
+    is_mock INTEGER NOT NULL DEFAULT 0,
+    search_status TEXT NOT NULL DEFAULT 'PENDING',
+    last_searched_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (generalized_title_id) REFERENCES generalized_titles(id) ON DELETE CASCADE
 );
@@ -147,4 +150,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 COLUMN_MIGRATIONS = [
     ("job_postings", "availability_evidence", "TEXT"),
     ("job_postings", "availability_checked_at", "TIMESTAMP"),
+    ("search_terms", "is_mock", "INTEGER NOT NULL DEFAULT 0"),
+    ("search_terms", "search_status", "TEXT NOT NULL DEFAULT 'PENDING'"),
+    ("search_terms", "last_searched_at", "TIMESTAMP"),
 ]

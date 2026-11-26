@@ -174,6 +174,7 @@ class InferenceService:
         candidates: List[str],
         relevance_threshold: Optional[float] = None,
         dedup_threshold: Optional[float] = None,
+        existing_accepted: Optional[List[str]] = None,
     ) -> List[ValidatedCandidate]:
         """Apply relevance thresholding and near-duplicate filtering (FR-009, FR-010, FR-011).
 
@@ -185,7 +186,8 @@ class InferenceService:
             dedup_threshold = config.dedup_threshold()
         runner = self._get_similarity_evaluator()
         evaluated: List[ValidatedCandidate] = []
-        accepted_terms: List[str] = []
+        # Titles accepted in earlier runs count as "previously accepted" (Module 3 spec).
+        accepted_terms: List[str] = list(existing_accepted or [])
 
         # 1. Relevance scoring against primary generalized title
         for cand in candidates:
@@ -232,6 +234,15 @@ class InferenceService:
                 )
 
         return evaluated
+
+    def title_expansion_mode(self) -> Dict[str, Any]:
+        """Report whether Models 1 and 2 would run as MOCK, without running inference."""
+        expander = self._get_title_expander()
+        evaluator = self._get_similarity_evaluator()
+        return {
+            "is_mock": expander.is_mock or evaluator.is_mock,
+            "model_version": f"ML-001 v{expander.version} / ML-002 v{evaluator.version}",
+        }
 
     def tailor_statement(
         self,

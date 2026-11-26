@@ -58,12 +58,34 @@ def test_only_dictionary_continuations_are_allowed():
     assert set(c.allowed_tokens(_ids(tok, "Nurse"))) == {COMMA, EOS}
 
 
-def test_completed_title_cannot_be_repeated():
+def test_repeat_cannot_even_be_started():
+    """Regression (Kaggle run 2, repetition 0.28): a repeat used to be spelled out in full and
+    then forced to end the output. A branch is now closed once all its titles are used."""
     tok = WordTokenizer()
     c = TitleTrieConstraint(TITLES, tok)
-    seq = _ids(tok, "Nurse") + [COMMA] + _ids(tok, "Nurse")
-    assert set(c.allowed_tokens(seq)) == {EOS}  # dead end: nothing valid continues a repeat
-    assert COMMA not in c.allowed_tokens(seq)
+    after_nurse = c.allowed_tokens(_ids(tok, "Nurse") + [COMMA])
+    assert _ids(tok, "Nurse")[0] not in after_nurse
+    # 'Software' stays open while one of its two titles is unused...
+    one = _ids(tok, "Software Engineer") + [COMMA]
+    assert _ids(tok, "Software")[0] in c.allowed_tokens(one)
+    assert set(c.allowed_tokens(one + _ids(tok, "Software"))) == {_ids(tok, "Developer")[0]}
+    # ...and closes once both are used.
+    both = one + _ids(tok, "Software Developer") + [COMMA]
+    assert _ids(tok, "Software")[0] not in c.allowed_tokens(both)
+
+
+def test_greedy_walk_never_repeats():
+    """Always taking the first allowed token must terminate with distinct titles only."""
+    tok = WordTokenizer()
+    c = TitleTrieConstraint(TITLES, tok)
+    seq = []
+    for _ in range(50):
+        nxt = sorted(c.allowed_tokens(seq), key=lambda t: (t in (EOS,), t))[0]
+        seq.append(nxt)
+        if nxt == EOS:
+            break
+    titles = c.complete_titles(seq, tok)
+    assert len(titles) == len(set(titles)) == 4
 
 
 def test_max_titles_forces_end():

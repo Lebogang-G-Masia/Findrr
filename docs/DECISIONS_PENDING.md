@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 4**
+**Open items: 5**
 
 ## Open decisions
 
@@ -41,7 +41,7 @@
 ### D-004: ML-001 runtime uses PyTorch, but ADR-0003 approved ONNX Runtime only
 - **Raised:** 2026-11-26, during the pre-Iteration-6 codebase audit
 - **Area:** ML / architecture
-- **Ambiguity:** `TitleExpanderRunner` loads Flan-T5 via `torch` + `transformers`. ADR-0003 rejected the PyTorch CPU engine and chose ONNX Runtime. `STATUS.md` lists "needs torch in .venv". `torch` is installed in `.venv` but declared nowhere. The `ml` extra added on 2026-11-26 declares only ADR-0003 packages (onnxruntime, transformers, numpy).
+- **Ambiguity:** `TitleExpanderRunner` loads Flan-T5 via `torch` + `transformers`. ADR-0003 rejected the PyTorch CPU engine and chose ONNX Runtime. *Update 2026-11-26: the approved ML-001 model spec (§10–12) itself specifies safetensors + `AutoModelForSeq2SeqLM` + `torch.no_grad()`, so the conflict is between two approved documents. The rewritten notebook follows the spec.* `STATUS.md` lists "needs torch in .venv". `torch` is installed in `.venv` but declared nowhere. The `ml` extra added on 2026-11-26 declares only ADR-0003 packages (onnxruntime, transformers, numpy).
 - **Why it matters:** this is a model compatibility and inference-architecture contract (approval gate), and `torch` is a large dependency (about 700 MB+ on CPU).
 - **Options:**
   1. Export ML-001 to ONNX (seq2seq encoder/decoder, for example via `optimum`) in the Kaggle notebook, and run it with ONNX Runtime. Trade-offs: matches ADR-0003 and uses less memory; needs a notebook change, which you would run.
@@ -70,6 +70,23 @@
   3. Generative summaries with a new fine-tuned model (Kaggle). Trade-offs: needs a model spec, dataset and evaluation approval; fabrication risk must be controlled.
 - **Recommendation:** Option 1 now, Option 2 later if wanted. Option 3 is not recommended: extraction meets FR-022 without fabrication risk.
 - **Blocked work:** US-014 implementation.
+- **Status:** Open
+
+### D-006: ML-003 (application tailor) training data and notebook rewrite
+- **Raised:** 2026-11-26, during the notebook review requested by the user
+- **Area:** ML
+- **Ambiguity:** The spec's dataset is "synthetic paired profile-job description datasets (generated and validated against factual grounding heuristics)", but no generation method or validation rule is approved. The current notebook's targets contain fabricated claims, so the dataset approach must be decided before the notebook is rewritten. The notebook is marked DO NOT RUN.
+- **Why it matters:** this model writes CV and cover-letter text. Training targets with any unsupported claim teach fabrication, breaking BR-002 and NFR-009.
+- **Options:**
+  1. **Template-composed targets.** Every target sentence is assembled only from spans copied from the input facts, plus a fixed list of neutral connectors ("Applying for the X role at Y.", "Experience includes:"). A deterministic checker rejects any example whose target contains a content word absent from the inputs. Inputs are built from O*NET task statements and software skills, so no personal data is involved. Trade-offs: fully verifiable and zero fabrication by construction, but the phrasing is plain.
+  2. **LLM-paraphrased targets, filtered.** Generate fluent targets with a larger model on Kaggle, then keep only examples that pass the same deterministic content-word checker. Trade-offs: more natural text; needs approval for using a generator model, and the yield after filtering is uncertain.
+  3. **Drop ML-003 for now.** The deterministic templates (already fact-only since 2026-11-26) cover FR-020 and FR-021. Revisit in Milestone 5. Trade-offs: no ML phrasing benefit; nothing to train.
+- **Recommendation:** Option 1 now, with Option 2 as a later improvement. Both also need:
+  - a fact-precision metric over the summary text, not just the skills list;
+  - an INT8 export under the 450 MB budget;
+  - pinned libraries;
+  - the app manifest schema.
+- **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
 ## Entry template

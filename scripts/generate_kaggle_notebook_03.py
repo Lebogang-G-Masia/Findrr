@@ -56,8 +56,29 @@ def code_cell(source_lines):
     }
 
 
+DO_NOT_RUN_BANNER = [
+    "# DO NOT RUN - superseded pending decision D-006",
+    "",
+    "A review on 2026-11-26 found that this notebook does not meet",
+    "`docs/ml/models/application-tailor.md`:",
+    "",
+    "- Training targets contain claims absent from the input facts (e.g. 'proven expertise',",
+    "  'multi-region'), which would teach the model to fabricate.",
+    "- The data is 4 examples plus 4 templates repeated 30 times, and evaluation runs on",
+    "  training rows.",
+    "- The fact check covers only `matched_skills`, not the summary text.",
+    "- The manifest schema is not the one the Findrr app reads (the app rejects it).",
+    "- The export is an unquantised FP16 ONNX model (~1 GB), above the 450 MB budget.",
+    "- Unpinned `trl` with outdated `SFTTrainer` arguments and double LoRA wrapping.",
+    "",
+    "See `docs/DECISIONS_PENDING.md` D-006 for the dataset approach to approve before",
+    "this notebook is rewritten.",
+]
+
+
 def generate_application_tailor_notebook():
     cells = [
+        md_cell(DO_NOT_RUN_BANNER),
         md_cell(
             [
                 "# Findrr ML-003: Application Tailoring Assistant Training & ONNX Export",

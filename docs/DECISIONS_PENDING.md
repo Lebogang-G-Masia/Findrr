@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 6**
+**Open items: 5**
 
 ## Open decisions
 
@@ -89,6 +89,28 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
+## Entry template
+
+Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
+
+```markdown
+### D-NNN: Short title
+- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
+- **Area:** requirements | architecture | security | UX | ML | process
+- **Ambiguity:** What is unclear or undecided.
+- **Why it matters:** What depends on it, and what a wrong guess would cost.
+- **Options:**
+  1. Option A. Trade-offs.
+  2. Option B. Trade-offs.
+- **Recommendation:** Which option, and why.
+- **Blocked work:** What has been paused until this is decided.
+- **Status:** Open
+```
+
+## Resolved decisions
+
+Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
 ### D-010: ML-001 occupation precision 0.603; the model under-fits its training data
 - **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009). Revised the same day with local evidence; the first version blamed the repetition penalty, which the evidence below rules out as the main cause.
 - **Area:** ML
@@ -121,29 +143,9 @@
   3. **Lock decoding to the first title's occupation** in the notebook and runner. Trade-offs: measured +0.04 only; worth adding later on top of option 1.
 - **Recommendation:** Option 1; if it still falls short, option 2 with the same data.
 - **Blocked work:** ML-001 export and real Module 3 inference.
-- **Status:** Open
-
-## Entry template
-
-Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
-
-```markdown
-### D-NNN: Short title
-- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
-- **Area:** requirements | architecture | security | UX | ML | process
-- **Ambiguity:** What is unclear or undecided.
-- **Why it matters:** What depends on it, and what a wrong guess would cost.
-- **Options:**
-  1. Option A. Trade-offs.
-  2. Option B. Trade-offs.
-- **Recommendation:** Which option, and why.
-- **Blocked work:** What has been paused until this is decided.
-- **Status:** Open
-```
-
-## Resolved decisions
-
-Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+- **Status:** Resolved
+- **Decision:** Option 1, owner go-ahead 2026-11-27 ("How do I train it more job titles?" / "There's no PR"). Implemented in PR #36; merging the PR approves the training-recipe change.
+- **Recorded in:** `scripts/generate_kaggle_notebooks.py`, `notebooks/01_train_title_expander.ipynb`, `src/findrr/ml/title_expander_runner.py`, `docs/ml/models/title-expander.md` §10 and §14, `docs/ml/training/title-expander.md`, `docs/design/technical-specs.md`
 
 ### D-009: ML-001 occupation precision 0.478; the 0.75 threshold was calibrated against an unfair baseline
 - **Raised:** 2026-11-26, after the user's third Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, constrained decoding with the PR #31 fix)

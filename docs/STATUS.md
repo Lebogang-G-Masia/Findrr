@@ -25,7 +25,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 - **Awaiting merge: PR #30** (user review: notebook 02 acceptance change, D-008). Pearson r no longer gates ML-002; it is still reported. After merging, re-run notebook 02 on Kaggle, extract the bundle into `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-002`, and paste the full cell 12 output.
 - **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
 - **Re-run `notebooks/01_train_title_expander.ipynb` on Kaggle again** (upload the copy from `main`; Run > Restart & clear first). Run 2 exposed a constraint bug, now fixed. Paste the evaluation cell output (metrics **and** the 15 sample predictions).
-- **Decide D-010** (ML-001 under-fits: train longer with more input titles). The downloaded run-4 bundle had its threshold edited to 0.0; do not install it.
+- **Awaiting merge: PR #36** (user review: notebook 01 training recipe, D-010). After merging, re-run notebook 01 on Kaggle **without editing the threshold** (it is 15 epochs, roughly 5 times longer) and paste the evaluation-cell output and ACCEPTANCE JSON. The run-4 bundle had its threshold edited to 0.0; do not install it.
 - Decide D-002 (discovery source), D-003 (DOCX/PDF), D-004 (ML-001 runtime), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
@@ -93,12 +93,13 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 6
+See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-27 | D-010 option 1 implemented: up to 30 O*NET job titles per occupation as training-only inputs (train 42,624 examples, 22,967 input titles; val/test unchanged, no overlap), 15 epochs, repetition penalty off (runner reads it from `preprocess_config.json`), training-sample precision reported. 193 tests pass. | feature/ml-001-more-anchors / PR #36 |
 | 2026-11-27 | D-010 revised with local inference on the run-4 bundle (500 inputs): penalty off 0.591, 4 beams 0.568, first-title occupation lock 0.635, training inputs 0.727. The model under-fits; decoding changes cannot reach 0.75. Found the bundle's threshold edited to 0.0. | docs/d-010-revised |
 | 2026-11-27 | ML-001 Kaggle run 4 (user, input-title split): occupation precision 0.603 (target 0.75) failed. Local analysis: `repetition_penalty=1.2` penalises shared words, and 97% of gold outputs repeat a word across titles; the constraint already prevents repeats. Raised D-010. | docs/d-010-ml-001-decoding |
 | 2026-11-26 | D-009 resolved by the user: option 1. Notebook 01 now splits by input title (hashed per normalised anchor; no wording crosses splits; every occupation trained on). Local data prep: 21,304/2,720/2,525 examples, no anchor overlap, test occupations all in training; broad-group baseline 0.732, same-detailed-SOC 0.929. Reports precision on never-seen wording (110 examples). 192 tests pass. | feature/ml-001-title-split |

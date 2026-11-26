@@ -69,7 +69,7 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
 
 ## 9. Kaggle Computational Requirements
 - **Accelerator:** 1x NVIDIA T4 GPU (Kaggle free tier).
-- **Estimated Runtime:** ~45–60 minutes for 5 epochs over 25,000 paired title sequences.
+- **Estimated Runtime:** ~45–60 minutes for 5 epochs over 25,000 paired title sequences. *Amended by D-010: 15 epochs over about 42,600 examples, roughly five times longer.*
 - **RAM / Disk:** Standard Kaggle GPU session (16 GB GPU VRAM, 30 GB disk space).
 
 ## 10. Artifact Formats & Export Bundle
@@ -89,7 +89,7 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 
 ## 12. Inference Requirements
 - **Execution Mode:** CPU inference using `torch.no_grad()`, `eval()`.
-- **Generation Settings:** Beam search (`num_beams=2`, `do_sample=False`), max new tokens = 64, repetition penalty = 1.2. *Amended by D-007: temperature is dropped (no effect with beam search), and max new tokens is raised from 48 to 64 so five titles are not cut off.*
+- **Generation Settings:** Beam search (`num_beams=2`, `do_sample=False`), max new tokens = 64, repetition penalty = 1.0 (off; amended by D-010, was 1.2). *Amended by D-007: temperature is dropped (no effect with beam search), and max new tokens is raised from 48 to 64 so five titles are not cut off.*
 - **Constrained decoding (D-007):** every generated title must be a complete entry of `titles.json` (token trie via `prefix_allowed_tokens_fn`), separated by commas. A title already generated cannot be repeated. At most `max_titles` titles are generated. Implemented once in `findrr.ml.title_constraint` and embedded verbatim in the notebook.
 - **Latency Budget:** < 1,500 ms per generation request on host Intel i5 CPU.
 - **Memory Footprint:** < 300 MB active RAM.
@@ -107,3 +107,8 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 - **Inference:** the bundle stays safetensors + `AutoModelForSeq2SeqLM` (§10–11). This conflicts with ADR-0003 (ONNX only); see D-004.
 - **D-007 (owner decision 2026-11-26, option 1):** constrained generation over the O*NET title dictionary, with occupation precision replacing ROUGE-L. Its first Kaggle run failed acceptance: ROUGE-L 0.194, valid ratio 0.554, repetition 0.580. Valid ratio and repetition stay as criteria; constrained decoding meets them by construction, except for a title cut off at the token limit.
 - **D-009 (owner decision 2026-11-26, option 1):** the split changed from whole occupations to input titles. Run 3 on the occupation-disjoint split scored occupation precision 0.478; only 17.5% of the test occupations' titles were ever training targets, so the threshold's 0.736 baseline was not reachable by a learned model (fair baseline 0.579). The 0.75 threshold is unchanged. Generalisation to unseen occupations is no longer measured, because every occupation is trained on; precision on never-seen wording is reported instead.
+- **D-010 (proposed 2026-11-27, approved when its notebook PR is merged):** run 4 scored 0.603; local inference with its bundle showed under-fitting (0.727 on training inputs), and decoding changes stayed below 0.64. Changes:
+  - up to 30 O*NET job titles per occupation as extra training-only inputs;
+  - 15 epochs instead of 5;
+  - repetition penalty 1.0 (off), read by the runner from `preprocess_config.json`;
+  - precision on 500 training inputs is reported.

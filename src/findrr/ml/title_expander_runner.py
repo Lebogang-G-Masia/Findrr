@@ -124,6 +124,8 @@ class TitleExpanderRunner(IModelRunner):
         self._constraint: Optional[TitleTrieConstraint] = None
         self._max_new_tokens = 64
         self._max_titles = 5
+        self._num_beams = 2
+        self._repetition_penalty = 1.0  # D-010: off; the constraint prevents repeats
 
     def load(self) -> None:
         """Verify integrity and load model into memory."""
@@ -152,6 +154,10 @@ class TitleExpanderRunner(IModelRunner):
             prep = json.loads(prep_path.read_text(encoding="utf-8"))
             self._max_new_tokens = int(prep.get("max_new_tokens", self._max_new_tokens))
             self._max_titles = int(prep.get("max_titles", self._max_titles))
+            self._num_beams = int(prep.get("num_beams", self._num_beams))
+            self._repetition_penalty = float(
+                prep.get("repetition_penalty", self._repetition_penalty)
+            )
         titles = json.loads((self.artifact_dir / "titles.json").read_text(encoding="utf-8"))
         self._constraint = TitleTrieConstraint(titles, self._tokenizer, self._max_titles)
         logger.info(
@@ -204,9 +210,9 @@ class TitleExpanderRunner(IModelRunner):
             outputs = self._model.generate(
                 **inputs,
                 max_new_tokens=self._max_new_tokens,
-                num_beams=2,
+                num_beams=self._num_beams,
                 do_sample=False,
-                repetition_penalty=1.2,
+                repetition_penalty=self._repetition_penalty,
                 prefix_allowed_tokens_fn=self._constraint.prefix_allowed_tokens_fn(
                     self._model.config.decoder_start_token_id
                 ),

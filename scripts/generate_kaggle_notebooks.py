@@ -388,6 +388,8 @@ def title_expander_notebook() -> dict:
                 }
                 ANY_LEVEL = re.compile('|'.join(LEVEL_PATTERNS.values()), re.IGNORECASE)
                 MAX_ANCHORS_PER_OCCUPATION = 6
+                # D-010: extra training-only inputs from O*NET job titles, level ANY.
+                MAX_EXTRA_ANCHORS_PER_OCCUPATION = 30
                 MAX_TARGET_TITLES = 5
                 MIN_TARGET_TITLES = 3
                 MAX_SKILLS = 5
@@ -471,7 +473,32 @@ def title_expander_notebook() -> dict:
                                     'soc': soc,
                                     'anchor': anchor,
                                 })
+                        out['train'] += extra_anchor_rows(onet, soc, neutral, all_titles, split_of, seed, rng)
                     return out
+
+                def extra_anchor_rows(onet, soc, neutral, all_titles, split_of, seed, rng):
+                    """D-010: more ways to say the same job, for training only.
+
+                    Job titles that are not already anchors, carry no level word, and are not the
+                    wording of any val/test anchor (in any occupation) become level-ANY inputs whose
+                    targets are the occupation's neutral titles.
+                    """
+                    extra = [t for t in all_titles
+                             if norm(t) not in split_of and not ANY_LEVEL.search(t)]
+                    extra = sorted(dict.fromkeys(extra), key=lambda t: _anchor_hash(seed, norm(t)))
+                    rows = []
+                    for anchor in extra[:MAX_EXTRA_ANCHORS_PER_OCCUPATION]:
+                        targets = [t for t in neutral if norm(t) != norm(anchor)][:MAX_TARGET_TITLES]
+                        if len(targets) < MIN_TARGET_TITLES:
+                            continue
+                        rows.append({
+                            'input_text': f'expand titles: {anchor} | skills: '
+                                          f'{skills_text(onet["skills"].get(soc, []), rng)} | level: ANY',
+                            'target_text': ', '.join(targets),
+                            'soc': soc,
+                            'anchor': anchor,
+                        })
+                    return rows
 
                 def novel_wording(examples):
                     """Normalised test anchors never seen in training, as an input or as a target."""
@@ -578,7 +605,7 @@ def title_expander_notebook() -> dict:
                 args = Seq2SeqTrainingArguments(
                     output_dir='/kaggle/working/ml001-checkpoints',
                     learning_rate=3e-4, lr_scheduler_type='cosine', warmup_ratio=0.1,
-                    num_train_epochs=5, per_device_train_batch_size=32, per_device_eval_batch_size=64,
+                    num_train_epochs=15, per_device_train_batch_size=32, per_device_eval_batch_size=64,
                     weight_decay=0.01, eval_strategy='epoch', save_strategy='epoch',
                     load_best_model_at_end=True, metric_for_best_model='eval_loss', save_total_limit=1,
                     fp16=False, logging_steps=50, seed=SEED, report_to='none',
@@ -600,6 +627,10 @@ def title_expander_notebook() -> dict:
                 constraint = TitleTrieConstraint(DICTIONARY_TITLES, tokenizer, max_titles=MAX_TARGET_TITLES)
                 print(f'Constrained vocabulary: {len(constraint.titles)} titles ({len(constraint.skipped)} skipped)')
                 MAX_NEW_TOKENS = 64  # == MAX_TARGET_LEN, so 5 titles are not cut off
+                NUM_BEAMS = 2
+                # D-010: 1.0 (off). The constraint already prevents repeated titles, and a token
+                # penalty works against correct sibling titles, which share words.
+                REPETITION_PENALTY = 1.0
 
                 def generate(texts, batch_size=64):
                     """Returns (raw decoded text, complete distinct titles) per input, as the runner does."""
@@ -609,8 +640,9 @@ def title_expander_notebook() -> dict:
                         enc = tokenizer(texts[i:i + batch_size], return_tensors='pt', padding=True,
                                         truncation=True, max_length=MAX_INPUT_LEN).to(model.device)
                         with torch.no_grad():
-                            gen = model.generate(**enc, max_new_tokens=MAX_NEW_TOKENS, num_beams=2, do_sample=False,
-                                                 repetition_penalty=1.2, prefix_allowed_tokens_fn=allowed)
+                            gen = model.generate(**enc, max_new_tokens=MAX_NEW_TOKENS, num_beams=NUM_BEAMS,
+                                                 do_sample=False, repetition_penalty=REPETITION_PENALTY,
+                                                 prefix_allowed_tokens_fn=allowed)
                         raw += tokenizer.batch_decode(gen, skip_special_tokens=True)
                         titles += [constraint.complete_titles(g.tolist(), tokenizer) for g in gen]
                     return raw, titles
@@ -637,6 +669,11 @@ def title_expander_notebook() -> dict:
                     'bleu4': float(sacrebleu.corpus_bleu(raw_preds, [test_targets]).score / 100.0),
                     'test_examples': float(len(raw_preds)),
                 }
+                # Reported only (D-010): the same metric on seeded training inputs, to show under-fitting.
+                train_sample = random.Random(SEED).sample(examples['train'], min(500, len(examples['train'])))
+                _, train_titles = generate([r['input_text'] for r in train_sample])
+                measured['occupation_precision_train_sample'] = occupation_precision(
+                    [(r['soc'], t) for r, t in zip(train_sample, train_titles)], onet, INDEX)
                 demo_raw, demo_titles = generate(['expand titles: Software Developer | skills: Python, SQL, Git | level: ANY'])
                 measured['ac_ml_001_1_distinct_titles'] = float(len(demo_titles[0]))
                 print('Software Developer ->', demo_titles[0])
@@ -673,8 +710,8 @@ def title_expander_notebook() -> dict:
                 (EXPORT_DIR / 'preprocess_config.json').write_text(json.dumps({{
                     'max_input_length': MAX_INPUT_LEN, 'max_target_length': MAX_TARGET_LEN,
                     'input_template': 'expand titles: {{title}} | skills: {{skills}} | level: {{level}}',
-                    'levels': LEVELS, 'num_beams': 2, 'do_sample': False,
-                    'repetition_penalty': 1.2, 'max_new_tokens': MAX_NEW_TOKENS,
+                    'levels': LEVELS, 'num_beams': NUM_BEAMS, 'do_sample': False,
+                    'repetition_penalty': REPETITION_PENALTY, 'max_new_tokens': MAX_NEW_TOKENS,
                     'constrained_decoding': True, 'max_titles': MAX_TARGET_TITLES,
                 }}, indent=2))
                 # Constrained-decoding dictionary, read by findrr TitleExpanderRunner (D-007).

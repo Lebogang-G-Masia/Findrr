@@ -60,19 +60,37 @@ def notebook(cells: list) -> dict:
 
 ENV_REPORT = code(
     r'''
-    # Environment report (useful if an install or training step fails).
-    import platform, subprocess, sys
-    print('Python', sys.version)
-    print(platform.platform())
-    print(subprocess.run([sys.executable, '-m', 'pip', 'list'], capture_output=True, text=True).stdout
-          .count('\n'), 'packages preinstalled')
-    for pkg in ('torch', 'transformers', 'tokenizers', 'numpy', 'onnxruntime'):
+    # Environment report. Reads package metadata only: importing transformers/torch here,
+    # before the pip install below replaces them, would mix two versions in this kernel.
+    import platform, sys
+    from importlib import metadata
+    print('Python', sys.version.split()[0], '|', platform.platform())
+    for pkg in ('torch', 'transformers', 'tokenizers', 'datasets', 'sentence-transformers',
+                'numpy', 'onnxruntime', 'huggingface-hub'):
         try:
-            print(pkg, __import__(pkg).__version__)
-        except Exception as err:
-            print(pkg, 'not available:', type(err).__name__)
+            print(f'{pkg:>22} {metadata.version(pkg)}')
+        except metadata.PackageNotFoundError:
+            print(f'{pkg:>22} not installed')
     '''
 )
+
+
+def version_guard(pins: dict) -> str:
+    """Code that fails clearly if the kernel still has pre-install library versions loaded."""
+    checks = "\n".join(
+        f"_check({module!r}, {version!r})" for module, version in pins.items()
+    )
+    return (
+        "import importlib\n"
+        "def _check(module, expected):\n"
+        "    found = importlib.import_module(module).__version__\n"
+        "    if found != expected:\n"
+        "        raise RuntimeError(\n"
+        "            f'{module} {found} is loaded but {expected} is pinned. The kernel imported it '\n"
+        "            'before the pip install finished. Use Run > Restart & clear cell outputs, then '\n"
+        "            'Run All again.')\n"
+        + checks + "\n"
+    )
 
 ONET_CONFIG = code(
     r'''
@@ -437,6 +455,7 @@ def title_expander_notebook() -> dict:
                 print('Sample:', examples['train'][0])
                 '''
             ),
+            code(version_guard({'transformers': '4.46.3', 'datasets': '3.1.0'})),
             code(
                 r'''
                 import numpy as np, torch
@@ -690,6 +709,8 @@ def similarity_evaluator_notebook() -> dict:
                 print(f'train pairs: {len(train_pairs)}, val graded: {len(val_pairs)}, test graded: {len(test_pairs)}')
                 '''
             ),
+            code(version_guard({'transformers': '4.46.3', 'datasets': '3.1.0',
+                                'sentence_transformers': '3.3.1'})),
             code(
                 r'''
                 import numpy as np, torch

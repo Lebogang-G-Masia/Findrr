@@ -207,3 +207,22 @@ def test_notebooks_do_not_pin_compiled_packages_exactly(notebook):
     )
     for pkg in COMPILED_PACKAGES:
         assert f" {pkg}==" not in installs and f'"{pkg}==' not in installs, pkg
+
+
+@pytest.mark.parametrize(
+    "notebook", ["01_train_title_expander.ipynb", "02_train_similarity_evaluator.ipynb"]
+)
+def test_no_library_import_before_pinned_install(notebook):
+    """Importing transformers before `pip install transformers==X` mixes two versions in the
+    kernel (seen on Kaggle: 'cannot import name is_flax_available')."""
+    nb = json.loads((NOTEBOOKS / notebook).read_text(encoding="utf-8"))
+    srcs = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+    pip_i = next(i for i, s in enumerate(srcs) if "!pip install" in s)
+    for s in srcs[:pip_i]:
+        assert "__import__" not in s and "import torch" not in s and "import transformers" not in s
+    guard_i = next(i for i, s in enumerate(srcs) if "def _check(" in s)
+    first_lib = next(
+        i for i, s in enumerate(srcs)
+        if "from transformers" in s or "from sentence_transformers" in s
+    )
+    assert pip_i < guard_i < first_lib

@@ -12,8 +12,8 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | main |
-| Open PR | None |
+| Current branch | fix/ml-runner-contracts |
+| Open PR | PR #TBD |
 | Latest release | None |
 
 ## Current task
@@ -105,6 +105,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 4
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | Notebook review requested by the user: none of the three notebooks meets its approved spec (details in the notebook PR). Fixed the ML-003 runner: manifest path, integrity-call arguments, real greedy autoregressive generation, explicit `InferenceExecutionError` instead of silently substituting MOCK output, and the training system prompt. Removed unverified wording from the ML-003 mock. Aligned ML-001 runner levels to `ANY/ENTRY/MID/SENIOR/LEAD`. 167 tests pass. Opened PR #TBD. | fix/ml-runner-contracts / PR #TBD |
 | 2026-11-26 | PR #19 (US-017) self-merged after green CI (`a015277`). The autonomous run paused: all remaining work is gated (D-002 to D-005, model artifacts, Penpot designs). 160 tests pass on `main`. | docs/iteration-6-closure |
 | 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #19. | feature/iteration-6-multi-profile / PR #19 |
 | 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |

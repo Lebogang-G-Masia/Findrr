@@ -7,6 +7,7 @@ notebook's manifest is accepted by the app's registry - and refused when accepta
 """
 
 import json
+from collections import defaultdict
 from pathlib import Path
 
 import pytest
@@ -88,11 +89,34 @@ def test_split_is_occupation_disjoint_and_deterministic():
     assert sum(v == "train" for v in a.values()) > sum(v == "test" for v in a.values())
 
 
+def test_title_split_is_by_input_title(onet_dir):
+    """D-009: every occupation is trained on; an input wording never crosses splits."""
+    ns = _testable_namespace("01_train_title_expander.ipynb")
+    norm = ns["norm"]
+    anchors = {
+        "A": ["Software Developer", "Programmer", "Coder"],
+        "B": ["Programmer", "Dental Assistant"],
+        "C": ["Welder"],
+    }
+    for seed in range(20):
+        split = ns["split_by_anchor"](anchors, seed=seed)
+        assert split == ns["split_by_anchor"](anchors, seed=seed)
+        # one split per wording
+        assert set(split) == {norm(a) for lst in anchors.values() for a in lst}
+        for lst in anchors.values():
+            assert any(split[norm(a)] == "train" for a in lst)  # every occupation is learned
+    onet = ns["load_onet"](onet_dir)
+    ex = ns["build_title_examples"](onet, seed=3)
+    train = {norm(r["anchor"]) for r in ex["train"]}
+    assert not train & {norm(r["anchor"]) for r in ex["test"] + ex["val"]}
+    assert {r["soc"] for r in ex["test"] + ex["val"]} <= {r["soc"] for r in ex["train"]}
+    assert ns["novel_wording"](ex) <= {norm(r["anchor"]) for r in ex["test"]}
+
 def test_title_examples_match_runner_prompt_and_levels(onet_dir):
     ns = _testable_namespace("01_train_title_expander.ipynb")
     onet = ns["load_onet"](onet_dir)
-    split_of = {soc: "train" for soc in onet["occupations"]}
-    rows = ns["build_title_examples"](onet, split_of)["train"]
+    split_of = defaultdict(lambda: "train")
+    rows = ns["build_title_examples"](onet, split_of=split_of)["train"]
     assert rows
     levels = {r["input_text"].rsplit("level: ", 1)[1] for r in rows}
     assert levels == {"ANY", "ENTRY", "MID", "SENIOR", "LEAD"}  # == SeniorityLevel + ANY

@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 6**
+**Open items: 5**
 
 ## Open decisions
 
@@ -89,6 +89,28 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
+## Entry template
+
+Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
+
+```markdown
+### D-NNN: Short title
+- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
+- **Area:** requirements | architecture | security | UX | ML | process
+- **Ambiguity:** What is unclear or undecided.
+- **Why it matters:** What depends on it, and what a wrong guess would cost.
+- **Options:**
+  1. Option A. Trade-offs.
+  2. Option B. Trade-offs.
+- **Recommendation:** Which option, and why.
+- **Blocked work:** What has been paused until this is decided.
+- **Status:** Open
+```
+
+## Resolved decisions
+
+Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
 ### D-009: ML-001 occupation precision 0.478; the 0.75 threshold was calibrated against an unfair baseline
 - **Raised:** 2026-11-26, after the user's third Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, constrained decoding with the PR #31 fix)
 - **Area:** ML
@@ -122,29 +144,9 @@
   3. **Stronger model or training on the current split** (more epochs, or `flan-t5-base` at 250M parameters). Trade-offs: no spec change for the metric; success is uncertain; a larger model affects CPU latency and touches D-004.
 - **Recommendation:** Option 1. It evaluates what Findrr does with the model and keeps the approved threshold meaningful. Please also paste the 15 sample predictions from the evaluation cell: they show whether errors are near-misses (related family) or unrelated.
 - **Blocked work:** ML-001 export and real Module 3 inference.
-- **Status:** Open
-
-## Entry template
-
-Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
-
-```markdown
-### D-NNN: Short title
-- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
-- **Area:** requirements | architecture | security | UX | ML | process
-- **Ambiguity:** What is unclear or undecided.
-- **Why it matters:** What depends on it, and what a wrong guess would cost.
-- **Options:**
-  1. Option A. Trade-offs.
-  2. Option B. Trade-offs.
-- **Recommendation:** Which option, and why.
-- **Blocked work:** What has been paused until this is decided.
-- **Status:** Open
-```
-
-## Resolved decisions
-
-Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+- **Status:** Resolved
+- **Decision:** Option 1, owner decision 2026-11-26. The 0.75 threshold is unchanged. Held-out-occupation precision cannot be measured on a model trained on every occupation, so the notebook instead reports precision on test inputs whose wording never appears in training (22 anchors, 110 examples).
+- **Recorded in:** `scripts/generate_kaggle_notebooks.py`, `notebooks/01_train_title_expander.ipynb`, `docs/ml/models/title-expander.md` §8, §10 and §14, `docs/ml/training/title-expander.md`
 
 ### D-008: ML-002 failed acceptance on Pearson r; the proxy labels cap it
 - **Raised:** 2026-11-26, after the user's first Kaggle run of `02_train_similarity_evaluator.ipynb` (v1.1.0)

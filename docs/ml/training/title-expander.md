@@ -19,33 +19,36 @@
   - Target: up to 5 other titles of the same occupation, comma-separated and sorted.
   - For ENTRY, SENIOR and LEAD, targets come from that occupation's titles containing level words (for example "Senior"), when at least 3 exist. Otherwise neutral titles are used.
   - Titles containing commas are excluded, because the comma is the output separator.
-- **Split:** whole occupations are assigned to train, val or test (80/10/10), stratified by SOC major group. No title is shared across splits.
-- **Measured locally on 2026-11-26 (data preparation only):** 26,549 examples from 894 occupations. Train: 21,289 (717 occupations). Val: 2,675 (90). Test: 2,585 (87).
+- **Split (D-009):** by input title. Each normalised anchor title is hashed (seeded) into train, val or test (80/10/10), so the same input wording never appears in two splits, in any occupation. Each occupation keeps at least one training anchor, so every occupation's titles are learnable, as in the app, where the dictionary is fixed and only the user's wording is new. Test anchors may still appear as training *targets*.
+- **Measured locally on 2026-11-26 (data preparation only):** 26,549 examples from 894 occupations. Train: 21,304 (894 occupations, 3,797 anchors). Val: 2,720 (432 occupations, 483 anchors). Test: 2,525 (403 occupations, 459 anchors). No anchor is shared between splits. 22 test anchors (110 examples) never appear in training at all, as input or target.
 
 ## Training
 - **Model:** `google/flan-t5-small`, full fine-tune.
 - **Settings:** AdamW, learning rate 3e-4, cosine schedule with 10% warmup, 5 epochs, batch size 32. The best checkpoint is chosen by validation loss.
 - **FP32, not FP16:** T5 checkpoints overflow in FP16, and the T4 has no bf16 (deviation from the spec; see the spec's implementation notes).
 
-## Evaluation (amended by D-007)
-Evaluation runs on held-out occupations, using the runner's **constrained** decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=64`, with a trie over the 45,712 comma-free O*NET titles. Titles that can't be followed cleanly by the separator token are skipped. That is 409 titles: 407 contain commas, and 2 have a last token that merges with ",".
+## Evaluation (amended by D-007 and D-009)
+Evaluation runs on held-out input titles, using the runner's **constrained** decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=64`, with a trie over the 45,712 comma-free O*NET titles. Titles that can't be followed cleanly by the separator token are skipped. That is 409 titles: 407 contain commas, and 2 have a last token that merges with ",".
 
 | Metric | Criterion |
 |---|---|
-| Occupation precision (generated titles in the input occupation or a Primary-Short related one) | >= 0.75 **PROPOSED** |
+| Occupation precision (generated titles in the input occupation or a Primary-Short related one) | >= 0.75 (approved, PR #27) |
 | Valid title ratio (raw output; a cut-off title counts as invalid) | >= 0.85 |
 | Repetition rate (raw output) | < 0.05 |
 | AC-ML-001.1: distinct titles for "Software Developer" | >= 3 |
-| ROUGE-L, BLEU-4, mean distinct titles | reported only |
+| ROUGE-L, BLEU-4, mean distinct titles, occupation precision on never-seen wording (D-009) | reported only |
 
-Reference points for occupation precision on this test split:
+Reference points for occupation precision on this test split (D-009), drawing 5 random titles from those used as training targets:
 
 | Baseline | Score |
 |---|---|
 | Random dictionary title | 0.007 |
-| Random title from the same SOC major group | 0.12 |
-| Random title from the same SOC minor group | 0.736 |
+| Same SOC major group (e.g. 15) | 0.114 |
+| Same SOC broad group (e.g. 15-125x) | 0.732 |
+| Same detailed SOC code (e.g. 15-1252.xx) | 0.929 |
 | Gold references | 1.0 |
+
+Under the earlier occupation-disjoint split, the broad-group baseline restricted to learnable titles was 0.579, not the 0.736 used to set the threshold (D-009).
 
 The notebook prints 15 sample predictions with the metrics. If any criterion fails, it does **not export**.
 

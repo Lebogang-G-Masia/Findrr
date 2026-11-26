@@ -13,7 +13,7 @@
 | Current phase | Milestone 2, Iteration 6 (In Progress) |
 | Current iteration | Milestone 2, Iteration 6 |
 | Current branch | feature/iteration-6-multi-profile |
-| Open PR | PR #TBD |
+| Open PR | PR #19 |
 | Latest release | None |
 
 ## Current task
@@ -100,7 +100,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 4
 
 | Date | Summary | Branch / PR |
 |---|---|---|
-| 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #TBD. | feature/iteration-6-multi-profile / PR #TBD |
+| 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #19. | feature/iteration-6-multi-profile / PR #19 |
 | 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |
 | 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
 | 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |

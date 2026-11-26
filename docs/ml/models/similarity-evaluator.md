@@ -54,10 +54,9 @@ The Semantic Similarity Evaluator computes dense embedding representations and c
 ## 8. Training & Evaluation Procedures
 - **Loss Function:** `MultipleNegativesRankingLoss` with symmetric cross-entropy.
 - **Evaluation Metrics:**
-  - Cosine Pearson correlation ($r$) and Spearman rank correlation ($\rho$) against human-labeled semantic similarity benchmarks.
+  - Cosine Pearson correlation ($r$) and Spearman rank correlation ($\rho$) against graded labels: **reported only, not an acceptance gate** (D-008, owner decision 2026-11-26).
   - Accuracy at classification thresholds (0.70 relevance, 0.88 duplicate).
 - **Evaluation Criteria Thresholds:**
-  - Pearson correlation $r \ge 0.85$ on test set.
   - Title similarity precision >= 0.90 at relevance threshold 0.70.
 
 ## 9. Kaggle Computational Requirements
@@ -95,3 +94,4 @@ The Kaggle notebook must package and export `similarity_evaluator_bundle.tar.gz`
 - **Datasets:** O*NET 31.0 only (same-occupation positives, with in-batch negatives via MNRL).
 - **Evaluation labels are a proxy:** graded 0–3 labels from O*NET occupation structure, because no human-labelled title-similarity benchmark exists. "Relevant" for precision means same occupation or Primary-Short related.
 - **Metrics:** computed on the exported INT8 ONNX model using the runner's pooling. Acceptance is enforced as for ML-001.
+- **Pearson r is not gated (D-008, owner decision 2026-11-26).** The first Kaggle run scored 0.745 against the former 0.85 target. The O*NET proxy labels disagree with title meaning in both directions, so they cap Pearson. Pearson r and Spearman rho stay in the evaluation summary and manifest as reported metrics. The gate is precision at 0.70, AC-ML-002.1 and AC-ML-002.2.

@@ -12,8 +12,14 @@ You are the senior software engineer, technical architect and ML engineer for **
 
 **Git and GitHub**
 - Work only on a branch (`feature/`, `fix/`, `docs/`, `refactor/`). Never commit to `main`.
-- Open a PR for review. **Never merge.** After opening a PR, write "Awaiting merge: PR #N" in `docs/STATUS.md`, start no work that depends on it, and end your turn. The user merges and tells you.
-- The repo is private. Protect `main` (PR required, no direct or force pushes, required checks) without requiring a second approver; the user is the sole developer. Never claim a configuration is done until you have verified it.
+- Every change goes through a PR. **You may merge your own PRs** (the user authorised this on 2026-11-26), but only as the merge policy in `.agents/workflows/open-pr.md` §3 allows. The policy requires:
+  - all required checks passing on the PR's latest commit,
+  - the `open-pr` review completed,
+  - the PR not falling into a user-review category.
+- Merge with `gh pr merge <N> --merge --delete-branch`. Never use `--admin`. Never bypass, weaken or disable branch protection.
+- A user-review PR needs "Awaiting merge: PR #N" in `docs/STATUS.md`. Start no work that depends on it, and wait for the user to merge it.
+- The repo is public. `main` is protected: a PR is required, four CI checks must pass, admins are included, and force pushes and deletion are blocked. No second approver is required, because the user is the sole developer. Never claim a configuration is done until you have verified it.
+- Because the repo is public, everything committed is published. Never commit personal data, real CVs or profiles, scraped pages, logs or databases.
 - Never commit secrets, credentials, `.env` files or model artifacts. Never put credentials in notebooks.
 
 **Machine learning**
@@ -58,7 +64,7 @@ Label information as: confirmed, approved, proposed, assumption, or unresolved. 
 - **Method:** iterative and incremental. Milestones: 1 CLI core; 2 additional CLI functionality; 3 desktop web and mobile UI with mock APIs; 4 server integration and performance; 5 refinement. Milestones 1-3 run entirely on the user's laptop. Never assume server specs, endpoints or auth for Milestone 4. The current milestone is in `docs/STATUS.md`. Details: `docs/process/roadmap.md`.
 - **Versioning:** SemVer `vMAJOR.MINOR.PATCH`. Milestones are not releases. Every release has release notes.
 - **Bootstrap:** run `/bootstrap-1-environment` through `/bootstrap-5-design` in order. Each ends with an approval gate. No substantial implementation until scope, requirements and architecture are approved.
-- **Each iteration:** `/start-iteration`, implement, `/open-pr`, wait for the user's merge, `/close-iteration`.
+- **Each iteration:** `/start-iteration`, implement, `/open-pr` (this includes merging when the policy allows; otherwise wait for the user), `/close-iteration`.
 - **Autonomous mode:** when the user asks you to run autonomously, follow `/autonomous-run`. It chains the iteration workflows and queues every gated item for the user. It never relaxes the hard rules in Section 2.
 - **Done means verified,** not generated. See `docs/process/definition-of-done.md`. Never claim tests, integrations, deployments or configuration are complete without verifying them.
 

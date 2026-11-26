@@ -12,8 +12,8 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 5 (Completed) |
 | Current iteration | Milestone 2, Iteration 5 |
-| Current branch | docs/autonomous-run-workflow |
-| Open PR | PR #15 |
+| Current branch | docs/self-merge-policy |
+| Open PR | PR #16 |
 | Latest release | None |
 
 ## Current task
@@ -22,16 +22,15 @@ Milestone 2, Iteration 5 completed. Application Lifecycle Pipeline Tracking (US-
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #15 (autonomous-run workflow + Iteration 5 closure docs). Unblocks: start of the autonomous run (Iteration 6).
+- None. PR #16 (self-merge policy) is being merged by the agent on the user's explicit chat instruction of 2026-11-26.
 
 ## Next step
 
-1. User reviews and merges PR #15.
-2. Run `/autonomous-run`. Its backlog priority rule selects US-014 (Should Have) for Iteration 6, ahead of US-017 (Could Have).
+1. Run `/autonomous-run`: Milestone 2, Iteration 6, US-014 (Company Research Summaries).
 
 ## Blockers
 
-1. **GitHub Branch Protection on Private Repo**: GitHub API returned `HTTP 403: Upgrade to GitHub Pro or make this repository public to enable this feature.` Native branch protection/rulesets on private repos require GitHub Pro/Team. Branch protection on `main` cannot be enforced via API on a free private repository. *(Note: Penpot MCP access was verified and unblocked on 2026-11-02).*
+- None. *(The branch-protection blocker was resolved on 2026-11-26. The user made the repo public, and protection was configured and verified via the API.)*
 
 ## Bootstrap and approval tracker
 
@@ -52,8 +51,8 @@ Mark an item verified only after the check has actually been run.
 
 | Item | Status |
 |---|---|
-| Private GitHub repository created | Verified (`Lebogang-G-Masia/Findrr` created and pushed) |
-| `main` branch protection configured | Blocked by GitHub plan (HTTP 403: requires GitHub Pro or public repo) |
+| GitHub repository | Verified (`Lebogang-G-Masia/Findrr`; made **public** by the user on 2026-11-26) |
+| `main` branch protection configured | Verified 2026-11-26 via API read-back: PR required (0 approvals), 4 required checks, admins enforced, force push and deletion blocked |
 | GitHub access (gh or MCP) works | Verified (`gh` authenticated as `Lebogang-G-Masia`) |
 | Penpot MCP access works | Verified (Connected to active design file `UI Design`, read operations validated) |
 | Python environment initialised | Verified (Python 3.14.8 on Arch Linux; `pyproject.toml`, `.env.example`) |
@@ -94,6 +93,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | Repo made public by the user. Scanned tracked files and history for secrets and personal data: none found, apart from the author email in `pyproject.toml`. Configured and verified `main` branch protection. On user instruction, replaced the never-merge rule with a self-merge policy (`open-pr` §3) across AGENTS.md, workflows and the pull-request skill. Opened PR #16. | docs/self-merge-policy / PR #16 |
+| 2026-11-26 | PR #15 (autonomous-run workflow) merged by the agent on explicit user instruction (`6c2fbb5`). | main |
 | 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #15. | docs/autonomous-run-workflow / PR #15 |
 | 2026-11-07 | PR #14 merged into `main` by user. Switched to `main`, pulled merge commit `9442c70`. Deleted local branch. Closed Milestone 2, Iteration 5. Application status tracking, metrics dashboard, Model 3 notebook and runners verified. | main |
 | 2026-11-07 | Milestone 2, Iteration 5 implemented: application lifecycle status transitions (`findrr apply status`), search & application metrics dashboard (`findrr dashboard`), Model 3 Kaggle notebook (`notebooks/03_train_application_tailor.ipynb`), and Model 3 runners. 133 tests passing with 84% coverage. Opened PR #14. | feature/iteration-5-app-tracking-and-model-3 / PR #14 |

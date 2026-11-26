@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Use when an increment is implemented and tested, to review it, open the pull request, record the hand-off in STATUS.md and stop.
+description: Use when an increment is implemented and tested, to review it, open the pull request, and either merge it under the merge policy or hand it to the user.
 ---
 
 # Review & Pull Request Workflow
@@ -26,9 +26,11 @@ Execute and verify the following sequence before submitting any change:
 4. **Prepare Test Results:** Compile unit, integration, and regression test execution reports.
 5. **Identify Known Limitations:** Document any edge cases, technical debt, or unaddressed issues.
 6. **Confirm Branch:** Confirm the work is on a `feature/`, `fix/`, `docs/` or `refactor/` branch and not on `main`. Push the branch.
-7. **Create Pull Request:** Draft and open the PR using `.github/pull_request_template.md` (format also in the `pull-request` skill). Do not merge it.
-8. **Record the Hand-off in STATUS.md:** Update `docs/STATUS.md`: set "Open PR" and "Current branch", add `Awaiting merge: PR #N` under "Awaiting merge or approval", set "Next step" to "User reviews and merges PR #N, then runs `/close-iteration`", and add a session-log entry.
-9. **Present for Review and Stop:** Present the changes, test results, known limitations and PR link to the user, then **end your turn**.
+7. **Create Pull Request:** Draft and open the PR using `.github/pull_request_template.md` (format also in the `pull-request` skill). Do not merge yet.
+8. **Wait for CI:** Run `gh pr checks <N> --watch`. If a check fails, fix it on the branch and push. After 3 failed attempts, stop and hand the PR to the user.
+9. **Merge or Hand Off:** Apply the merge policy (Section 3).
+   - **Self-merge allowed:** run `gh pr merge <N> --merge --delete-branch`, switch to `main`, pull, and verify with `gh pr view <N> --json state,mergedAt` that the state is `MERGED`. Then run `close-iteration`.
+   - **User review required:** update `docs/STATUS.md`. Set "Open PR" and "Current branch", and add `Awaiting merge: PR #N (<reason it needs review>)` under "Awaiting merge or approval". Set "Next step" to "User reviews and merges PR #N". Add a session-log entry. Present the changes, test results, known limitations and PR link, then wait. Start no work that depends on it.
 
 ---
 
@@ -42,9 +44,35 @@ For any Pull Request involving machine learning functionality, you must explicit
 
 ---
 
-## 3. Strict Gatekeeping Rule: Never Merge, Stop After the PR
+## 3. Merge Policy
 
-* **Never merge.** Do not merge any pull request. Only the user merges.
-* **Stop after opening the PR.** Once `Awaiting merge: PR #N` is recorded in `docs/STATUS.md`, start no work that depends on the PR and end your turn.
-* **Resume only when told.** Continue when the user says the PR has been merged (then run `/close-iteration`) or gives review feedback.
-* **If the user rejects or requests changes:** address the feedback on the same branch, update the PR, and update `docs/STATUS.md`. Then stop again. Do not merge.
+The user authorised self-merging on 2026-11-26. You may merge your own PR only when **every** condition below holds:
+1. All required checks (`Lint & Code Quality`, `Test Suite`, `File Size & Model Artifact Check`, `Secret Scanner`) pass on the PR's **latest** commit, as `gh pr checks` reports them.
+2. Steps 1-7 above are complete, and the diff holds no secrets, personal data or model artifacts. The repo is public.
+3. The PR is not in a **user-review category**:
+   - a new or changed UI design, or UI code that implements a design the user has not approved,
+   - a new or changed model specification, architecture, dataset, training methodology, artifact format or compatibility contract,
+   - a new Kaggle training notebook, or a material change to one,
+   - a new significant dependency (`docs/process/dependency-policy.md`),
+   - security, privacy, authentication or scraping-compliance controls,
+   - a release, a version tag or release notes,
+   - a change to `AGENTS.md` hard rules, this merge policy or branch protection,
+   - anything else on `docs/process/approval-gates.md` that the user has not already approved in writing (in chat, or in a resolved `DECISIONS_PENDING.md` entry).
+4. The user has not asked to review this PR, and no unresolved review comment from the user is on it.
+
+Routine work that implements already-approved requirements and designs may be self-merged. This covers features, fixes, tests, refactors, docs and closure records.
+
+**Never:**
+- merge with `--admin`,
+- bypass, weaken or disable branch protection or CI,
+- force-push to `main`,
+- merge a PR that another person opened,
+- merge to get past a failing check.
+
+If the user later rejects a self-merged change, revert it through a new PR.
+
+## 4. User-Review PRs
+
+When a PR needs user review, record `Awaiting merge: PR #N` and wait.
+- **Merged by the user:** verify the merge from the PR state, then run `close-iteration`.
+- **Changes requested:** address them on the same branch, push, update `docs/STATUS.md` and wait again. Do not merge it yourself, even after the fixes. The user merges a user-review PR.

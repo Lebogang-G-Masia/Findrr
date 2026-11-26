@@ -8,26 +8,26 @@
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-11-07 |
+| Last updated | 2026-11-26 |
 | Current milestone | Milestone 2 (Additional Functionality) |
-| Current phase | Milestone 2, Iteration 5 (In Progress) |
+| Current phase | Milestone 2, Iteration 5 (Completed) |
 | Current iteration | Milestone 2, Iteration 5 |
-| Current branch | feature/iteration-5-app-tracking-and-model-3 |
-| Open PR | PR #14 |
+| Current branch | docs/autonomous-run-workflow |
+| Open PR | PR #TBD |
 | Latest release | None |
 
 ## Current task
 
-Milestone 2, Iteration 5: Implement Application Lifecycle Pipeline Tracking (US-015, FR-023, FR-024), CLI Search & Application Dashboard (US-016, FR-025), and Model 3 Application Tailoring Kaggle Notebook (US-013, ML-003).
+Milestone 2, Iteration 5 completed. Application Lifecycle Pipeline Tracking (US-015, FR-023, FR-024), CLI Search & Application Dashboard (US-016, FR-025), and Model 3 Application Tailoring Kaggle Notebook (US-013, ML-003) verified and merged via PR #14.
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #14
+- Awaiting merge: PR #TBD (autonomous-run workflow + Iteration 5 closure docs). Unblocks: start of the autonomous run (Iteration 6).
 
 ## Next step
 
-1. User reviews and merges PR #14.
-2. Run `/close-iteration` for Milestone 2, Iteration 5.
+1. User reviews and merges PR #TBD.
+2. Run `/autonomous-run`. Its backlog priority rule selects US-014 (Should Have) for Iteration 6, ahead of US-017 (Could Have).
 
 ## Blockers
 
@@ -94,10 +94,9 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #TBD. | docs/autonomous-run-workflow / PR #TBD |
+| 2026-11-07 | PR #14 merged into `main` by user. Switched to `main`, pulled merge commit `9442c70`. Deleted local branch. Closed Milestone 2, Iteration 5. Application status tracking, metrics dashboard, Model 3 notebook and runners verified. | main |
 | 2026-11-07 | Milestone 2, Iteration 5 implemented: application lifecycle status transitions (`findrr apply status`), search & application metrics dashboard (`findrr dashboard`), Model 3 Kaggle notebook (`notebooks/03_train_application_tailor.ipynb`), and Model 3 runners. 133 tests passing with 84% coverage. Opened PR #14. | feature/iteration-5-app-tracking-and-model-3 / PR #14 |
 | 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |
 | 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
 | 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |
-| 2026-11-07 | Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile (chrome_profile/) implemented per Decision D-001. 119 tests passing with 85% coverage. Opened PR #12. | fix/search-captcha-handling-and-profile-persistence / PR #12 |
-| 2026-11-07 | PR #11 merged into `main` by user. Switched to `main`, pulled merge commit `f8f4f38`. Deleted local fix branch. Search link extraction, cookie consent dismissal, snapshot diagnostics, and logs/findrr.log verified. | main |
-| 2026-11-07 | Fix for search link extraction (relative /url?q= and regional Google domains), cookie consent dismissal, debug snapshot dumping on 0 results, and comprehensive file logging (logs/findrr.log) implemented. 116 tests passing with 85% coverage. Opened PR #11. | fix/search-logging-and-link-extraction / PR #11 |

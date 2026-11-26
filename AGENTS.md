@@ -59,6 +59,7 @@ Label information as: confirmed, approved, proposed, assumption, or unresolved. 
 - **Versioning:** SemVer `vMAJOR.MINOR.PATCH`. Milestones are not releases. Every release has release notes.
 - **Bootstrap:** run `/bootstrap-1-environment` through `/bootstrap-5-design` in order. Each ends with an approval gate. No substantial implementation until scope, requirements and architecture are approved.
 - **Each iteration:** `/start-iteration`, implement, `/open-pr`, wait for the user's merge, `/close-iteration`.
+- **Autonomous mode:** when the user asks you to run autonomously, follow `/autonomous-run`. It chains the iteration workflows and queues every gated item for the user. It never relaxes the hard rules in Section 2.
 - **Done means verified,** not generated. See `docs/process/definition-of-done.md`. Never claim tests, integrations, deployments or configuration are complete without verifying them.
 
 ## 6. Where things live

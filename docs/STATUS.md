@@ -22,19 +22,13 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- **Awaiting merge: PR #22** (user-review category: training notebooks, model versions, artifact load contract). Unblocks: Kaggle training runs.
-- After merging: run `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb` on Kaggle (GPU T4, Internet on), then extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`. Do **not** run notebook 03.
-- Decide D-002, D-003, D-004, D-005 and D-006.
+- **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
+- Decide D-002 (discovery source), D-003 (DOCX/PDF), D-004 (ML-001 runtime), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
 
-1. User answers D-002 to D-005 and re-supplies the model artifacts.
-2. Then resume `/autonomous-run`, in this order:
-   - US-014 (after D-005);
-   - US-012 DOCX/PDF (after D-003);
-   - D-002 discovery changes;
-   - real ML verification once the artifacts are back.
-3. Milestone 3 needs the Penpot MCP connected in the session, then design approval.
+1. When the notebook metrics arrive: write `docs/ml/evaluation-reports/` and `docs/ml/model-cards/` from the evidence, and verify real inference end to end.
+2. When decisions arrive: resume `/autonomous-run` (US-014, US-012, D-002 changes, the ML-003 rewrite).
 
 ## Blockers
 
@@ -102,10 +96,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | PR #22 (notebook rewrite) merged by the user (`8f1efe4`); verified on `main` (177 tests pass). Waiting for the Kaggle runs and decisions D-002 to D-006. | docs/record-pr-22-merge |
 | 2026-11-26 | PR #21 (runner contracts) self-merged after green CI. Rewrote the ML-001 and ML-002 notebooks to their specs: checksum-verified O*NET 31.0 data, occupation-disjoint splits, runner-identical prompts and pooling, all spec metrics measured, export blocked on failed acceptance, app manifest schema. ML-001 v2.0.0 and ML-002 v1.1.0. The registry now rejects wrong ID or version, missing required files and failed acceptance. Marked notebook 03 DO NOT RUN and raised D-006. Fixed registry dir precedence and test env leakage. 177 tests pass. Opened PR #22 (awaiting user merge). | feature/ml-notebooks-spec-alignment / PR #22 |
 | 2026-11-26 | Notebook review requested by the user: none of the three notebooks meets its approved spec (details in the notebook PR). Fixed the ML-003 runner: manifest path, integrity-call arguments, real greedy autoregressive generation, explicit `InferenceExecutionError` instead of silently substituting MOCK output, and the training system prompt. Removed unverified wording from the ML-003 mock. Aligned ML-001 runner levels to `ANY/ENTRY/MID/SENIOR/LEAD`. 167 tests pass. Opened PR #21. | fix/ml-runner-contracts / PR #21 |
 | 2026-11-26 | PR #19 (US-017) self-merged after green CI (`a015277`). The autonomous run paused: all remaining work is gated (D-002 to D-005, model artifacts, Penpot designs). 160 tests pass on `main`. | docs/iteration-6-closure |
 | 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #19. | feature/iteration-6-multi-profile / PR #19 |
-| 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |
-| 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
-| 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |

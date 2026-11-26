@@ -21,3 +21,6 @@
 | 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |
 | 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
 | 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |
+| 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |
+| 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
+| 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |

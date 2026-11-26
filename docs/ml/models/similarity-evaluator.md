@@ -89,3 +89,9 @@ The Kaggle notebook must package and export `similarity_evaluator_bundle.tar.gz`
 - **AC-ML-002.2:** Semantic similarity of distinct titles (e.g. "Software Developer" vs "Dental Assistant") evaluates < 0.30.
 - **AC-ML-002.3:** Average latency is < 50 ms per text pair on host CPU.
 - **AC-ML-002.4:** Cryptographic SHA-256 validation passes with 100% fidelity.
+
+## 14. Implementation notes (proposed 2026-11-26, approved when the notebook PR is merged)
+- **Version:** `1.1.0`. The input/output contract is unchanged.
+- **Datasets:** O*NET 31.0 only (same-occupation positives, with in-batch negatives via MNRL).
+- **Evaluation labels are a proxy:** graded 0–3 labels from O*NET occupation structure, because no human-labelled title-similarity benchmark exists. "Relevant" for precision means same occupation or Primary-Short related.
+- **Metrics:** computed on the exported INT8 ONNX model using the runner's pooling. Acceptance is enforced as for ML-001.

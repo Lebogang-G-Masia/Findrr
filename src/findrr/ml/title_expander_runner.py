@@ -168,7 +168,8 @@ class TitleExpanderRunner(IModelRunner):
 
         import torch
 
-        skills_str = ", ".join(skills[:8]) if skills else "general"
+        # Max 5 skills, matching MAX_SKILLS in the training notebook.
+        skills_str = ", ".join(skills[:5]) if skills else "general"
         # Must match the level vocabulary in notebooks/01_train_title_expander.ipynb.
         sen_str = (seniority or "ANY").upper()
         prompt = f"expand titles: {generalized_title} | skills: {skills_str} | level: {sen_str}"

@@ -202,7 +202,7 @@ class IInferenceService(ABC):
 ---
 
 **Runner contracts (2026-11-26):**
-- **ML-001:** the prompt is `expand titles: <title> | skills: <up to 8> | level: <ANY|ENTRY|MID|SENIOR|LEAD>`. This uses the app's `SeniorityLevel` values; the level is `ANY` when none is set. Decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=48`.
+- **ML-001:** the prompt is `expand titles: <title> | skills: <up to 5, or general> | level: <ANY|ENTRY|MID|SENIOR|LEAD>`. This uses the app's `SeniorityLevel` values; the level is `ANY` when none is set. Decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=48`.
 - **ML-003 (ONNX):** reads `<dir>/manifest.json` and verifies integrity before loading. Generation is greedy and autoregressive over the full-sequence graph (`input_ids` → `logits`). It stops at EOS or `<|im_end|>`; the step budget is `config.json` `max_generation_length` (default 256). The system prompt is identical to the training notebook's. The output must be JSON `{summary_statement: str, matched_skills: list}`, and every matched skill must appear in the verified facts. Otherwise `InferenceExecutionError` is raised; MOCK output is never substituted.
 
 ### 2.6 Configuration (`findrr.config`)

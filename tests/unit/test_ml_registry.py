@@ -11,7 +11,8 @@ def test_registry_get_registration():
 
     m1 = registry.get_registration("ML-001")
     assert m1.name == "title-expander"
-    assert m1.active_version == "1.0.0"
+    assert m1.active_version == "2.0.0"
+    assert registry.get_registration("ML-002").active_version == "1.1.0"
 
     m2 = registry.get_registration("similarity-evaluator")
     assert m2.model_id == "ML-002"

@@ -95,3 +95,10 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 - **AC-ML-001.1:** The model generates at least 3 distinct alternative titles for standard roles (e.g. "Software Developer" yields "Backend Engineer", "Python Developer", "Full Stack Developer").
 - **AC-ML-001.2:** Average inference latency is < 1,500 ms across 50 benchmark requests on host CPU.
 - **AC-ML-001.3:** Cryptographic SHA-256 validation passes with 100% fidelity.
+
+## 14. Implementation notes (proposed 2026-11-26, approved when the notebook PR is merged)
+- **Version:** `2.0.0`. The input level vocabulary is now `ANY|ENTRY|MID|SENIOR|LEAD` (the app's `SeniorityLevel`), replacing the free text "Mid-Level". This is an incompatible input change, hence the major version.
+- **Datasets:** O*NET 31.0 only (reported titles, job titles, software skills). ESCO is not used. Its bulk download needs a manual portal request, and O*NET alone gives about 26.5k examples, close to the ~25k planned.
+- **Precision:** FP32 instead of FP16, because T5 overflows in FP16 on a T4.
+- **Acceptance is enforced:** the notebook does not export a model that fails §8 unless explicitly overridden. An overridden bundle is marked `acceptance.passed=false`, and the app refuses to load it.
+- **Inference:** the bundle stays safetensors + `AutoModelForSeq2SeqLM` (§10–11). This conflicts with ADR-0003 (ONNX only); see D-004.

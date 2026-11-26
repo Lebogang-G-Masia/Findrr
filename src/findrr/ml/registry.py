@@ -1,5 +1,6 @@
 """Model registry catalog and artifact location resolver (Module 9)."""
 
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -12,6 +13,8 @@ from findrr.ml.exceptions import (
     ModelNotConfiguredError,
 )
 from findrr.ml.manifest import load_manifest, verify_artifact_integrity
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MODELS_DIR = Path("models")
 
@@ -33,8 +36,9 @@ CATALOG: Dict[str, ModelRegistration] = {
     "ML-001": ModelRegistration(
         model_id="ML-001",
         name="title-expander",
-        active_version="1.0.0",
-        relative_path="title-expander/v1.0.0",
+        # 2.0.0: retrained on O*NET 31.0; level vocabulary ANY/ENTRY/MID/SENIOR/LEAD.
+        active_version="2.0.0",
+        relative_path="title-expander/v2.0.0",
         purpose="Generative search term expansion from generalized titles and skills",
         architecture="google/flan-t5-small (Seq2Seq Transformer)",
         required_files=[
@@ -50,8 +54,9 @@ CATALOG: Dict[str, ModelRegistration] = {
     "ML-002": ModelRegistration(
         model_id="ML-002",
         name="similarity-evaluator",
-        active_version="1.0.0",
-        relative_path="similarity-evaluator/v1.0.0",
+        # 1.1.0: retrained on O*NET 31.0 (MNRL), INT8 ONNX; same input/output contract.
+        active_version="1.1.0",
+        relative_path="similarity-evaluator/v1.1.0",
         purpose="Dense bi-encoder semantic similarity scoring and deduplication",
         architecture="sentence-transformers/all-MiniLM-L6-v2 (ONNX Bi-Encoder)",
         required_files=[
@@ -88,8 +93,12 @@ class ModelRegistry:
     """Manages active models, locations, manifest checks, and status."""
 
     def __init__(self, base_models_dir: Optional[Path] = None):
+        # Precedence: explicit argument, then FINDRR_MODELS_DIR, then ./models.
         env_dir = os.getenv("FINDRR_MODELS_DIR")
-        self.base_dir = Path(env_dir) if env_dir else (base_models_dir or DEFAULT_MODELS_DIR)
+        if base_models_dir is not None:
+            self.base_dir = Path(base_models_dir)
+        else:
+            self.base_dir = Path(env_dir) if env_dir else DEFAULT_MODELS_DIR
 
     def get_registration(self, model_id_or_name: str) -> ModelRegistration:
         """Retrieve model registration entry by ID or canonical name."""
@@ -139,11 +148,38 @@ class ModelRegistry:
             manifest = load_manifest(manifest_path)
             verify_artifact_integrity(manifest, artifact_dir)
             status_info["artifacts_present"] = True
-            status_info["integrity_verified"] = True
             status_info["evaluation_summary"] = manifest.evaluation_summary
+            problem = self._contract_problem(reg, manifest, artifact_dir)
+            if problem:
+                logger.error("Model %s rejected: %s", reg.model_id, problem)
+                status_info["error"] = problem
+                return status_info
+            status_info["integrity_verified"] = True
         except (ModelArtifactMissingError, ModelIntegrityError) as err:
             status_info["error"] = str(err)
         except Exception as exc:
             status_info["error"] = f"Failed to inspect model: {exc}"
 
         return status_info
+
+    @staticmethod
+    def _contract_problem(reg: ModelRegistration, manifest, artifact_dir: Path) -> Optional[str]:
+        """Return why a checksum-valid bundle must still not be loaded, or None if it may."""
+        if manifest.model_id != reg.model_id:
+            return f"Manifest is for {manifest.model_id}, expected {reg.model_id}."
+        if manifest.version != reg.active_version:
+            return (
+                f"Manifest version {manifest.version} does not match the registered active "
+                f"version {reg.active_version}."
+            )
+        missing = [
+            f
+            for f in reg.required_files
+            if f != "manifest.json" and (f not in manifest.files or not (artifact_dir / f).exists())
+        ]
+        if missing:
+            return f"Required files missing from the bundle or its manifest: {missing}"
+        acceptance = (manifest.metadata or {}).get("acceptance")
+        if isinstance(acceptance, dict) and acceptance.get("passed") is False:
+            return "Model failed its approved acceptance criteria during training; not loaded."
+        return None

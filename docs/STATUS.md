@@ -13,7 +13,7 @@
 | Current phase | Milestone 2, Iteration 5 (Completed) |
 | Current iteration | Milestone 2, Iteration 5 |
 | Current branch | docs/autonomous-run-workflow |
-| Open PR | PR #TBD |
+| Open PR | PR #15 |
 | Latest release | None |
 
 ## Current task
@@ -22,11 +22,11 @@ Milestone 2, Iteration 5 completed. Application Lifecycle Pipeline Tracking (US-
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #TBD (autonomous-run workflow + Iteration 5 closure docs). Unblocks: start of the autonomous run (Iteration 6).
+- Awaiting merge: PR #15 (autonomous-run workflow + Iteration 5 closure docs). Unblocks: start of the autonomous run (Iteration 6).
 
 ## Next step
 
-1. User reviews and merges PR #TBD.
+1. User reviews and merges PR #15.
 2. Run `/autonomous-run`. Its backlog priority rule selects US-014 (Should Have) for Iteration 6, ahead of US-017 (Could Have).
 
 ## Blockers
@@ -94,7 +94,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 0
 
 | Date | Summary | Branch / PR |
 |---|---|---|
-| 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #TBD. | docs/autonomous-run-workflow / PR #TBD |
+| 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #15. | docs/autonomous-run-workflow / PR #15 |
 | 2026-11-07 | PR #14 merged into `main` by user. Switched to `main`, pulled merge commit `9442c70`. Deleted local branch. Closed Milestone 2, Iteration 5. Application status tracking, metrics dashboard, Model 3 notebook and runners verified. | main |
 | 2026-11-07 | Milestone 2, Iteration 5 implemented: application lifecycle status transitions (`findrr apply status`), search & application metrics dashboard (`findrr dashboard`), Model 3 Kaggle notebook (`notebooks/03_train_application_tailor.ipynb`), and Model 3 runners. 133 tests passing with 84% coverage. Opened PR #14. | feature/iteration-5-app-tracking-and-model-3 / PR #14 |
 | 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |

@@ -285,7 +285,7 @@ Every piece of profile data tracks:
 - **Inputs:** Text pair `(text_a: str, text_b: str)`.
 - **Outputs:** Float cosine similarity score `[-1.0, 1.0]`.
 - **Training Approach:** Contrastive fine-tuning on Kaggle with paired title synonyms and negative hard pairs.
-- **Evaluation Criteria:** Cosine Pearson correlation >= 0.85 on test validation pairs.
+- **Evaluation Criteria:** precision >= 0.90 at the 0.70 relevance threshold, plus AC-ML-002.1 and AC-ML-002.2 (`docs/ml/models/similarity-evaluator.md`). Cosine Pearson correlation is reported but not gated (D-008, owner decision 2026-11-26).
 - **Artifact Format:** ONNX / PyTorch CPU model (< 100 MB).
 
 ### ML-003: Tailored Application Content Assistant (Module 5)

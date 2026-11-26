@@ -250,3 +250,20 @@ def test_occupation_precision_and_dictionary(onet_dir):
     assert ns["occupation_precision"](rows, onet, index) == 2 / 3
     stray = "Registered Radiologic Technologist)"
     assert ns["clean_title"](stray) == "Registered Radiologic Technologist"
+
+
+def test_ml002_reports_pearson_but_does_not_gate_on_it():
+    """D-008 (owner decision 2026-11-26): Pearson r is reported, not an acceptance gate."""
+    nb = json.loads((NOTEBOOKS / "02_train_similarity_evaluator.ipynb").read_text())
+    sources = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+    gate = next(s for s in sources if "ACCEPTANCE = check_acceptance(" in s)
+    measured = next(s for s in sources if "measured = {" in s)
+    assert "'pearson_r'" in measured and "'spearman_rho'" in measured
+    assert "pearson" not in gate.split("check_acceptance(", 1)[1].lower().split("})")[0]
+    gated = (
+        "precision_at_0_70",
+        "ac_ml_002_1_synonym_similarity",
+        "ac_ml_002_2_distinct_similarity",
+    )
+    for key in gated:
+        assert f"'{key}'" in gate

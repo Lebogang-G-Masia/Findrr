@@ -30,11 +30,10 @@
 
 | Metric | Criterion (spec) |
 |---|---|
-| Pearson r (scores vs graded labels) | >= 0.85 |
 | Precision of pairs scored >= 0.70 that are same-occupation or Primary-Short | >= 0.90 |
 | AC-ML-002.1: "Software Developer" vs "Software Engineer" | >= 0.85 |
 | AC-ML-002.2: "Software Developer" vs "Dental Assistant" | < 0.30 |
-| Spearman rho; INT8-vs-PyTorch cosine parity | reported only |
+| Pearson r and Spearman rho (scores vs graded labels); INT8-vs-PyTorch cosine parity | reported only (Pearson un-gated by D-008) |
 
 A failed criterion stops the export, as for ML-001.
 

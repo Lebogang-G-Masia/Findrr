@@ -883,8 +883,9 @@ def similarity_evaluator_notebook() -> dict:
             code(
                 r'''
                 # Thresholds copied verbatim from docs/ml/models/similarity-evaluator.md (approved).
+                # Pearson r and Spearman rho are reported in `measured` but do not gate the
+                # export (D-008): the O*NET proxy labels cap them.
                 ACCEPTANCE = check_acceptance(measured, {
-                    'pearson_r': ('>=', 0.85),
                     'precision_at_0_70': ('>=', 0.90),
                     'ac_ml_002_1_synonym_similarity': ('>=', 0.85),
                     'ac_ml_002_2_distinct_similarity': ('<', 0.30),

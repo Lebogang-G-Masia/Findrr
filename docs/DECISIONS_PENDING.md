@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 6**
+**Open items: 5**
 
 ## Open decisions
 
@@ -89,6 +89,28 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
+## Entry template
+
+Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
+
+```markdown
+### D-NNN: Short title
+- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
+- **Area:** requirements | architecture | security | UX | ML | process
+- **Ambiguity:** What is unclear or undecided.
+- **Why it matters:** What depends on it, and what a wrong guess would cost.
+- **Options:**
+  1. Option A. Trade-offs.
+  2. Option B. Trade-offs.
+- **Recommendation:** Which option, and why.
+- **Blocked work:** What has been paused until this is decided.
+- **Status:** Open
+```
+
+## Resolved decisions
+
+Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
 ### D-008: ML-002 failed acceptance on Pearson r; the proxy labels cap it
 - **Raised:** 2026-11-26, after the user's first Kaggle run of `02_train_similarity_evaluator.ipynb` (v1.1.0)
 - **Area:** ML
@@ -123,29 +145,9 @@
 
   Please also paste the full cell 12 output (Spearman and ONNX parity) for the evaluation report.
 - **Blocked work:** ML-002 export and real Module 3 and Module 4 similarity inference.
-- **Status:** Open
-
-## Entry template
-
-Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
-
-```markdown
-### D-NNN: Short title
-- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
-- **Area:** requirements | architecture | security | UX | ML | process
-- **Ambiguity:** What is unclear or undecided.
-- **Why it matters:** What depends on it, and what a wrong guess would cost.
-- **Options:**
-  1. Option A. Trade-offs.
-  2. Option B. Trade-offs.
-- **Recommendation:** Which option, and why.
-- **Blocked work:** What has been paused until this is decided.
-- **Status:** Open
-```
-
-## Resolved decisions
-
-Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+- **Status:** Resolved
+- **Decision:** Option 1, reduced to its core: remove Pearson r from the acceptance gate but keep reporting it (with Spearman rho). Owner decision 2026-11-26. No new gated metrics and no change to the evaluation pairs; the gate is precision at 0.70 >= 0.90, AC-ML-002.1 and AC-ML-002.2.
+- **Recorded in:** `scripts/generate_kaggle_notebooks.py`, `notebooks/02_train_similarity_evaluator.ipynb`, `docs/ml/models/similarity-evaluator.md` §8 and §14, `docs/ml/training/similarity-evaluator.md`, `docs/requirements/srs.md` (ML-002 evaluation criteria)
 
 ### D-007: ML-001 failed acceptance; ROUGE-L target is unreachable by design
 - **Raised:** 2026-11-26, after the user's first Kaggle run of `01_train_title_expander.ipynb` (v2.0.0)

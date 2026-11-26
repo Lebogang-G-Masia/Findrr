@@ -39,15 +39,26 @@ class PostingService:
         profile_id: str,
         custom_min: Optional[int] = None,
         custom_max: Optional[int] = None,
+        title_override: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Execute discovery for the active generalized title of a user profile."""
+        """Execute discovery for a profile, using its saved search configuration.
+
+        ``title_override`` replaces only the searched title; locations, remote preference,
+        seniority and result bounds still come from the profile's saved configuration.
+        """
         profile = self.profile_repo.get_profile(profile_id)
         if not profile:
             raise ValueError(f"Profile {profile_id} not found.")
 
-        active_title = self.title_repo.get_active_title(profile_id)
-        if not active_title:
-            raise ValueError(f"No active generalized job title found for profile {profile_id}.")
+        if title_override:
+            search_title = title_override
+        else:
+            active_title = self.title_repo.get_active_title(profile_id)
+            if not active_title:
+                raise ValueError(
+                    f"No active generalized job title found for profile {profile_id}."
+                )
+            search_title = active_title.primary_title
 
         config = self.config_repo.get_configuration(profile_id)
         target_locations = config.target_locations if config else []
@@ -64,7 +75,7 @@ class PostingService:
             min_results = max_results
 
         return self.discover_postings_for_title(
-            title=active_title.primary_title,
+            title=search_title,
             target_locations=target_locations,
             remote_preference=remote_pref,
             seniority_level=seniority,
@@ -121,6 +132,8 @@ class PostingService:
                 content_hash=create_dto.content_hash,
                 status=create_dto.status,
                 posting_date=create_dto.posting_date,
+                availability_evidence=create_dto.availability_evidence,
+                availability_checked_at=create_dto.availability_checked_at,
             )
             saved = self.posting_repo.save_posting(posting)
             saved_postings.append(saved)

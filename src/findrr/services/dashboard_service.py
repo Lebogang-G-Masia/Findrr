@@ -67,6 +67,7 @@ class DashboardService:
             total_postings=search_data.get("total_postings", 0),
             active_postings=search_data.get("active_postings", 0),
             closed_postings=search_data.get("closed_postings", 0),
+            uncertain_postings=search_data.get("uncertain_postings", 0),
             unique_companies=search_data.get("unique_companies", 0),
             pipeline_counts=pipeline_counts,
             submitted_count=submitted_count,

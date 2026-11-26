@@ -3,7 +3,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from findrr.models.application import DocumentType, RequirementAnalysisResult, TailoredDraftResult
 from findrr.models.posting import JobPosting
@@ -31,29 +31,22 @@ class DocumentGenerator:
         posting: JobPosting,
         analysis: RequirementAnalysisResult,
     ) -> TailoredDraftResult:
-        """Render a fact-grounded tailored CV in Markdown format."""
-        verified_matching = [s.lower() for s in analysis.matching_skills]
-        verified_matching_str = (
-            ", ".join(verified_matching[:4]) if verified_matching else "core technical competencies"
-        )
+        """Render a fact-grounded tailored CV in Markdown format.
 
-        all_verified_skills = self._get_verified_skills(profile)
-        other_verified = [s for s in all_verified_skills if s.lower() not in verified_matching][:8]
+        Every statement is taken from verified profile entries or the posting itself.
+        No adjectives, proficiency levels or achievements are added (BR-002, NFR-009).
+        """
+        display = self._skill_display_names(profile)
+        matching = [s.lower() for s in analysis.matching_skills]
+        matching_names = [display.get(s, s) for s in matching]
+        other_verified = [
+            display.get(s, s) for s in self._get_verified_skills(profile) if s not in matching
+        ][:8]
 
-        experiences = [
-            e for e in profile.entries if e.is_verified and e.category == ProfileCategory.EXPERIENCE
-        ]
-        education = [
-            e for e in profile.entries if e.is_verified and e.category == ProfileCategory.EDUCATION
-        ]
-        certifications = [
-            e
-            for e in profile.entries
-            if e.is_verified and e.category == ProfileCategory.CERTIFICATION
-        ]
-        projects = [
-            e for e in profile.entries if e.is_verified and e.category == ProfileCategory.PROJECT
-        ]
+        experiences = self._verified(profile, ProfileCategory.EXPERIENCE)
+        education = self._verified(profile, ProfileCategory.EDUCATION)
+        certifications = self._verified(profile, ProfileCategory.CERTIFICATION)
+        projects = self._verified(profile, ProfileCategory.PROJECT)
 
         lines: List[str] = []
         lines.append(f"# {profile.full_name}")
@@ -68,30 +61,31 @@ class DocumentGenerator:
         lines.append("")
 
         lines.append("## Professional Summary")
-        lines.append(
-            f"Dedicated and results-driven professional targeting the **{posting.title}** role "
-            f"at **{posting.company}**. "
-            f"Offering proven expertise in {verified_matching_str}. "
-            "Grounded in rigorous execution, collaborative problem-solving, "
-            "and continuous technical growth."
-        )
+        lines.append(f"Application for the **{posting.title}** role at **{posting.company}**.")
+        if profile.professional_summary:
+            lines.append(profile.professional_summary.strip())
+        if matching_names:
+            lines.append(
+                "Verified skills that match this posting: " + ", ".join(matching_names[:4]) + "."
+            )
         lines.append("")
 
-        lines.append("## Core Competencies & Skills")
-        for skill in verified_matching:
-            lines.append(f"- **{skill.title()}** (Verified Proficiency)")
-        for skill in other_verified:
-            lines.append(f"- {skill.title()}")
-        lines.append("")
+        if matching_names or other_verified:
+            lines.append("## Skills")
+            for name in matching_names:
+                lines.append(f"- **{name}** (listed in this posting)")
+            for name in other_verified:
+                lines.append(f"- {name}")
+            lines.append("")
 
         if experiences:
             lines.append("## Professional Experience")
             for exp in experiences:
                 org_part = f" - {exp.organization}" if exp.organization else ""
                 lines.append(f"### {exp.title}{org_part}")
-                start = exp.start_date or "Past"
-                end = exp.end_date or "Present"
-                lines.append(f"*{start} — {end}*")
+                date_range = self._date_range(exp.start_date, exp.end_date)
+                if date_range:
+                    lines.append(f"*{date_range}*")
                 if exp.description:
                     lines.append(exp.description)
                 lines.append("")
@@ -112,7 +106,7 @@ class DocumentGenerator:
             lines.append("")
 
         if projects:
-            lines.append("## Notable Projects")
+            lines.append("## Projects")
             for proj in projects:
                 lines.append(f"### {proj.title}")
                 if proj.description:
@@ -140,37 +134,56 @@ class DocumentGenerator:
         posting: JobPosting,
         analysis: RequirementAnalysisResult,
     ) -> TailoredDraftResult:
-        """Render a tailored cover letter grounded in verified candidate facts."""
-        verified_matching = [s.lower() for s in analysis.matching_skills]
-        verified_matching_str = (
-            ", ".join(verified_matching[:3]) if verified_matching else "industry best practices"
-        )
+        """Render a cover letter built only from verified profile facts (BR-002, NFR-009).
 
-        all_verified = self._get_verified_skills(profile)
-        core_skills_str = ", ".join(all_verified[:4]) if all_verified else "software engineering"
+        Sections whose facts are absent from the profile are omitted, never filled in.
+        """
+        display = self._skill_display_names(profile)
+        matching_names = [display.get(s.lower(), s) for s in analysis.matching_skills][:3]
+        experiences = self._verified(profile, ProfileCategory.EXPERIENCE)
+        education = self._verified(profile, ProfileCategory.EDUCATION)
 
         lines: List[str] = [
             f"Dear Hiring Team at {posting.company},",
             "",
-            f"I am writing to express my strong interest in the {posting.title} position. "
-            f"With verified hands-on experience in {verified_matching_str}, "
-            "I am confident in my ability to contribute effectively to your team from day one.",
-            "",
-            "Throughout my professional career, I have focused on delivering "
-            "reliable, high-quality outcomes. "
-            f"My background includes proven experience with {core_skills_str}, "
-            "where I have developed a strong foundation in building scalable, "
-            "maintainable solutions.",
-            "",
-            f"I am particularly excited about the opportunity at {posting.company} "
-            "and look forward to discussing how my skills and qualifications align "
-            "with your engineering and operational goals.",
-            "",
-            "Sincerely,",
-            "",
-            profile.full_name,
-            profile.email,
+            f"I am applying for the {posting.title} position.",
         ]
+
+        if matching_names:
+            lines.append("")
+            lines.append(
+                "My profile lists these skills that the posting asks for: "
+                + ", ".join(matching_names)
+                + "."
+            )
+
+        if experiences:
+            exp = experiences[0]
+            org_part = f" at {exp.organization}" if exp.organization else ""
+            date_range = self._date_range(exp.start_date, exp.end_date)
+            date_part = f" ({date_range})" if date_range else ""
+            lines.append("")
+            lines.append(f"My most recent listed role is {exp.title}{org_part}{date_part}.")
+            if exp.description:
+                lines.append(exp.description.strip())
+
+        if education:
+            edu = education[0]
+            org_part = f" from {edu.organization}" if edu.organization else ""
+            lines.append("")
+            lines.append(f"I hold a {edu.title}{org_part}.")
+
+        lines.extend(
+            [
+                "",
+                "Thank you for considering my application.",
+                "",
+                "Sincerely,",
+                "",
+                profile.full_name,
+                profile.email,
+            ]
+        )
 
         rendered_text = "\n".join(lines).strip()
 
@@ -185,6 +198,29 @@ class DocumentGenerator:
             content_text=rendered_text,
             is_grounded=True,
         )
+
+    @staticmethod
+    def _verified(profile: UserProfile, category: ProfileCategory) -> list:
+        return [e for e in profile.entries if e.is_verified and e.category == category]
+
+    @staticmethod
+    def _date_range(start: Optional[str], end: Optional[str]) -> str:
+        """Render only the dates the user supplied; never invent 'Present' or a start date."""
+        if start and end:
+            return f"{start} — {end}"
+        return start or end or ""
+
+    @staticmethod
+    def _skill_display_names(profile: UserProfile) -> Dict[str, str]:
+        """Map lower-cased verified skills to the casing the user entered (e.g. 'sql' -> 'SQL')."""
+        names: Dict[str, str] = {}
+        for e in profile.entries:
+            if e.is_verified and e.category == ProfileCategory.SKILL:
+                for raw in e.title.split(","):
+                    clean = raw.strip()
+                    if clean and clean.lower() not in names:
+                        names[clean.lower()] = clean
+        return names
 
     def _get_verified_skills(self, profile: UserProfile) -> List[str]:
         skills: List[str] = []

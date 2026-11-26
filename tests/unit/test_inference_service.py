@@ -72,3 +72,16 @@ def test_model_unloading_lifecycle(inference_service):
     assert "ML-002" in inference_service._runners
     inference_service.unload_all()
     assert len(inference_service._runners) == 0
+
+
+def test_thresholds_come_from_provisional_config(monkeypatch):
+    from findrr import config
+
+    monkeypatch.delenv("FINDRR_RELEVANCE_THRESHOLD", raising=False)
+    assert config.relevance_threshold() == config.DEFAULT_RELEVANCE_THRESHOLD
+    monkeypatch.setenv("FINDRR_RELEVANCE_THRESHOLD", "0.5")
+    assert config.relevance_threshold() == 0.5
+    monkeypatch.setenv("FINDRR_DEDUP_THRESHOLD", "not-a-number")
+    assert config.dedup_threshold() == config.DEFAULT_DEDUP_THRESHOLD
+    monkeypatch.setenv("FINDRR_DEDUP_THRESHOLD", "7")
+    assert config.dedup_threshold() == config.DEFAULT_DEDUP_THRESHOLD

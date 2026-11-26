@@ -42,7 +42,8 @@ def handle_dashboard_cli(
     print("\n[+] Opportunity Discovery & Search Metrics (Module 4):")
     print(f"    Total Postings Tracked:   {metrics.total_postings}")
     print(f"    Active Postings:          {metrics.active_postings}")
-    print(f"    Closed Postings:          {metrics.closed_postings}")
+    print(f"    Closed/Expired Postings:  {metrics.closed_postings}")
+    print(f"    Uncertain Availability:   {metrics.uncertain_postings}")
     print(f"    Unique Employers:         {metrics.unique_companies}")
 
     if metrics.top_companies:

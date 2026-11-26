@@ -67,3 +67,22 @@ def test_resolve_preferred_destination_retains_direct_employer():
     resolved_url, dest_type = LinkResolver.resolve_preferred_destination(direct_url)
     assert resolved_url == direct_url
     assert dest_type == "EMPLOYER_DIRECT"
+
+
+def test_resolve_prefers_same_site_apply_link_on_employer_page():
+    page = "https://jobs.acme.com/p/1"
+    html = """
+    <a href="/careers">Careers home</a>
+    <a href="/apply/1">Apply now</a>
+    <a href="https://other.example.org/apply">Apply elsewhere</a>
+    """
+    resolved_url, dest_type = LinkResolver.resolve_preferred_destination(page, html)
+    assert resolved_url == "https://jobs.acme.com/apply/1"
+    assert dest_type == "EMPLOYER_DIRECT"
+
+
+def test_resolve_ignores_off_site_apply_link_on_employer_page():
+    page = "https://jobs.acme.com/p/1"
+    html = '<a href="https://other.example.org/apply">Apply</a>'
+    resolved_url, _ = LinkResolver.resolve_preferred_destination(page, html)
+    assert resolved_url == page

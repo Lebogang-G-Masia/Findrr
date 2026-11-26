@@ -19,6 +19,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Local CPU inference runtime approved in ADR-0003 (ONNX Runtime + tokenizers).
+# torch is intentionally not listed: see DECISIONS_PENDING D-004.
+ml = [
+    "onnxruntime>=1.18.0",
+    "transformers>=4.40.0",
+    "numpy>=1.26.0",
+]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",

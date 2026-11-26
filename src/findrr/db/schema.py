@@ -89,8 +89,10 @@ CREATE TABLE IF NOT EXISTS job_postings (
     source_url TEXT NOT NULL,
     direct_apply_url TEXT,
     content_hash TEXT NOT NULL UNIQUE,
-    status TEXT NOT NULL DEFAULT 'ACTIVE',
+    status TEXT NOT NULL DEFAULT 'UNCERTAIN',
     posting_date TEXT,
+    availability_evidence TEXT,
+    availability_checked_at TIMESTAMP,
     discovered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (search_term_id) REFERENCES search_terms(id) ON DELETE SET NULL
 );
@@ -139,3 +141,10 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 """
+
+# Additive, nullable column migrations for databases created before the column existed.
+# (table, column, SQL type). Applied idempotently by init_db().
+COLUMN_MIGRATIONS = [
+    ("job_postings", "availability_evidence", "TEXT"),
+    ("job_postings", "availability_checked_at", "TIMESTAMP"),
+]

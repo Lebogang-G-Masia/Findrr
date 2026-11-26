@@ -30,8 +30,10 @@ class JobPostingCreate(BaseModel):
     source_url: str = Field(..., min_length=1)
     direct_apply_url: Optional[str] = None
     content_hash: str = Field(..., min_length=64, max_length=64)
-    status: PostingAvailability = PostingAvailability.ACTIVE
+    status: PostingAvailability = PostingAvailability.UNCERTAIN
     posting_date: Optional[str] = None
+    availability_evidence: Optional[str] = None
+    availability_checked_at: Optional[datetime] = None
 
 
 class JobPosting(BaseModel):
@@ -47,8 +49,10 @@ class JobPosting(BaseModel):
     source_url: str
     direct_apply_url: Optional[str] = None
     content_hash: str
-    status: PostingAvailability = PostingAvailability.ACTIVE
+    status: PostingAvailability = PostingAvailability.UNCERTAIN
     posting_date: Optional[str] = None
+    availability_evidence: Optional[str] = None
+    availability_checked_at: Optional[datetime] = None
     discovered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -60,3 +64,4 @@ class DiscoveryMetrics(BaseModel):
     postings_extracted: int = 0
     unique_postings_retained: int = 0
     duplicates_detected: int = 0
+    halted_reason: Optional[str] = None

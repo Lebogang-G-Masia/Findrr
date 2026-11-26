@@ -79,8 +79,10 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
         driver_factory: Optional[Callable[..., Any]] = None,
         page_fetcher: Optional[Callable[[str], str]] = None,
         prompt_hook: Optional[Callable[[str], None]] = None,
+        snapshot_dir: Optional[str] = None,
     ):
         self.headless = headless
+        self.snapshot_dir = snapshot_dir or "logs"
         self.driver_factory = driver_factory or WebDriverFactory.create_driver
         self.page_fetcher = page_fetcher  # Custom hook for testing / offline evaluation
         self.prompt_hook = prompt_hook or self._default_prompt_hook
@@ -177,9 +179,15 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
             if self.is_captcha_or_bot_challenge(driver):
                 resolved = self._handle_human_captcha_challenge(driver)
                 if not resolved:
+                    # Never scrape the challenge page itself; stop and report why (D-001).
                     logger.warning(
-                        "Search discovery halted or gated by unresolved CAPTCHA challenge."
+                        "Search discovery halted: CAPTCHA challenge was not completed."
                     )
+                    metrics.halted_reason = (
+                        "Google presented a CAPTCHA that was not completed. "
+                        "No results were collected."
+                    )
+                    return extracted_postings, metrics
 
             search_page_source = driver.page_source
             candidate_urls = self._extract_result_links_from_search_page(search_page_source)
@@ -193,7 +201,9 @@ class JobDiscoveryEngine(IJobDiscoveryEngine):
                     "Dumping debug snapshot to logs/...",
                     curr_url,
                 )
-                html_snap, png_snap = self._dump_debug_snapshot(driver, search_page_source)
+                html_snap, png_snap = self._dump_debug_snapshot(
+                    driver, search_page_source, log_dir=self.snapshot_dir
+                )
                 logger.warning(
                     "Diagnostic snapshot written: HTML=%s, Screenshot=%s",
                     html_snap,

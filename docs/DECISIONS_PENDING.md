@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 5**
+**Open items: 6**
 
 ## Open decisions
 
@@ -87,6 +87,22 @@
   - pinned libraries;
   - the app manifest schema.
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
+- **Status:** Open
+
+### D-010: ML-001 occupation precision 0.603; the repetition penalty works against correct answers
+- **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009)
+- **Area:** ML
+- **Evidence (Kaggle run 4):** occupation precision **0.603** (target >= 0.75, failed), up from 0.478 on the occupation-disjoint split. The other criteria were not reported as failing. The sample predictions were not yet shared.
+- **Evidence (local, no training; the same test split rebuilt with the notebook's code):**
+  - Decoding uses `repetition_penalty=1.2` (notebook and runner). Since D-007 it is redundant: the title constraint already makes repeats impossible, and repetition was 0.0 with the penalty off (PR #31 check).
+  - The penalty acts on tokens, not titles, and correct answers share words: in **97%** of gold outputs a word recurs across titles, and **56%** of gold titles share a word with an earlier title (e.g. "CEO, Executive Director, Executive Vice President"). So every right sibling title after the first is penalised, pushing decoding towards titles of other occupations.
+- **Ambiguity:** the decoding settings (`num_beams=2`, `repetition_penalty=1.2`) are part of the approved notebook and runner contract; changing them needs your approval.
+- **Options:**
+  1. **Drop the penalty (1.0) in the notebook, `preprocess_config.json` and the runner; also report, without gating, precision with `num_beams=4` (recommended).** Trade-offs: one Kaggle re-run; directly removes a known bias; the beam-4 figure shows whether a wider beam is worth its CPU cost, without committing to it.
+  2. **Also train longer (e.g. 10 epochs) in the same run.** Trade-offs: no evidence yet that the model is under-trained; if precision rises, the cause is ambiguous.
+  3. **Wait for the 15 sample predictions before changing anything.** Trade-offs: no re-run wasted on a guess, but it costs a round trip, and the penalty is a defect either way.
+- **Recommendation:** Option 1, and please paste the 15 sample predictions from the evaluation cell with the next run.
+- **Blocked work:** ML-001 export and real Module 3 inference.
 - **Status:** Open
 
 ## Entry template

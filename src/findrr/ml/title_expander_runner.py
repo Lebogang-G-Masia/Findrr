@@ -169,7 +169,8 @@ class TitleExpanderRunner(IModelRunner):
         import torch
 
         skills_str = ", ".join(skills[:8]) if skills else "general"
-        sen_str = seniority or "Standard"
+        # Must match the level vocabulary in notebooks/01_train_title_expander.ipynb.
+        sen_str = (seniority or "ANY").upper()
         prompt = f"expand titles: {generalized_title} | skills: {skills_str} | level: {sen_str}"
 
         inputs = self._tokenizer(
@@ -184,7 +185,7 @@ class TitleExpanderRunner(IModelRunner):
                 **inputs,
                 max_new_tokens=48,
                 num_beams=2,
-                temperature=0.3,
+                do_sample=False,
                 repetition_penalty=1.2,
             )
 

@@ -27,6 +27,7 @@ ml = [
     "numpy>=1.26.0",
 ]
 dev = [
+    "numpy>=1.26.0",  # runner contract tests (fake ONNX session); also in the ml extra
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
     "ruff>=0.4.0",

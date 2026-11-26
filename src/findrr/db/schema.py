@@ -136,6 +136,11 @@ CREATE TABLE IF NOT EXISTS application_documents (
     CHECK (document_type IN ('TAILORED_CV', 'COVER_LETTER', 'COMPANY_RESEARCH'))
 );
 
+CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS activity_logs (
     id TEXT PRIMARY KEY,
     event_type TEXT NOT NULL,

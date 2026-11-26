@@ -178,6 +178,7 @@ Work items are organized hierarchically:
   - [x] Implement `ApplicationTailorRunner` (mock & ONNX) in `src/findrr/ml/application_tailor_runner.py`.
   - [x] Integrate Model 3 into `InferenceService` via `tailor_statement()` and `_get_application_tailor()`.
 - **US-014 (Company Research Summaries):** Gather company mission, industry overview, and recent tech stack details with source attribution for interview prep (`FR-022`, Should Have).
+  - *Blocked on D-005 (sources and summary method), raised 2026-11-26.*
 
 ### Epic 7: Comprehensive Application Lifecycle Tracking (Module 6 & 7)
 - **US-015 (Status Tracking Pipeline):** Track application statuses (Saved -> Applied -> Interviewing -> Offered) with submission dates and notes (`FR-023`, `FR-024`, Must Have).
@@ -189,6 +190,10 @@ Work items are organized hierarchically:
   - [x] Implement `ApplicationRepository.get_pipeline_summary()` and `DashboardService`.
   - [x] Implement `findrr dashboard` CLI command with rich visual tables and conversion stats.
 - **US-017 (Multi-Profile Support):** Enable creating and switching between multiple specialized profiles for distinct career paths (`FR-001` enhancement, Could Have).
+  - [x] Persist an active profile (`app_settings`) and resolve it for every command run without a profile ID (`services/active_profile.py`).
+  - [x] `findrr profile use <id>`; `findrr profile list` marks the active profile.
+  - [x] With several profiles and none active, commands stop with guidance instead of guessing. Creating a profile never silently switches the active one.
+  - **Acceptance criteria (Iteration 6):** Given two or more profiles, when a command runs without a profile ID, then it uses the active profile, or stops and asks for a choice if none is active. Given one profile, it is used implicitly. Given `profile use <id>`, later commands act on that profile.
 
 ---
 

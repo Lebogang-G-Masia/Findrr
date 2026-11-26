@@ -14,6 +14,7 @@ Milestone 2 (additional CLI functionality). See [`docs/STATUS.md`](docs/STATUS.m
 
 ```bash
 findrr onboard                 # profile -> generalized title -> search configuration
+findrr profile use <id>        # switch the active profile (multiple career paths)
 findrr terms generate          # Model 1 expansion + Model 2 validation (needs verified artifacts)
 findrr search run              # headful search: primary title + accepted terms (2-10 each)
 findrr apply analyze <posting> # requirement gap analysis

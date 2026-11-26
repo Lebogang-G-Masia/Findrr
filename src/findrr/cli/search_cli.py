@@ -13,6 +13,7 @@ from findrr.db.repository import (
     TitleRepository,
 )
 from findrr.search.engine import JobDiscoveryEngine
+from findrr.services.active_profile import ProfileSelectionError, resolve_profile_id
 from findrr.services.posting_service import PostingService
 
 
@@ -107,16 +108,11 @@ def _run_search(
     profile_repo: ProfileRepository,
     title_repo: TitleRepository,
 ) -> int:
-    profile_id = args.profile_id
-    if not profile_id:
-        profiles = profile_repo.list_profiles()
-        if not profiles:
-            print(
-                "No profiles found. Run 'findrr onboard' or 'findrr profile create' first.",
-                file=sys.stderr,
-            )
-            return 1
-        profile_id = profiles[0].id
+    try:
+        profile_id = resolve_profile_id(profile_repo, args.profile_id)
+    except ProfileSelectionError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
 
     print("================================================================================")
     print("                     Findrr Job Discovery Workflow (Module 4)                    ")

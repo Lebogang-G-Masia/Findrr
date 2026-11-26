@@ -119,6 +119,15 @@ class IProfileService(ABC):
         pass
 ```
 
+### 2.1a Active profile (US-017)
+`findrr.services.active_profile.resolve_profile_id(profile_repo, explicit=None)` is the single rule for which profile a command acts on:
+1. an explicit ID, which must exist;
+2. otherwise the stored active profile, if it still exists;
+3. otherwise the only profile;
+4. otherwise `ProfileSelectionError`, with guidance to run `findrr profile use <id>`.
+
+`remember_active_after_create` keeps the current profile active when another is created.
+
 ### 2.2 Module 3: `SearchTermService`
 ```python
 class ISearchTermService(ABC):

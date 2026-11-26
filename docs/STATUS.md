@@ -10,28 +10,29 @@
 |---|---|
 | Last updated | 2026-11-26 |
 | Current milestone | Milestone 2 (Additional Functionality) |
-| Current phase | Milestone 2, Iteration 5 (Completed) |
-| Current iteration | Milestone 2, Iteration 5 |
-| Current branch | feature/module-3-search-term-pipeline |
-| Open PR | PR #18 |
+| Current phase | Milestone 2, Iteration 6 (In Progress) |
+| Current iteration | Milestone 2, Iteration 6 |
+| Current branch | feature/iteration-6-multi-profile |
+| Open PR | PR #TBD |
 | Latest release | None |
 
 ## Current task
 
-Pre-Iteration-6 codebase audit and fixes, requested by the user on 2026-11-26. Execution and invariant fixes are on `fix/execution-and-invariant-fixes`. Module 3 wiring follows in its own PR. After that comes Iteration 6 (US-014).
+Milestone 2, Iteration 6. US-017 (multi-profile support) is implemented on `feature/iteration-6-multi-profile`. US-014 (company research) is blocked on D-005.
 
 ## Awaiting merge or approval
 
 - Approve D-002 (discovery source vs robots.txt and Google terms). Unblocks: compliant, unattended live discovery.
 - Approve D-003 (DOCX/PDF library). Unblocks: US-012 and the Milestone 2 gate.
 - Approve D-004 (torch for ML-001, or ONNX export). Unblocks: real ML-001 inference.
+- Approve D-005 (company research sources and summary method). Unblocks: US-014.
 - Re-supply the model artifacts. `models/` (ML-001 and ML-002 v1.0.0, plus `manifest.json`) no longer exists on disk. It was lost alongside the 2026-11-26 deletion of `src/` and is gitignored, so it cannot be restored from git. Copy the Kaggle outputs to `models/<name>/v1.0.0/`. Unblocks: real inference (currently labelled MOCK).
 - Optional: run `notebooks/03_train_application_tailor.ipynb` on Kaggle. Unblocks: real ML-003.
 
 ## Next step
 
-1. Self-merge the Module 3 PR when CI is green.
-2. Start Iteration 6 (US-014) via `/autonomous-run`.
+1. Self-merge the US-017 PR when CI is green, then close Iteration 6 for US-017.
+2. Remaining Milestone 2 work is gated on you: US-014 (D-005), US-012 (D-003), real ML-003 (Kaggle run). Milestone 3 needs Penpot design approval.
 
 ## Blockers
 
@@ -93,12 +94,14 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 3
+See `docs/DECISIONS_PENDING.md`. Count of open items: 4
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #TBD. | feature/iteration-6-multi-profile / PR #TBD |
+| 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |
 | 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
 | 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |
 | 2026-11-26 | Codebase audit: ran lint, the 133-test suite, the full CLI flow on a scratch DB and one live headful search (CAPTCHA). Fixed: saved search bounds ignored; CAPTCHA page scraped; misleading halt message; snapshot location; availability marked ACTIVE without evidence (now evidence-based, stored via additive migration); fabricated posting date and title; apply-link resolution; unverified claims in CV and cover-letter templates; wrong closed count; hard-coded thresholds; `.env` never loaded and `.env.example` listing unread variables; manifest path traversal; crash on closed input; undeclared ML runtime deps. 147 tests pass. Raised D-002, D-003 and D-004, and corrected the backlog (US-012, Module 3 wiring). Opened PR #17. | fix/execution-and-invariant-fixes / PR #17 |

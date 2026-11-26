@@ -21,7 +21,7 @@ This matrix maintains explicit bi-directional traceability across all project la
 
 | Req ID | Title | Module | User Story | Acceptance Criteria | Test Target | ML Asset |
 |---|---|---|---|---|---|---|
-| **FR-001** | Profile Data Ingestion | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_cli.py` | N/A |
+| **FR-001** | Profile Data Ingestion (+ multi-profile, US-017) | Mod 1 (Profile) | `US-001`, `US-017` | `AC-001` | `tests/integration/test_cli.py`, `tests/unit/test_multi_profile.py` | N/A |
 | **FR-002** | Profile Normalization | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/unit/test_models.py` | N/A |
 | **FR-003** | Data Provenance Tracking | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_db.py` | N/A |
 | **FR-004** | User Profile Review & Edit | Mod 1 (Profile) | `US-001` | `AC-001` | `tests/integration/test_cli.py` | N/A |

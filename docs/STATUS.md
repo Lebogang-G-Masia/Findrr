@@ -23,6 +23,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 ## Awaiting merge or approval
 
 - **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
+- **Decide D-007** (ML-001 failed acceptance; ROUGE-L target unreachable). It blocks ML-001. Notebook 02 (ML-002) can still be run now.
 - Decide D-002 (discovery source), D-003 (DOCX/PDF), D-004 (ML-001 runtime), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
@@ -90,12 +91,13 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 5
+See `docs/DECISIONS_PENDING.md`. Count of open items: 6
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | First Kaggle run of ML-001 v2.0.0 (user): the acceptance gate stopped the export. ROUGE-L 0.194, valid ratio 0.554, repetition 0.580, AC-ML-001.1 passed. Local analysis: ideal answers score ROUGE-L 0.27–0.66, so the 0.75 target is unreachable; repetition and invalid titles are real model defects. Raised D-007. | docs/d-007-ml-001-evaluation |
 | 2026-11-26 | User report: notebook 01 failed on Kaggle (Python 3.13) with `cannot import name 'is_flax_available'`. The environment cell imported the preinstalled transformers 5.x before the pinned 4.46.3 install, mixing versions. The report now reads metadata only, and a version-guard cell says to restart if the versions are mixed. Verified in a Python 3.13 + torch 2.15 environment: all imports, both trainer argument sets and both tokenizers work (no training). Regression test added. | fix/notebook-import-order |
 | 2026-11-26 | User report: notebook 01 failed on Kaggle building `sentencepiece==0.2.0` (no wheel for Kaggle's Python). Removed sentencepiece (not needed; fast tokenizer), kept exact pins only on pure-Python libraries, set minimum versions for onnx and onnxruntime, added an environment report cell, and added a regression test. | fix/kaggle-notebook-installs |
 | 2026-11-26 | PR #22 (notebook rewrite) merged by the user (`8f1efe4`); verified on `main` (177 tests pass). Waiting for the Kaggle runs and decisions D-002 to D-006. | docs/record-pr-22-merge |

@@ -10,15 +10,15 @@
 |---|---|
 | Last updated | 2026-11-26 |
 | Current milestone | Milestone 2 (Additional Functionality) |
-| Current phase | Milestone 2, Iteration 6 (In Progress) |
+| Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | feature/iteration-6-multi-profile |
-| Open PR | PR #19 |
+| Current branch | main |
+| Open PR | None |
 | Latest release | None |
 
 ## Current task
 
-Milestone 2, Iteration 6. US-017 (multi-profile support) is implemented on `feature/iteration-6-multi-profile`. US-014 (company research) is blocked on D-005.
+The autonomous run is paused: every remaining item is gated on the user (see below). Iteration 6 delivered US-017 (PR #19). US-014 waits for D-005.
 
 ## Awaiting merge or approval
 
@@ -31,8 +31,13 @@ Milestone 2, Iteration 6. US-017 (multi-profile support) is implemented on `feat
 
 ## Next step
 
-1. Self-merge the US-017 PR when CI is green, then close Iteration 6 for US-017.
-2. Remaining Milestone 2 work is gated on you: US-014 (D-005), US-012 (D-003), real ML-003 (Kaggle run). Milestone 3 needs Penpot design approval.
+1. User answers D-002 to D-005 and re-supplies the model artifacts.
+2. Then resume `/autonomous-run`, in this order:
+   - US-014 (after D-005);
+   - US-012 DOCX/PDF (after D-003);
+   - D-002 discovery changes;
+   - real ML verification once the artifacts are back.
+3. Milestone 3 needs the Penpot MCP connected in the session, then design approval.
 
 ## Blockers
 
@@ -100,16 +105,8 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 4
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | PR #19 (US-017) self-merged after green CI (`a015277`). The autonomous run paused: all remaining work is gated (D-002 to D-005, model artifacts, Penpot designs). 160 tests pass on `main`. | docs/iteration-6-closure |
 | 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #19. | feature/iteration-6-multi-profile / PR #19 |
 | 2026-11-26 | PR #18 (Module 3 wiring) self-merged after green CI (`e908dd4`). | main |
 | 2026-11-26 | Wired Module 3 into discovery. Added `findrr terms generate/list` and `SearchTermService` (one pass; refuses MOCK unless `--allow-mock`; persists all outcomes). `search run` now searches accepted non-MOCK terms with term linkage and halt handling. Additive `search_terms` columns. 153 tests pass. Opened PR #18. | feature/module-3-search-term-pipeline / PR #18 |
 | 2026-11-26 | PR #17 (audit fixes) self-merged after green CI (`d649fca`). | main |
-| 2026-11-26 | Codebase audit: ran lint, the 133-test suite, the full CLI flow on a scratch DB and one live headful search (CAPTCHA). Fixed: saved search bounds ignored; CAPTCHA page scraped; misleading halt message; snapshot location; availability marked ACTIVE without evidence (now evidence-based, stored via additive migration); fabricated posting date and title; apply-link resolution; unverified claims in CV and cover-letter templates; wrong closed count; hard-coded thresholds; `.env` never loaded and `.env.example` listing unread variables; manifest path traversal; crash on closed input; undeclared ML runtime deps. 147 tests pass. Raised D-002, D-003 and D-004, and corrected the backlog (US-012, Module 3 wiring). Opened PR #17. | fix/execution-and-invariant-fixes / PR #17 |
-| 2026-11-26 | Repo made public by the user. Scanned tracked files and history for secrets and personal data: none found, apart from the author email in `pyproject.toml`. Configured and verified `main` branch protection. On user instruction, replaced the never-merge rule with a self-merge policy (`open-pr` §3) across AGENTS.md, workflows and the pull-request skill. Opened PR #16. | docs/self-merge-policy / PR #16 |
-| 2026-11-26 | PR #15 (autonomous-run workflow) merged by the agent on explicit user instruction (`6c2fbb5`). | main |
-| 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #15. | docs/autonomous-run-workflow / PR #15 |
-| 2026-11-07 | PR #14 merged into `main` by user. Switched to `main`, pulled merge commit `9442c70`. Deleted local branch. Closed Milestone 2, Iteration 5. Application status tracking, metrics dashboard, Model 3 notebook and runners verified. | main |
-| 2026-11-07 | Milestone 2, Iteration 5 implemented: application lifecycle status transitions (`findrr apply status`), search & application metrics dashboard (`findrr dashboard`), Model 3 Kaggle notebook (`notebooks/03_train_application_tailor.ipynb`), and Model 3 runners. 133 tests passing with 84% coverage. Opened PR #14. | feature/iteration-5-app-tracking-and-model-3 / PR #14 |
-| 2026-11-07 | PR #13 merged into `main` by user. Switched to `main`, pulled merge commit `9295ee6`. Deleted local fix branch. Google /goto?url= redirect link extraction and CI check ignore rules verified. | main |
-| 2026-11-07 | Fix for Google /goto?url= redirect link extraction and CI check ignore rules implemented. 121 tests passing with 85% coverage. Opened PR #13. | fix/support-google-goto-redirects / PR #13 |
-| 2026-11-07 | PR #12 merged into `main` by user. Switched to `main`, pulled merge commit `4d9a1f7`. Deleted local fix branch. Human-in-the-loop CAPTCHA completion prompt in headful CLI and persistent Chrome profile verified. | main |

@@ -24,7 +24,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 - **Awaiting merge: PR #30** (user review: notebook 02 acceptance change, D-008). Pearson r no longer gates ML-002; it is still reported. After merging, re-run notebook 02 on Kaggle, extract the bundle into `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-002`, and paste the full cell 12 output.
 - **Run on Kaggle** (GPU T4, Internet on): `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb`. Extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`, run `findrr model inspect ML-001` / `ML-002`, and share the printed metrics. Do **not** run notebook 03. Unblocks: real Module 3 inference, evaluation reports and model cards.
-- **Re-run `notebooks/01_train_title_expander.ipynb` on Kaggle** (from `main`; Run > Restart & clear first). PR #27 was merged by the user on 2026-11-26, confirming the occupation-precision threshold of 0.75. Paste the metrics block and sample predictions.
+- **Re-run `notebooks/01_train_title_expander.ipynb` on Kaggle again** (upload the copy from `main`; Run > Restart & clear first). Run 2 exposed a constraint bug, now fixed. Paste the evaluation cell output (metrics **and** the 15 sample predictions).
 - Decide D-002 (discovery source), D-003 (DOCX/PDF), D-004 (ML-001 runtime), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
@@ -98,6 +98,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | ML-001 Kaggle run 2 (constrained decoding, user): occupation precision 0.521 (target 0.75), valid ratio 1.0, repetition 0.280 (target < 0.05), AC-ML-001.1 2 (target 3). The repetition was a bug in `TitleTrieConstraint`: a repeat was blocked only once complete, so beam search spelled it out and then had to stop. Each node now counts titles below it, and branches whose titles are all used are closed. Verified with the real tokenizer and batched beam search, with the repetition penalty off: repetition 0.0 on 96 test inputs. 191 tests pass. Re-run needed. | fix/title-constraint-dead-ends |
 | 2026-11-26 | D-008 resolved by the user: Pearson r removed from the ML-002 acceptance gate and kept as a reported metric. Updated the notebook generator and notebook 02, the model spec (§8, §14), the training doc and the SRS ML-002 criteria; added a regression test. | feature/ml-002-ungate-pearson / PR #30 |
 | 2026-11-26 | PR #27 (ML-001 constrained decoding) merged by the user (`2a2463a`). This confirms occupation precision >= 0.75 as the ML-001 acceptance threshold. Verified that PR #28 (D-008, from another session) merged consistently with #27 (docs only; 6 open decisions). 189 tests pass on `main`. Next: re-run notebook 01; decide D-008. | docs/record-pr-27-merge |
 | 2026-11-26 | First Kaggle run of ML-002 v1.1.0 (user): the acceptance gate stopped the export. Pearson r 0.745 (target 0.85) failed; precision at 0.70 0.963, AC-ML-002.1 0.894 and AC-ML-002.2 0.248 passed. Local analysis on the rebuilt test pairs: the untrained base model scores Pearson 0.614, and the O*NET proxy labels disagree with title meaning in both directions. Raised D-008. | docs/d-008-ml-002-acceptance |

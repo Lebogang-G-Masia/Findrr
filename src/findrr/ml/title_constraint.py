@@ -10,15 +10,17 @@ and ``notebooks/01_train_title_expander.ipynb`` (the notebook generator embeds t
 source), so training-time evaluation and app inference use the same constraint.
 """
 
+from collections import Counter
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 class _Node:
-    __slots__ = ("children", "terminal")
+    __slots__ = ("children", "terminal", "count")
 
     def __init__(self) -> None:
         self.children: Dict[int, "_Node"] = {}
         self.terminal = False
+        self.count = 0  # number of dictionary titles that end at or below this node
 
 
 class TitleTrieConstraint:
@@ -48,9 +50,14 @@ class TitleTrieConstraint:
             if not ids or with_comma != ids + [self.comma_id]:
                 self.skipped.append(title)
                 continue
+            if self._walk(ids) is not None and self._walk(ids).terminal:
+                self.skipped.append(title)  # same token sequence as an earlier title
+                continue
             node = self.root
+            node.count += 1
             for tok in ids:
                 node = node.children.setdefault(tok, _Node())
+                node.count += 1
             node.terminal = True
             self.titles.append(title)
 
@@ -82,7 +89,17 @@ class TitleTrieConstraint:
         node = self._walk(current)
         if node is None:
             return [self.eos_id]
-        allowed = list(node.children)
+        # Allow a branch only if it can still end in a title that has not been used yet, so
+        # decoding never spells out a repeat (it would otherwise reach a dead end).
+        depth = len(current)
+        used_below: Counter = Counter(
+            done[depth]
+            for done in completed
+            if len(done) > depth and list(done[:depth]) == current
+        )
+        allowed = [
+            tok for tok, child in node.children.items() if child.count > used_below[tok]
+        ]
         if node.terminal and tuple(current) not in completed:
             if self.max_titles is None or len(segments) < self.max_titles:
                 allowed.append(self.comma_id)

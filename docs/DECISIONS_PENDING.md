@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 5**
+**Open items: 6**
 
 ## Open decisions
 
@@ -87,6 +87,42 @@
   - pinned libraries;
   - the app manifest schema.
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
+- **Status:** Open
+
+### D-008: ML-002 failed acceptance on Pearson r; the proxy labels cap it
+- **Raised:** 2026-11-26, after the user's first Kaggle run of `02_train_similarity_evaluator.ipynb` (v1.1.0)
+- **Area:** ML
+- **Evidence (Kaggle run, exported INT8 ONNX model, held-out occupations):**
+
+  | Criterion | Value | Target | Result |
+  |---|---|---|---|
+  | Pearson r vs graded labels | 0.745 | >= 0.85 | Failed |
+  | Precision at 0.70 | 0.963 | >= 0.90 | Passed |
+  | AC-ML-002.1 synonyms ("Software Developer" / "Software Engineer") | 0.894 | >= 0.85 | Passed |
+  | AC-ML-002.2 distinct ("Software Developer" / "Dental Assistant") | 0.248 | < 0.30 | Passed |
+
+  The notebook correctly refused to export. Spearman rho and ONNX/PyTorch parity were printed in cell 12 but not yet shared.
+- **Evidence (local, no training):** the same 800 test pairs, rebuilt with the notebook's own code (labels 0/1/2/3: 306/89/99/306), scored with the *untrained* base model `all-MiniLM-L6-v2`:
+  - Pearson 0.614, Spearman 0.629, precision at 0.70 1.00. Fine-tuning raised Pearson by about 0.13.
+  - Mean score per label: 0 = 0.19, 1 = 0.31, 2 = 0.35, 3 = 0.48.
+  - The proxy labels disagree with meaning in both directions:
+    - label 3 (same O*NET occupation) includes "Crystal Grower" / "Probe Operator", "Casino Gaming Regulator" / "SIU Clinical Investigator" and "Animal Sticker" / "Abalone Processor";
+    - label 1 (Primary-Long related) includes "Doctor" / "DO Physician" and "Communications Officer" / "Communications Op".
+- **Ambiguity:** the spec (§8) sets Pearson r >= 0.85 "against human-labeled semantic similarity benchmarks". No such benchmark exists, so §14 substituted proxy labels from O*NET structure. A 4-level taxonomy label is not a similarity score: broad O*NET occupations group lexically and semantically distant titles. A model would have to learn those groupings, not title meaning, to reach 0.85. Pushing for it would hurt Findrr's actual uses (title faithfulness and duplicate detection).
+- **Why it matters:** ML-002 gates Module 3 title validation and Module 4 deduplication. Its thresholds are approved acceptance criteria, so only you can change them.
+- **Options:**
+  1. **Gate on the task metrics; report Pearson and Spearman without gating (recommended).** The approved uses are threshold decisions (0.70 relevance, 0.88 duplicate). Keep precision at 0.70 >= 0.90, AC-ML-002.1 and AC-ML-002.2. Add, as PROPOSED thresholds for you to set:
+     - recall of same-occupation pairs at 0.70;
+     - false-duplicate rate at 0.88 on unrelated and related pairs.
+
+     Also clean the proxy: drop "All Other" catch-all occupations (7 of 102 test occupations) from same-occupation pairs, and print per-label means. Trade-offs: needs a spec change (§8 and §14) and a notebook change, and you re-run notebook 02. The gate measures what the app does with the scores.
+  2. **Keep Pearson as a gate with a lower threshold on the proxy** (for example 0.70, which this run passes, against a base-model value of 0.61). Trade-offs: smallest change; you could re-run unchanged with only the threshold edited. Still gates on a metric that rewards learning O*NET groupings.
+  3. **Try to reach 0.85 with a stronger model or training** (more epochs, hard negatives from related tiers, or `all-mpnet-base-v2`). Trade-offs: no spec change for the metric, but success is uncertain because of label noise. A larger model is a model change against the latency (< 50 ms) and memory (< 100 MB) budgets.
+  4. **Build a small human-labelled benchmark** (a few hundred public title pairs that you score), as the spec intended. Trade-offs: the most faithful to §8, but it takes your time, and its labels must stay out of training.
+- **Recommendation:** Option 1. It keeps the gate on behaviour Module 3 and Module 4 depend on, and it stops rewarding taxonomy artefacts. Option 4 can follow in Milestone 5.
+
+  Please also paste the full cell 12 output (Spearman and ONNX parity) for the evaluation report.
+- **Blocked work:** ML-002 export and real Module 3 and Module 4 similarity inference.
 - **Status:** Open
 
 ## Entry template

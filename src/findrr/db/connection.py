@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
-from findrr.db.schema import SCHEMA_SQL
+from findrr.db.schema import COLUMN_MIGRATIONS, SCHEMA_SQL
 
 DEFAULT_DB_DIR = Path("data")
 DEFAULT_DB_PATH = DEFAULT_DB_DIR / "findrr.db"
@@ -40,3 +40,12 @@ def init_db(conn: sqlite3.Connection) -> None:
     """Initialize database tables, constraints, and indexes."""
     with conn:
         conn.executescript(SCHEMA_SQL)
+        _apply_column_migrations(conn)
+
+
+def _apply_column_migrations(conn: sqlite3.Connection) -> None:
+    """Add nullable columns introduced after a database was first created (idempotent)."""
+    for table, column, col_type in COLUMN_MIGRATIONS:
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")

@@ -79,7 +79,18 @@ class JobPostingDTO(BaseModel):
     source_url: str
     direct_apply_url: str
     content_hash: str
+    status: str                          # ACTIVE | CLOSED | EXPIRED | UNCERTAIN | UNAVAILABLE
+    availability_evidence: Optional[str]  # why `status` was assigned
+    availability_checked_at: Optional[datetime]
+    posting_date: Optional[str]           # only when the page states it
 ```
+
+**Discovery contract notes (2026-11-26):**
+- `findrr search run` takes its result bounds from the profile's saved search configuration. `--min` and `--max` override it only when given. `--title` replaces only the searched title; locations, remote preference and seniority still come from the profile.
+- An unsolved CAPTCHA stops discovery. `DiscoveryMetrics.halted_reason` is set, the challenge page is never parsed for links, and the CLI exits with code 2.
+- Debug snapshots (`last_search_page.html/.png`) are written to the directory of `--log-file`.
+- The parser never substitutes the search query for a missing posting title. It never sets `posting_date` unless the page states one.
+- Availability classification follows `docs/design/database-design.md` §3.6.
 
 ---
 
@@ -170,6 +181,19 @@ class IInferenceService(ABC):
 ```
 
 ---
+
+### 2.6 Configuration (`findrr.config`)
+The CLI loads `.env` at startup (`python-dotenv`); real environment variables take precedence. These thresholds are **provisional** (BR-006) until they are evaluated and approved:
+
+| Variable | Default | Requirement |
+|---|---|---|
+| `FINDRR_RELEVANCE_THRESHOLD` | 0.70 | FR-010 |
+| `FINDRR_DEDUP_THRESHOLD` | 0.88 | FR-011 |
+
+An invalid value (not a number, or outside 0–1) logs an error and falls back to the default.
+
+### 2.7 Document generation (Module 5)
+CV and cover-letter templates state only facts from verified profile entries or from the posting. They add no adjectives, proficiency levels, achievements or fallback skill claims. A section with no verified facts is omitted. Dates appear only as the user entered them. Output is Markdown; DOCX and PDF are not implemented (D-003).
 
 ## 3. Error Handling & Exception Hierarchy
 

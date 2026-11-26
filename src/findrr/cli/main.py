@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
+from dotenv import load_dotenv
+
 from findrr.cli.app_cli import handle_app_cli, register_app_subparsers
 from findrr.cli.config_cli import display_search_config, run_search_config_prompt
 from findrr.cli.dashboard_cli import handle_dashboard_cli, register_dashboard_subparsers
@@ -167,6 +169,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(args: Optional[List[str]] = None) -> int:
+    """CLI entry point. Interactive prompts that lose their input exit cleanly."""
+    try:
+        return _main(args)
+    except (EOFError, KeyboardInterrupt):
+        sys.stderr.write("\nAborted: input ended or was interrupted. Nothing further was saved.\n")
+        return 130
+
+
+def _main(args: Optional[List[str]] = None) -> int:
+    # Load `.env` from the working directory if present; real environment variables win.
+    load_dotenv(override=False)
     parser = build_parser()
     parsed_args = parser.parse_args(args)
 

@@ -129,7 +129,7 @@ CREATE INDEX idx_search_terms_status ON search_terms(generalized_title_id, valid
 ```
 
 ### 3.6 Table: `job_postings`
-Stores scraped employment opportunities.
+Stores scraped employment opportunities. This section matches `src/findrr/db/schema.py`; it was synchronised on 2026-11-26.
 ```sql
 CREATE TABLE job_postings (
     id TEXT PRIMARY KEY,                       -- UUID v4
@@ -137,16 +137,28 @@ CREATE TABLE job_postings (
     title TEXT NOT NULL,
     company TEXT NOT NULL,
     location TEXT,
-    description_text TEXT NOT NULL,
-    required_skills_json TEXT,                 -- Extracted keywords
-    source_search_url TEXT NOT NULL,           -- Google search result URL
-    direct_apply_url TEXT NOT NULL,            -- Resolved employer-authorized ATS/portal URL
-    content_hash TEXT NOT NULL UNIQUE,         -- SHA-256(company + title + normalized_description)
+    description TEXT NOT NULL,
+    requirements_extracted TEXT,               -- JSON list of extracted keywords
+    source_url TEXT NOT NULL,                  -- Original discovery URL (kept separately)
+    direct_apply_url TEXT,                     -- Preferred application URL (ATS > employer > board)
+    content_hash TEXT NOT NULL UNIQUE,         -- SHA-256(company | title | normalized_description[:500])
+    status TEXT NOT NULL DEFAULT 'UNCERTAIN',  -- ACTIVE | CLOSED | EXPIRED | UNCERTAIN | UNAVAILABLE
+    posting_date TEXT,                         -- Only when stated by the page (never inferred)
+    availability_evidence TEXT,                -- Why `status` was assigned (Module 4 evidence rule)
+    availability_checked_at TIMESTAMP,         -- When availability was last assessed
     discovered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (search_term_id) REFERENCES search_terms(id) ON DELETE SET NULL
 );
-CREATE INDEX idx_job_postings_comp_title ON job_postings(company, title);
+CREATE INDEX idx_job_postings_hash ON job_postings(content_hash);
 ```
+
+**Migration (2026-11-26):** `availability_evidence` and `availability_checked_at` are nullable, additive columns. `init_db()` adds them to existing databases idempotently (`COLUMN_MIGRATIONS` in `schema.py`). Rows created before the migration keep their old `status` with no evidence. Re-discovering a posting refreshes both fields.
+
+**Availability rule (implements `docs/spec/modules/04-find-postings.md` §2):**
+- **CLOSED:** the page states that applications are closed. The evidence is the matched phrase.
+- **EXPIRED:** the schema.org `validThrough` date has passed.
+- **ACTIVE:** a `validThrough` date exists and has not passed.
+- **UNCERTAIN:** no closure statement and no closing date. An accessible page is not treated as evidence.
 
 ### 3.7 Table: `application_records`
 Manages application progress lifecycle.

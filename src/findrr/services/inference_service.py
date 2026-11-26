@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from findrr import config
 from findrr.ml.application_tailor_runner import (
     MockApplicationTailorRunner,
     ONNXApplicationTailorRunner,
@@ -171,10 +172,17 @@ class InferenceService:
         self,
         primary_title: str,
         candidates: List[str],
-        relevance_threshold: float = 0.70,
-        dedup_threshold: float = 0.88,
+        relevance_threshold: Optional[float] = None,
+        dedup_threshold: Optional[float] = None,
     ) -> List[ValidatedCandidate]:
-        """Apply relevance thresholding and near-duplicate filtering (FR-009, FR-010, FR-011)."""
+        """Apply relevance thresholding and near-duplicate filtering (FR-009, FR-010, FR-011).
+
+        Thresholds default to the PROVISIONAL configured values in ``findrr.config``.
+        """
+        if relevance_threshold is None:
+            relevance_threshold = config.relevance_threshold()
+        if dedup_threshold is None:
+            dedup_threshold = config.dedup_threshold()
         runner = self._get_similarity_evaluator()
         evaluated: List[ValidatedCandidate] = []
         accepted_terms: List[str] = []

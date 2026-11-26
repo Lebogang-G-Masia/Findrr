@@ -53,6 +53,17 @@ def verify_artifact_integrity(manifest: ModelManifest, artifact_dir: Path) -> No
         ModelArtifactMissingError: If any required file is missing.
         ModelIntegrityError: If any file's computed hash mismatches the manifest.
     """
+    root = artifact_dir.resolve()
+    for file_name in manifest.files.keys():
+        resolved = (artifact_dir / file_name).resolve()
+        if resolved != root and root not in resolved.parents:
+            raise ModelIntegrityError(
+                model_id=manifest.model_id,
+                file_name=file_name,
+                expected_hash="<path inside artifact directory>",
+                actual_hash="<path escapes artifact directory>",
+            )
+
     missing_files = []
     for file_name in manifest.files.keys():
         file_path = artifact_dir / file_name

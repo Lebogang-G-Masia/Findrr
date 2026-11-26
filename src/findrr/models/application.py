@@ -83,6 +83,7 @@ class DashboardMetrics(BaseModel):
     total_postings: int = 0
     active_postings: int = 0
     closed_postings: int = 0
+    uncertain_postings: int = 0
     unique_companies: int = 0
     pipeline_counts: Dict[str, int] = Field(default_factory=dict)
     submitted_count: int = 0

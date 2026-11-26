@@ -2,7 +2,8 @@
 
 import argparse
 import sys
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional
 
 from findrr.db.repository import (
     PostingRepository,
@@ -27,14 +28,19 @@ def register_search_subparsers(subparsers: argparse._SubParsersAction) -> None:
     run_parser.add_argument(
         "--title", help="Explicit job title to search (overrides active profile title)"
     )
-    run_parser.add_argument("--min", type=int, default=2, help="Minimum results to extract [2, 10]")
+    run_parser.add_argument(
+        "--min",
+        type=int,
+        default=None,
+        help="Minimum results to extract [2, 10] (default: saved search configuration, else 2)",
+    )
     run_parser.add_argument(
         "--max",
         "--limit",
         dest="max",
         type=int,
-        default=10,
-        help="Maximum results to extract [2, 10] (default: 10)",
+        default=None,
+        help="Maximum results to extract [2, 10] (default: saved search configuration, else 10)",
     )
     run_parser.add_argument(
         "--headless",
@@ -58,10 +64,14 @@ def handle_search_cli(
     profile_repo: ProfileRepository,
     title_repo: TitleRepository,
     config_repo: SearchConfigRepository,
-    discovery_engine: Optional[any] = None,
+    discovery_engine: Optional[Any] = None,
 ) -> int:
     """Dispatch and execute search CLI subcommands."""
-    engine = discovery_engine or JobDiscoveryEngine(headless=getattr(args, "headless", False))
+    log_file = getattr(args, "log_file", None)
+    snapshot_dir = str(Path(log_file).parent) if log_file else None
+    engine = discovery_engine or JobDiscoveryEngine(
+        headless=getattr(args, "headless", False), snapshot_dir=snapshot_dir
+    )
     service = PostingService(
         posting_repo=posting_repo,
         profile_repo=profile_repo,
@@ -106,10 +116,11 @@ def _run_search(
 
     if args.title:
         print(f"Searching explicitly for: {args.title}")
-        res = service.discover_postings_for_title(
-            title=args.title,
-            min_results=args.min,
-            max_results=args.max,
+        res = service.discover_for_profile(
+            profile_id=profile_id,
+            custom_min=args.min,
+            custom_max=args.max,
+            title_override=args.title,
         )
     else:
         active_title = title_repo.get_active_title(profile_id)
@@ -137,6 +148,11 @@ def _run_search(
     print(f"Unique Postings Retained:{metrics.unique_postings_retained}")
     print("-----------------------------------------------------------------------------")
 
+    if metrics.halted_reason:
+        print(f"\n[DISCOVERY HALTED] {metrics.halted_reason}", file=sys.stderr)
+        print("Re-run 'findrr search run' and complete the challenge in the Chrome window.")
+        return 2
+
     if not postings:
         print(
             "\nNo postings were retained for this query. "
@@ -150,6 +166,8 @@ def _run_search(
         if p.location:
             print(f"    Location:   {p.location}")
         print(f"    Status:     {p.status.value}")
+        if p.availability_evidence:
+            print(f"    Evidence:   {p.availability_evidence}")
         print(f"    Apply URL:  {p.direct_apply_url or p.source_url}")
         if p.requirements_extracted:
             print(f"    Skills:     {', '.join(p.requirements_extracted[:6])}")
@@ -190,6 +208,13 @@ def _inspect_posting(args: argparse.Namespace, posting_repo: PostingRepository) 
     print(f"Company:      {p.company}")
     print(f"Location:     {p.location or 'Not specified'}")
     print(f"Status:       {p.status.value}")
+    if p.availability_evidence:
+        checked = (
+            p.availability_checked_at.strftime("%Y-%m-%d %H:%M UTC")
+            if p.availability_checked_at
+            else "unknown"
+        )
+        print(f"Evidence:     {p.availability_evidence} (checked {checked})")
     print(f"Posted:       {p.posting_date or 'Unknown'}")
     print(f"Discovered:   {p.discovered_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"Apply URL:    {p.direct_apply_url or 'N/A'}")

@@ -380,8 +380,8 @@ class PostingRepository:
                     id, search_term_id, title, company, location,
                     description, requirements_extracted, source_url,
                     direct_apply_url, content_hash, status, posting_date,
-                    discovered_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    discovered_at, availability_evidence, availability_checked_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(content_hash) DO UPDATE SET
                     title = excluded.title,
                     company = excluded.company,
@@ -390,7 +390,9 @@ class PostingRepository:
                     requirements_extracted = excluded.requirements_extracted,
                     direct_apply_url = excluded.direct_apply_url,
                     status = excluded.status,
-                    posting_date = excluded.posting_date
+                    posting_date = excluded.posting_date,
+                    availability_evidence = excluded.availability_evidence,
+                    availability_checked_at = excluded.availability_checked_at
                 """,
                 (
                     posting.id,
@@ -406,6 +408,10 @@ class PostingRepository:
                     posting.status.value,
                     posting.posting_date,
                     posting.discovered_at.isoformat(),
+                    posting.availability_evidence,
+                    posting.availability_checked_at.isoformat()
+                    if posting.availability_checked_at
+                    else None,
                 ),
             )
         return self.get_by_content_hash(posting.content_hash) or posting
@@ -418,7 +424,7 @@ class PostingRepository:
             SELECT id, search_term_id, title, company, location,
                    description, requirements_extracted, source_url,
                    direct_apply_url, content_hash, status, posting_date,
-                   discovered_at
+                   discovered_at, availability_evidence, availability_checked_at
             FROM job_postings WHERE id = ?
             """,
             (posting_id,),
@@ -436,7 +442,7 @@ class PostingRepository:
             SELECT id, search_term_id, title, company, location,
                    description, requirements_extracted, source_url,
                    direct_apply_url, content_hash, status, posting_date,
-                   discovered_at
+                   discovered_at, availability_evidence, availability_checked_at
             FROM job_postings WHERE content_hash = ?
             """,
             (content_hash,),
@@ -454,7 +460,7 @@ class PostingRepository:
             SELECT id, search_term_id, title, company, location,
                    description, requirements_extracted, source_url,
                    direct_apply_url, content_hash, status, posting_date,
-                   discovered_at
+                   discovered_at, availability_evidence, availability_checked_at
             FROM job_postings
             WHERE search_term_id = ?
             ORDER BY discovered_at DESC
@@ -471,7 +477,7 @@ class PostingRepository:
             SELECT id, search_term_id, title, company, location,
                    description, requirements_extracted, source_url,
                    direct_apply_url, content_hash, status, posting_date,
-                   discovered_at
+                   discovered_at, availability_evidence, availability_checked_at
             FROM job_postings
             ORDER BY discovered_at DESC
             LIMIT ?
@@ -495,6 +501,11 @@ class PostingRepository:
 
         cursor.execute("SELECT COUNT(*) AS active FROM job_postings WHERE status = 'ACTIVE'")
         active = cursor.fetchone()["active"]
+
+        cursor.execute(
+            "SELECT COUNT(*) AS closed FROM job_postings WHERE status IN ('CLOSED', 'EXPIRED')"
+        )
+        closed = cursor.fetchone()["closed"]
 
         cursor.execute("SELECT COUNT(DISTINCT company) AS unique_companies FROM job_postings")
         unique_companies = cursor.fetchone()["unique_companies"]
@@ -527,7 +538,8 @@ class PostingRepository:
         return {
             "total_postings": total,
             "active_postings": active,
-            "closed_postings": total - active,
+            "closed_postings": closed,
+            "uncertain_postings": total - active - closed,
             "unique_companies": unique_companies,
             "top_companies": top_companies,
             "term_yield": term_yield,
@@ -550,6 +562,12 @@ class PostingRepository:
             status=PostingAvailability(row["status"]),
             posting_date=row["posting_date"],
             discovered_at=_parse_timestamp(row["discovered_at"]),
+            availability_evidence=row["availability_evidence"],
+            availability_checked_at=(
+                _parse_timestamp(row["availability_checked_at"])
+                if row["availability_checked_at"]
+                else None
+            ),
         )
 
 

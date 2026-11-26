@@ -1,8 +1,11 @@
 """Unit tests for posting parser, content hashing, and untrusted input sanitization (Module 4)."""
 
+from datetime import date
+
 from findrr.models.posting import PostingAvailability
 from findrr.search.posting_parser import (
     PostingParser,
+    assess_availability,
     compute_content_hash,
     detect_availability,
     extract_skills_keywords,
@@ -117,7 +120,8 @@ def test_compute_content_hash_different():
 
 
 def test_detect_availability():
-    assert detect_availability("Active hiring for full-time role") == PostingAvailability.ACTIVE
+    # An accessible page with no closing date or closure statement is NOT evidence of ACTIVE.
+    assert detect_availability("Active hiring for full-time role") == PostingAvailability.UNCERTAIN
     assert detect_availability("This job has expired") == PostingAvailability.CLOSED
     assert detect_availability("No longer accepting applications") == PostingAvailability.CLOSED
 
@@ -145,8 +149,52 @@ def test_parse_html_json_ld():
     assert "Python" in posting.description
     assert "python" in posting.requirements_extracted
     assert "docker" in posting.requirements_extracted
-    assert posting.status == PostingAvailability.ACTIVE
+    # No validThrough in the sample, so availability is uncertain, with evidence retained.
+    assert posting.status == PostingAvailability.UNCERTAIN
+    assert posting.availability_evidence
+    assert posting.availability_checked_at is not None
+    assert posting.posting_date == "2026-11-01"
     assert posting.content_hash is not None
+
+
+def test_assess_availability_uses_closing_date_evidence():
+    today = date(2026, 11, 26)
+    status, evidence = assess_availability("Join us", "2026-12-31", today=today)
+    assert status == PostingAvailability.ACTIVE
+    assert "2026-12-31" in evidence
+
+    status, evidence = assess_availability("Join us", "2026-11-01T00:00:00Z", today=today)
+    assert status == PostingAvailability.EXPIRED
+    assert "has passed" in evidence
+
+    status, _ = assess_availability("Join us", "not-a-date", today=today)
+    assert status == PostingAvailability.UNCERTAIN
+
+    # An explicit closure statement wins over a future closing date.
+    status, _ = assess_availability("This vacancy is closed", "2026-12-31", today=today)
+    assert status == PostingAvailability.CLOSED
+
+
+def test_parse_html_json_ld_valid_through_future_is_active():
+    html = SAMPLE_JSON_LD_HTML.replace(
+        '"datePosted": "2026-11-01",', '"datePosted": "2026-11-01", "validThrough": "2999-01-01",'
+    )
+    posting = PostingParser.parse_html(html, "https://acme.com/jobs/123")
+    assert posting.status == PostingAvailability.ACTIVE
+    assert "2999-01-01" in posting.availability_evidence
+
+
+def test_parse_html_never_fabricates_title_or_date():
+    html = SAMPLE_JSON_LD_HTML.replace('"title": "Senior Backend Engineer",', "")
+    # JSON-LD without a title must not take the search query as its title.
+    posting = PostingParser.parse_html(
+        html, "https://acme.com/jobs/123", fallback_title="Search Query Title"
+    )
+    assert posting is None or posting.title != "Search Query Title"
+
+    dom_posting = PostingParser.parse_html(SAMPLE_DOM_HTML, "https://indeed.com/viewjob?jk=abc")
+    # Heuristic DOM extraction has no posting date; it must not invent today's date.
+    assert dom_posting.posting_date is None
 
 
 def test_parse_html_heuristic_dom():

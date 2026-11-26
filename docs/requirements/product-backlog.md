@@ -109,6 +109,7 @@ Work items are organized hierarchically:
   - [x] Author Kaggle notebook for sentence-transformer fine-tuning and ONNX export.
   - [x] Implement cosine similarity evaluation and threshold filtering (provisional threshold: 0.70).
   - [x] Implement duplicate rejection (provisional threshold: 0.88).
+  - [ ] Wire Model 1 expansion and Model 2 validation into the discovery workflow: persist search terms with status and model version, and search each accepted term. *Gap found 2026-11-26: the adapters exist, but nothing calls them outside `findrr model expand/compare`. `search_terms` is never written, and search uses only the primary title.*
 - **Dependencies:** `US-005`, `US-006`.
 
 ---
@@ -170,7 +171,7 @@ Work items are organized hierarchically:
 
 ### Epic 6: Advanced Document Generation & Company Research (Module 5)
 - **US-012 (DOCX/PDF Export):** Export tailored CVs and cover letters formatted in standard PDF and DOCX formats (`FR-020`, Should Have).
-  - [x] Integrate python-docx for DOCX generation with verified profile grounding (`DocumentGenerator`).
+  - [ ] Integrate python-docx for DOCX generation with verified profile grounding (`DocumentGenerator`). *Corrected 2026-11-26: this was marked done, but no DOCX or PDF code exists. `DocumentGenerator` writes Markdown only, and `python-docx` is not a dependency. Blocked on D-003.*
   - [x] Configure configurable output directory (`FINDRR_DOCS_DIR` / `--docs-dir`).
 - **US-013 (Model 3 Content Tailoring):** Integrate fine-tuned Kaggle Model 3 for stylistic alignment and natural phrasing (`ML-003`, Should Have).
   - [x] Author Kaggle training notebook `notebooks/03_train_application_tailor.ipynb` adhering strictly to `docs/ml/models/application-tailor.md`.

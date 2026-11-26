@@ -12,25 +12,32 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 5 (Completed) |
 | Current iteration | Milestone 2, Iteration 5 |
-| Current branch | docs/self-merge-policy |
-| Open PR | PR #16 |
+| Current branch | fix/execution-and-invariant-fixes |
+| Open PR | PR #TBD |
 | Latest release | None |
 
 ## Current task
 
-Milestone 2, Iteration 5 completed. Application Lifecycle Pipeline Tracking (US-015, FR-023, FR-024), CLI Search & Application Dashboard (US-016, FR-025), and Model 3 Application Tailoring Kaggle Notebook (US-013, ML-003) verified and merged via PR #14.
+Pre-Iteration-6 codebase audit and fixes, requested by the user on 2026-11-26. Execution and invariant fixes are on `fix/execution-and-invariant-fixes`. Module 3 wiring follows in its own PR. After that comes Iteration 6 (US-014).
 
 ## Awaiting merge or approval
 
-- None. PR #16 (self-merge policy) is being merged by the agent on the user's explicit chat instruction of 2026-11-26.
+- Approve D-002 (discovery source vs robots.txt and Google terms). Unblocks: compliant, unattended live discovery.
+- Approve D-003 (DOCX/PDF library). Unblocks: US-012 and the Milestone 2 gate.
+- Approve D-004 (torch for ML-001, or ONNX export). Unblocks: real ML-001 inference.
+- Re-supply the model artifacts. `models/` (ML-001 and ML-002 v1.0.0, plus `manifest.json`) no longer exists on disk. It was lost alongside the 2026-11-26 deletion of `src/` and is gitignored, so it cannot be restored from git. Copy the Kaggle outputs to `models/<name>/v1.0.0/`. Unblocks: real inference (currently labelled MOCK).
+- Optional: run `notebooks/03_train_application_tailor.ipynb` on Kaggle. Unblocks: real ML-003.
 
 ## Next step
 
-1. Run `/autonomous-run`: Milestone 2, Iteration 6, US-014 (Company Research Summaries).
+1. Self-merge the fix PR when CI is green.
+2. Wire Module 3 (search-term generation) into discovery: a separate PR.
+3. Start Iteration 6 (US-014) via `/autonomous-run`.
 
 ## Blockers
 
-- None. *(The branch-protection blocker was resolved on 2026-11-26. The user made the repo public, and protection was configured and verified via the API.)*
+- Live discovery needs a person to solve the Google CAPTCHA (see D-002).
+- Real inference for all models is blocked until the artifacts are re-supplied.
 
 ## Bootstrap and approval tracker
 
@@ -63,8 +70,8 @@ Mark an item verified only after the check has actually been run.
 
 | Model | Spec approved | Notebook written | Trained by user | Artifacts supplied | Integration verified (real inference) |
 |---|---|---|---|---|---|
-| `title-expander` (ML-001) | Approved (Gate 4) | Yes (`notebooks/01_train_title_expander.ipynb`) | Yes | Yes (v1.0.0, SHA-256 verified) | Pending (needs `torch` in .venv) |
-| `similarity-evaluator` (ML-002) | Approved (Gate 4) | Yes (`notebooks/02_train_similarity_evaluator.ipynb`) | Yes | Yes (v1.0.0, SHA-256 verified) | Verified (real ONNX inference: 0.7755) |
+| `title-expander` (ML-001) | Approved (Gate 4) | Yes (`notebooks/01_train_title_expander.ipynb`) | Yes | **Missing from disk since 2026-11-26** (needs re-supply) | No (also see D-004) |
+| `similarity-evaluator` (ML-002) | Approved (Gate 4) | Yes (`notebooks/02_train_similarity_evaluator.ipynb`) | Yes | **Missing from disk since 2026-11-26** (needs re-supply) | Previously verified (0.7755); not re-verifiable until re-supplied |
 | `application-tailor` (ML-003) | Approved (Gate 4) | Yes (`notebooks/03_train_application_tailor.ipynb`) | No | No | No |
 
 ## Documents
@@ -87,12 +94,13 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 0
+See `docs/DECISIONS_PENDING.md`. Count of open items: 3
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-26 | Codebase audit: ran lint, the 133-test suite, the full CLI flow on a scratch DB and one live headful search (CAPTCHA). Fixed: saved search bounds ignored; CAPTCHA page scraped; misleading halt message; snapshot location; availability marked ACTIVE without evidence (now evidence-based, stored via additive migration); fabricated posting date and title; apply-link resolution; unverified claims in CV and cover-letter templates; wrong closed count; hard-coded thresholds; `.env` never loaded and `.env.example` listing unread variables; manifest path traversal; crash on closed input; undeclared ML runtime deps. 147 tests pass. Raised D-002, D-003 and D-004, and corrected the backlog (US-012, Module 3 wiring). Opened PR #TBD. | fix/execution-and-invariant-fixes / PR #TBD |
 | 2026-11-26 | Repo made public by the user. Scanned tracked files and history for secrets and personal data: none found, apart from the author email in `pyproject.toml`. Configured and verified `main` branch protection. On user instruction, replaced the never-merge rule with a self-merge policy (`open-pr` §3) across AGENTS.md, workflows and the pull-request skill. Opened PR #16. | docs/self-merge-policy / PR #16 |
 | 2026-11-26 | PR #15 (autonomous-run workflow) merged by the agent on explicit user instruction (`6c2fbb5`). | main |
 | 2026-11-26 | Found unexplained unstaged deletion of all source/tests/notebooks on `main`; restored them from `9442c70` on user's instruction (133 tests pass). Added `.agents/workflows/autonomous-run.md` and an AGENTS.md pointer. Opened PR #15. | docs/autonomous-run-workflow / PR #15 |

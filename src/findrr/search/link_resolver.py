@@ -3,7 +3,7 @@
 import logging
 import re
 from typing import List, Optional, Tuple
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -88,6 +88,10 @@ def extract_candidate_links_from_html(html_content: str, base_url: str = "") -> 
             aria_label = anchor.get("aria-label", "")
             title_attr = anchor.get("title", "")
 
+            if base_url and not href.startswith(("http://", "https://")):
+                if href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                    continue
+                href = urljoin(base_url, href)
             if not href.startswith("http://") and not href.startswith("https://"):
                 continue
 
@@ -103,6 +107,46 @@ def extract_candidate_links_from_html(html_content: str, base_url: str = "") -> 
         logger.debug("Failed parsing candidate links from HTML: %s", err)
 
     return candidates
+
+
+_APPLY_TEXT = re.compile(r"\bapply\b", re.IGNORECASE)
+
+
+def _same_site(host_a: str, host_b: str) -> bool:
+    """True when two hostnames share a registrable suffix (e.g. jobs.acme.com / acme.com)."""
+    a = host_a.lower().removeprefix("www.")
+    b = host_b.lower().removeprefix("www.")
+    return a == b or a.endswith("." + b) or b.endswith("." + a)
+
+
+def extract_same_site_apply_links(html_content: str, page_url: str) -> List[str]:
+    """Return explicit 'Apply' links on the same site as ``page_url`` (relative links resolved)."""
+    links: List[str] = []
+    if not html_content or not page_url:
+        return links
+    page_host = urlparse(page_url).hostname or ""
+    try:
+        soup = BeautifulSoup(html_content, "html.parser")
+        for anchor in soup.find_all("a", href=True):
+            href = anchor.get("href", "").strip()
+            if not href or href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                continue
+            label = " ".join(
+                [
+                    anchor.get_text(separator=" ", strip=True),
+                    anchor.get("aria-label", ""),
+                    anchor.get("title", ""),
+                ]
+            )
+            if not _APPLY_TEXT.search(label):
+                continue
+            absolute = urljoin(page_url, href)
+            host = urlparse(absolute).hostname or ""
+            if absolute != page_url and _same_site(host, page_host) and absolute not in links:
+                links.append(absolute)
+    except Exception as err:
+        logger.debug("Failed parsing same-site apply links: %s", err)
+    return links
 
 
 class LinkResolver:
@@ -137,8 +181,11 @@ class LinkResolver:
                 logger.info("Resolved ATS destination: %s (from %s)", link, discovery_url)
                 return link, "ATS"
 
-        # Retain direct employer URL if discovery_url was direct employer
+        # On a direct employer page, prefer its own explicit "Apply" link if one exists
         if initial_classification == "EMPLOYER_DIRECT":
+            for link in extract_same_site_apply_links(page_html or "", discovery_url):
+                logger.info("Resolved employer apply link: %s (from %s)", link, discovery_url)
+                return link, "EMPLOYER_DIRECT"
             return discovery_url, "EMPLOYER_DIRECT"
 
         # For aggregators, check if an employer direct link was extracted from the page

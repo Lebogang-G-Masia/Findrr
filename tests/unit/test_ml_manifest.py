@@ -107,3 +107,20 @@ def test_manifest_validation_corrupted_file(tmp_path):
 
     assert "Model integrity violation" in str(exc_info.value)
     assert exc_info.value.expected_hash == valid_hash
+
+
+def test_manifest_rejects_paths_outside_artifact_dir(tmp_path):
+    artifact_dir = tmp_path / "model"
+    artifact_dir.mkdir()
+    outside = tmp_path / "secret.txt"
+    outside.write_text("x")
+    manifest = ModelManifest(
+        model_id="ML-TEST",
+        model_name="test-model",
+        version="1.0.0",
+        architecture="test-arch",
+        export_date="2026-11-26T00:00:00Z",
+        files={"../secret.txt": compute_sha256(outside)},
+    )
+    with pytest.raises(ModelIntegrityError):
+        verify_artifact_integrity(manifest, artifact_dir)

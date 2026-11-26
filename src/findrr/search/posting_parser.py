@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 
@@ -34,10 +34,7 @@ def compute_content_hash(company: str, title: str, description: str) -> str:
     return hashlib.sha256(raw_signature).hexdigest()
 
 
-def detect_availability(text: str) -> PostingAvailability:
-    """Determine posting availability status from textual indicators."""
-    lower_text = text.lower()
-    closed_indicators = [
+CLOSED_INDICATORS = [
         "this job has expired",
         "no longer accepting applications",
         "position has been filled",
@@ -45,12 +42,64 @@ def detect_availability(text: str) -> PostingAvailability:
         "job is no longer available",
         "closed for applications",
         "this vacancy is closed",
-    ]
-    for ind in closed_indicators:
-        if ind in lower_text:
-            return PostingAvailability.CLOSED
+]
 
-    return PostingAvailability.ACTIVE
+
+def _parse_iso_date(value: Optional[str]):
+    """Parse an ISO-8601 date or datetime string into a date, or None if unparseable."""
+    if not value or not isinstance(value, str):
+        return None
+    raw = value.strip()
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+    except ValueError:
+        pass
+    try:
+        return datetime.strptime(raw[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def assess_availability(
+    text: str,
+    valid_through: Optional[str] = None,
+    today=None,
+) -> Tuple[PostingAvailability, str]:
+    """Classify posting availability from evidence and return (status, evidence).
+
+    Per Module 4: an accessible page alone is NOT evidence that applications are open.
+    - CLOSED: the page text states applications are closed (evidence: the phrase).
+    - EXPIRED: the stated closing date (schema.org validThrough) has passed.
+    - ACTIVE: a stated closing date exists and has not yet passed.
+    - UNCERTAIN: no closure statement and no closing date.
+    """
+    lower_text = (text or "").lower()
+    for ind in CLOSED_INDICATORS:
+        if ind in lower_text:
+            return PostingAvailability.CLOSED, f"Page text states: '{ind}'"
+
+    today = today or datetime.now(timezone.utc).date()
+    closing = _parse_iso_date(valid_through)
+    if closing is not None:
+        if closing < today:
+            return (
+                PostingAvailability.EXPIRED,
+                f"Stated closing date (validThrough) {closing.isoformat()} has passed",
+            )
+        return (
+            PostingAvailability.ACTIVE,
+            f"Stated closing date (validThrough) {closing.isoformat()} has not passed",
+        )
+
+    return (
+        PostingAvailability.UNCERTAIN,
+        "No closing date or closure statement found on the page",
+    )
+
+
+def detect_availability(text: str) -> PostingAvailability:
+    """Determine posting availability status from textual indicators only."""
+    return assess_availability(text)[0]
 
 
 def extract_skills_keywords(text: str) -> List[str]:
@@ -116,6 +165,8 @@ class PostingParser:
         """Parse raw HTML and extract structured JobPostingCreate record.
 
         Treats all input as untrusted content, stripping dangerous elements and capping sizes.
+        ``fallback_title`` is accepted for interface compatibility but is never used as the
+        posting title: substituting the search query would fabricate posting data.
         """
         if not html_content or not html_content.strip():
             return None
@@ -132,8 +183,11 @@ class PostingParser:
             for s in soup.find_all("script"):
                 s.extract()
 
+            checked_at = datetime.now(timezone.utc)
+
             if json_ld_posting:
-                title = json_ld_posting.get("title") or fallback_title
+                # Never substitute the search query for a missing posting title (no fabrication).
+                title = json_ld_posting.get("title")
                 company = json_ld_posting.get("company") or fallback_company
                 location = json_ld_posting.get("location")
                 description = json_ld_posting.get("description", "")
@@ -145,7 +199,9 @@ class PostingParser:
                     )
                     clean_desc = description[:MAX_DESCRIPTION_LENGTH]
                     c_hash = compute_content_hash(company, title, clean_desc)
-                    status = detect_availability(clean_desc)
+                    status, evidence = assess_availability(
+                        clean_desc, json_ld_posting.get("validThrough")
+                    )
                     skills = extract_skills_keywords(clean_desc)
 
                     return JobPostingCreate(
@@ -160,10 +216,12 @@ class PostingParser:
                         content_hash=c_hash,
                         status=status,
                         posting_date=posting_date,
+                        availability_evidence=evidence,
+                        availability_checked_at=checked_at,
                     )
 
             # Heuristic DOM extraction
-            title = cls._extract_title(soup) or fallback_title
+            title = cls._extract_title(soup)
             company = cls._extract_company(soup) or fallback_company
             location = cls._extract_location(soup)
             description = cls._extract_description(soup)
@@ -181,7 +239,7 @@ class PostingParser:
 
             c_hash = compute_content_hash(company, title, clean_desc)
             resolved_url, _ = LinkResolver.resolve_preferred_destination(source_url, html_content)
-            status = detect_availability(clean_desc)
+            status, evidence = assess_availability(clean_desc)
             skills = extract_skills_keywords(clean_desc)
 
             return JobPostingCreate(
@@ -195,7 +253,10 @@ class PostingParser:
                 direct_apply_url=resolved_url,
                 content_hash=c_hash,
                 status=status,
-                posting_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                # Posting date is unknown from DOM heuristics; never substitute today's date.
+                posting_date=None,
+                availability_evidence=evidence,
+                availability_checked_at=checked_at,
             )
 
         except Exception as err:
@@ -242,6 +303,7 @@ class PostingParser:
                                 item.get("description", ""), "html.parser"
                             ).get_text(separator="\n", strip=True),
                             "datePosted": item.get("datePosted"),
+                            "validThrough": item.get("validThrough"),
                         }
             except Exception:
                 continue

@@ -63,7 +63,7 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
   - Domain Coverage: Percentage of generated titles present in approved occupational dictionaries.
 - **Evaluation Criteria Thresholds:**
   - ~~ROUGE-L >= 0.75~~ *Replaced by D-007 (2026-11-26): unreachable by correct answers. ROUGE-L and BLEU-4 are now reported only.*
-  - Occupation precision (share of generated titles belonging to the input occupation or an O*NET Primary-Short related occupation) >= **0.75 (PROPOSED, pending owner confirmation)**. Reference points: random title 0.007, same SOC major group 0.12, same SOC minor group 0.736, gold 1.0.
+  - Occupation precision (share of generated titles belonging to the input occupation or an O*NET Primary-Short related occupation) >= **0.75** (approved by the owner on 2026-11-26 by merging PR #27). Reference points: random title 0.007, same SOC major group 0.12, same SOC minor group 0.736, gold 1.0.
   - Valid Domain Title Ratio >= 0.85
   - Generation repetition rate < 0.05
 

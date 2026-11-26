@@ -49,6 +49,7 @@ CATALOG: Dict[str, ModelRegistration] = {
             "tokenizer_config.json",
             "special_tokens_map.json",
             "preprocess_config.json",
+            "titles.json",  # D-007: constrained-decoding dictionary
         ],
     ),
     "ML-002": ModelRegistration(

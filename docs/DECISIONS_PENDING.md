@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 6**
+**Open items: 5**
 
 ## Open decisions
 
@@ -89,6 +89,28 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
+## Entry template
+
+Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
+
+```markdown
+### D-NNN: Short title
+- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
+- **Area:** requirements | architecture | security | UX | ML | process
+- **Ambiguity:** What is unclear or undecided.
+- **Why it matters:** What depends on it, and what a wrong guess would cost.
+- **Options:**
+  1. Option A. Trade-offs.
+  2. Option B. Trade-offs.
+- **Recommendation:** Which option, and why.
+- **Blocked work:** What has been paused until this is decided.
+- **Status:** Open
+```
+
+## Resolved decisions
+
+Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
 ### D-007: ML-001 failed acceptance; ROUGE-L target is unreachable by design
 - **Raised:** 2026-11-26, after the user's first Kaggle run of `01_train_title_expander.ipynb` (v2.0.0)
 - **Area:** ML
@@ -131,29 +153,9 @@
 
   The occupation-precision threshold must come from you. A reference point I can compute before you choose: the score of the current gold lists under the new metric (1.0 by construction) and of a same-major-group random baseline.
 - **Blocked work:** ML-001 retraining; real Module 3 inference.
-- **Status:** Open
-
-## Entry template
-
-Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
-
-```markdown
-### D-NNN: Short title
-- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
-- **Area:** requirements | architecture | security | UX | ML | process
-- **Ambiguity:** What is unclear or undecided.
-- **Why it matters:** What depends on it, and what a wrong guess would cost.
-- **Options:**
-  1. Option A. Trade-offs.
-  2. Option B. Trade-offs.
-- **Recommendation:** Which option, and why.
-- **Blocked work:** What has been paused until this is decided.
-- **Status:** Open
-```
-
-## Resolved decisions
-
-Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+- **Status:** Resolved
+- **Decision:** Option 1, constrained generation. Owner decision 2026-11-26. The occupation-precision threshold 0.75 is PROPOSED and is confirmed by merging the implementing PR.
+- **Recorded in:** `src/findrr/ml/title_constraint.py`, `TitleExpanderRunner`, `notebooks/01_train_title_expander.ipynb`, `docs/ml/models/title-expander.md` §8, §10, §12 and §14
 
 ### D-001: Handling CAPTCHA Interception and Browser Session Persistence in Job Discovery
 - **Decision:** Option A: Human-in-the-loop manual completion prompt in headful CLI + persistent Chrome profile directory (`chrome_profile/`).

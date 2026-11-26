@@ -348,7 +348,8 @@ def title_expander_notebook() -> dict:
                 generate alternative job titles from a title, skills and a seniority level.
 
                 **Data:** O*NET 31.0 (public, CC BY 4.0): reported titles, job titles, software skills.
-                No real user data. Splits keep every occupation in exactly one of train/val/test.
+                No real user data. Splits are by input title (D-009): every occupation is learned, and test
+                inputs are titles never used as a training input.
 
                 **Run on Kaggle:** Settings -> Accelerator **GPU T4**, **Internet on** -> Run All.
                 Then download `title_expander_bundle.tar.gz` and extract it into
@@ -407,13 +408,10 @@ def title_expander_notebook() -> dict:
                     k = rng.randint(1, min(MAX_SKILLS, len(ranked)))
                     return ', '.join(ranked[:k])
 
-                def build_title_examples(onet, split_of, seed=42):
-                    """Return {split: [{'input_text', 'target_text', 'soc'}]} in the runner's prompt format."""
-                    rng = random.Random(seed)
-                    out = {'train': [], 'val': [], 'test': []}
+                def occupation_anchors(onet):
+                    """{soc: (anchors, neutral titles, all titles)} for occupations with enough targets."""
+                    out = {}
                     for soc, occ_title in sorted(onet['occupations'].items()):
-                        if soc not in split_of:
-                            continue
                         # ',' separates titles in the model output, so titles containing commas
                         # (e.g. 'Superintendent, Schools') are left out of inputs and targets.
                         base = [occ_title] if ',' not in occ_title else []
@@ -424,20 +422,62 @@ def title_expander_notebook() -> dict:
                         if len(neutral) < MIN_TARGET_TITLES + 1:
                             continue
                         anchors = base + [t for t in neutral if not base or norm(t) != norm(occ_title)]
-                        anchors = anchors[:MAX_ANCHORS_PER_OCCUPATION]
+                        out[soc] = (anchors[:MAX_ANCHORS_PER_OCCUPATION], neutral, all_titles)
+                    return out
+
+                def _anchor_hash(seed, key):
+                    import hashlib
+                    return int(hashlib.sha256(f'{seed}:{key}'.encode()).hexdigest()[:12], 16) / float(16 ** 12)
+
+                def split_by_anchor(anchors_by_soc, seed=42, fractions=(0.8, 0.1, 0.1)):
+                    """D-009: assign each normalised input title (anchor) to train/val/test.
+
+                    Every occupation is learned, but evaluation inputs are wordings never used as a
+                    training input: the same anchor text never crosses splits, in any occupation.
+                    Each occupation keeps at least one training anchor.
+                    """
+                    def bucket(key):
+                        h = _anchor_hash(seed, key)
+                        return 'train' if h < fractions[0] else 'val' if h < fractions[0] + fractions[1] else 'test'
+                    split = {}
+                    for anchors in anchors_by_soc.values():
+                        for a in anchors:
+                            split.setdefault(norm(a), bucket(norm(a)))
+                    for soc in sorted(anchors_by_soc):
+                        keys = [norm(a) for a in anchors_by_soc[soc]]
+                        if keys and not any(split[k] == 'train' for k in keys):
+                            split[min(keys, key=lambda k: _anchor_hash(seed, k))] = 'train'
+                    return split
+
+                def build_title_examples(onet, seed=42, split_of=None):
+                    """Return {split: [{'input_text', 'target_text', 'soc', 'anchor'}]} in the runner's
+                    prompt format. ``split_of`` maps normalised anchors to splits (default: split_by_anchor)."""
+                    rng = random.Random(seed)
+                    anchors_by_soc = occupation_anchors(onet)
+                    if split_of is None:
+                        split_of = split_by_anchor({s: a for s, (a, _, _) in anchors_by_soc.items()}, seed=seed)
+                    out = {'train': [], 'val': [], 'test': []}
+                    for soc, (anchors, neutral, all_titles) in anchors_by_soc.items():
                         for level in LEVELS:
                             pool = level_pool(level, neutral, all_titles)
                             for anchor in anchors:
                                 targets = [t for t in pool if norm(t) != norm(anchor)][:MAX_TARGET_TITLES]
                                 if len(targets) < MIN_TARGET_TITLES:
                                     continue
-                                out[split_of[soc]].append({
+                                out[split_of[norm(anchor)]].append({
                                     'input_text': f'expand titles: {anchor} | skills: '
                                                   f'{skills_text(onet["skills"].get(soc, []), rng)} | level: {level}',
                                     'target_text': ', '.join(targets),
                                     'soc': soc,
+                                    'anchor': anchor,
                                 })
                     return out
+
+                def novel_wording(examples):
+                    """Normalised test anchors never seen in training, as an input or as a target."""
+                    seen = {norm(r['anchor']) for r in examples['train']}
+                    seen |= {norm(t) for r in examples['train'] for t in parse_titles(r['target_text'])}
+                    return {norm(r['anchor']) for r in examples['test']} - seen
 
                 def title_dictionary(onet):
                     """Every known O*NET title, normalised: the 'approved occupational dictionary'."""
@@ -498,13 +538,16 @@ def title_expander_notebook() -> dict:
             code(
                 r'''
                 onet = load_onet(ONET_DIR)
-                split_of = split_by_occupation(onet['occupations'], seed=SEED)
-                examples = build_title_examples(onet, split_of, seed=SEED)
+                examples = build_title_examples(onet, seed=SEED)
                 DICTIONARY = title_dictionary(onet)
                 for name, rows in examples.items():
                     print(f'{name}: {len(rows)} examples from {len({r["soc"] for r in rows})} occupations')
-                overlap = {r['soc'] for r in examples['train']} & {r['soc'] for r in examples['test']}
-                assert not overlap, 'occupation leakage between train and test'
+                # D-009: inputs are disjoint across splits; occupations are shared on purpose.
+                overlap = {norm(r['anchor']) for r in examples['train']} & {norm(r['anchor']) for r in examples['test']}
+                assert not overlap, 'input-title leakage between train and test'
+                assert {r['soc'] for r in examples['test']} <= {r['soc'] for r in examples['train']}
+                NOVEL = novel_wording(examples)
+                print(f'Test anchors never seen in training (input or target): {len(NOVEL)}')
                 print('Sample:', examples['train'][0])
                 '''
             ),
@@ -527,7 +570,7 @@ def title_expander_notebook() -> dict:
                                               truncation=True)['input_ids']
                     return enc
 
-                ds = {k: Dataset.from_list(v).map(tokenize, batched=True, remove_columns=['input_text', 'target_text', 'soc'])
+                ds = {k: Dataset.from_list(v).map(tokenize, batched=True, remove_columns=['input_text', 'target_text', 'soc', 'anchor'])
                       for k, v in examples.items()}
 
                 # FP16 is off: T5 checkpoints are known to overflow in fp16 and the T4 has no bf16.
@@ -546,7 +589,7 @@ def title_expander_notebook() -> dict:
                 trainer.train()
                 '''
             ),
-            md("## Evaluation on held-out occupations (same decoding settings as the Findrr runner)"),
+            md("## Evaluation on held-out input titles (same decoding settings as the Findrr runner)"),
             code(
                 r'''
                 from rouge_score import rouge_scorer
@@ -584,6 +627,11 @@ def title_expander_notebook() -> dict:
                     'valid_title_ratio': valid_title_ratio(raw_preds, DICTIONARY),
                     'repetition_rate': repetition_rate(raw_preds),
                     'mean_distinct_titles': float(np.mean([len(t) for t in title_preds])),
+                    # Reported only (D-009): inputs whose wording never appeared in training at all.
+                    'occupation_precision_novel_wording': occupation_precision(
+                        [(r['soc'], t) for r, t in zip(test_rows, title_preds) if norm(r['anchor']) in NOVEL],
+                        onet, INDEX),
+                    'novel_wording_examples': float(sum(norm(r['anchor']) in NOVEL for r in test_rows)),
                     # Reported only (D-007): agreement with one arbitrary 5-title reference.
                     'rougeL': float(np.mean([scorer.score(t, p)['rougeL'].fmeasure for t, p in zip(test_targets, raw_preds)])),
                     'bleu4': float(sacrebleu.corpus_bleu(raw_preds, [test_targets]).score / 100.0),
@@ -593,7 +641,7 @@ def title_expander_notebook() -> dict:
                 measured['ac_ml_001_1_distinct_titles'] = float(len(demo_titles[0]))
                 print('Software Developer ->', demo_titles[0])
                 for r, t in list(zip(test_rows, title_preds))[:15]:
-                    print(f"  {r['input_text'][15:].split(' | ')[0]!r:40} -> {t}")
+                    print(f"  {r['anchor']!r:40} -> {t}")
                 print(json.dumps(measured, indent=2))
                 '''
             ),
@@ -601,10 +649,10 @@ def title_expander_notebook() -> dict:
             code(
                 r'''
                 # Criteria from docs/ml/models/title-expander.md as amended by D-007 (option 1).
-                # OCCUPATION_PRECISION_THRESHOLD is PROPOSED (BR-006): it must be confirmed by the
-                # project owner. Reference points (O*NET 31.0 test split): random dictionary title
-                # 0.007, random title from the same SOC major group 0.12, from the same SOC minor
-                # group (e.g. 15-125x) 0.736, gold references 1.0.
+                # OCCUPATION_PRECISION_THRESHOLD was approved by the owner (PR #27). D-009 moved the
+                # split to held-out input titles, so every occupation's titles are learnable.
+                # Reference points (O*NET 31.0): random dictionary title ~0.007, same SOC major
+                # group ~0.12, same SOC broad group (e.g. 15-125x) ~0.74, gold references 1.0.
                 OCCUPATION_PRECISION_THRESHOLD = 0.75
                 ACCEPTANCE = check_acceptance(measured, {
                     'occupation_precision': ('>=', OCCUPATION_PRECISION_THRESHOLD),
@@ -636,7 +684,7 @@ def title_expander_notebook() -> dict:
                     EXPORT_DIR, 'ML-001', 'title-expander', '{ML001_VERSION}', 'google/flan-t5-small (seq2seq, safetensors)',
                     evaluation_summary=measured, acceptance=ACCEPTANCE,
                     metadata={{'dataset': f'O*NET {{ONET_VERSION}} (CC BY 4.0)', 'dataset_sha256': ONET_SHA256,
-                              'split': 'by occupation, stratified by SOC major group (80/10/10)',
+                              'split': 'by input title (anchor), hashed 80/10/10; every occupation in training (D-009)',
                               'examples': {{k: len(v) for k, v in examples.items()}}, 'seed': SEED,
                               'transformers': transformers.__version__, 'torch': torch.__version__}},
                 )

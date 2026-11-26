@@ -54,7 +54,7 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
   - European Commission ESCO (European Skills, Competences, Qualifications and Occupations) multilingual hierarchy (English subset).
   - Anonymized public Kaggle job posting titles mapped to standardized roles.
 - **Privacy & Compliance:** 100% public occupational taxonomies. **Zero real user data.**
-- **Splits:** 80% Train, 10% Validation, 10% Test (stratified by occupational domain; disjoint titles to prevent data leakage).
+- **Splits:** 80% Train, 10% Validation, 10% Test, disjoint by input title (D-009): no input wording is shared across splits, and every occupation is represented in training.
 
 ## 8. Training & Evaluation Procedures
 - **Loss Function:** Cross-entropy loss over target token sequences.
@@ -63,7 +63,7 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
   - Domain Coverage: Percentage of generated titles present in approved occupational dictionaries.
 - **Evaluation Criteria Thresholds:**
   - ~~ROUGE-L >= 0.75~~ *Replaced by D-007 (2026-11-26): unreachable by correct answers. ROUGE-L and BLEU-4 are now reported only.*
-  - Occupation precision (share of generated titles belonging to the input occupation or an O*NET Primary-Short related occupation) >= **0.75** (approved by the owner on 2026-11-26 by merging PR #27). Reference points: random title 0.007, same SOC major group 0.12, same SOC minor group 0.736, gold 1.0.
+  - Occupation precision (share of generated titles belonging to the input occupation or an O*NET Primary-Short related occupation) >= **0.75** (approved by the owner on 2026-11-26 by merging PR #27). Reference points (input-title split, D-009): random title 0.007, same SOC major group 0.11, same SOC broad group 0.73, same detailed SOC code 0.93, gold 1.0.
   - Valid Domain Title Ratio >= 0.85
   - Generation repetition rate < 0.05
 
@@ -106,3 +106,4 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
 - **Acceptance is enforced:** the notebook does not export a model that fails §8 unless explicitly overridden. An overridden bundle is marked `acceptance.passed=false`, and the app refuses to load it.
 - **Inference:** the bundle stays safetensors + `AutoModelForSeq2SeqLM` (§10–11). This conflicts with ADR-0003 (ONNX only); see D-004.
 - **D-007 (owner decision 2026-11-26, option 1):** constrained generation over the O*NET title dictionary, with occupation precision replacing ROUGE-L. Its first Kaggle run failed acceptance: ROUGE-L 0.194, valid ratio 0.554, repetition 0.580. Valid ratio and repetition stay as criteria; constrained decoding meets them by construction, except for a title cut off at the token limit.
+- **D-009 (owner decision 2026-11-26, option 1):** the split changed from whole occupations to input titles. Run 3 on the occupation-disjoint split scored occupation precision 0.478; only 17.5% of the test occupations' titles were ever training targets, so the threshold's 0.736 baseline was not reachable by a learned model (fair baseline 0.579). The 0.75 threshold is unchanged. Generalisation to unseen occupations is no longer measured, because every occupation is trained on; precision on never-seen wording is reported instead.

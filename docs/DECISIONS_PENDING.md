@@ -89,19 +89,37 @@
 - **Blocked work:** rewriting and running `notebooks/03_train_application_tailor.ipynb`.
 - **Status:** Open
 
-### D-010: ML-001 occupation precision 0.603; the repetition penalty works against correct answers
-- **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009)
+### D-010: ML-001 occupation precision 0.603; the model under-fits its training data
+- **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009). Revised the same day with local evidence; the first version blamed the repetition penalty, which the evidence below rules out as the main cause.
 - **Area:** ML
-- **Evidence (Kaggle run 4):** occupation precision **0.603** (target >= 0.75, failed), up from 0.478 on the occupation-disjoint split. The other criteria were not reported as failing. The sample predictions were not yet shared.
-- **Evidence (local, no training; the same test split rebuilt with the notebook's code):**
-  - Decoding uses `repetition_penalty=1.2` (notebook and runner). Since D-007 it is redundant: the title constraint already makes repeats impossible, and repetition was 0.0 with the penalty off (PR #31 check).
-  - The penalty acts on tokens, not titles, and correct answers share words: in **97%** of gold outputs a word recurs across titles, and **56%** of gold titles share a word with an earlier title (e.g. "CEO, Executive Director, Executive Vice President"). So every right sibling title after the first is penalised, pushing decoding towards titles of other occupations.
-- **Ambiguity:** the decoding settings (`num_beams=2`, `repetition_penalty=1.2`) are part of the approved notebook and runner contract; changing them needs your approval.
+- **Evidence (Kaggle run 4):** occupation precision **0.603** (target >= 0.75), valid ratio 1.0, repetition 0.0, AC-ML-001.1 5, precision on never-seen wording 0.561 (110 examples). ROUGE-L 0.366, BLEU-4 0.278.
+- **Bundle note:** the bundle the user downloaded records `occupation_precision` threshold **0.0** and `acceptance.passed: true`, so the threshold was edited in the Kaggle copy. It must not be installed as an accepted model.
+- **Evidence (local inference with that bundle on the laptop, 500 seeded inputs; no training):**
+
+  | Experiment | Occupation precision |
+  |---|---|
+  | Test inputs, current decoding (2 beams, penalty 1.2) | 0.585 (Kaggle on all 2,525: 0.603) |
+  | Penalty off (1.0) | 0.591 |
+  | Penalty off, 4 beams | 0.568 |
+  | Remaining titles locked to the first title's occupation and its Primary-Short related ones | 0.635 |
+  | **Training inputs** (seen 5 times), penalty off | **0.727** |
+
+  - Precision by output position: 0.69, 0.63, 0.61, 0.56, 0.47. Even the first title is wrong 31% of the time.
+  - The samples show prefix drift, e.g. "Rig Hand" -> "Rig Operator, Rig Hand, Rig Mechanic*, Jig Hand*, Jig Worker*".
+  - Decoding changes do not reach 0.75. The model has not learned the training mapping well, so this is under-fitting rather than a generalisation gap.
+  - Training uses 5,310 anchors (input titles); O*NET has 45,512 comma-free job titles for the same occupations that are never used as inputs.
+- **Ambiguity:** the training recipe and dataset construction are spec content (§10, §14), so changing them needs your approval.
 - **Options:**
-  1. **Drop the penalty (1.0) in the notebook, `preprocess_config.json` and the runner; also report, without gating, precision with `num_beams=4` (recommended).** Trade-offs: one Kaggle re-run; directly removes a known bias; the beam-4 figure shows whether a wider beam is worth its CPU cost, without committing to it.
-  2. **Also train longer (e.g. 10 epochs) in the same run.** Trade-offs: no evidence yet that the model is under-trained; if precision rises, the cause is ambiguous.
-  3. **Wait for the 15 sample predictions before changing anything.** Trade-offs: no re-run wasted on a guess, but it costs a round trip, and the penalty is a defect either way.
-- **Recommendation:** Option 1, and please paste the 15 sample predictions from the evaluation cell with the next run.
+  1. **Train longer and with more input titles (recommended).**
+     - 15 epochs instead of 5.
+     - Add O*NET job titles as extra training-only anchors (capped per occupation, level ANY), skipping any wording that is a val or test anchor.
+     - Drop the redundant penalty.
+     - Also report precision on a training sample, so one run shows whether it still under-fits.
+
+     Trade-offs: same model and app; Kaggle run time grows (roughly 1 hour on a T4); success likely but not certain.
+  2. **Option 1 plus `flan-t5-base` (250M parameters).** Trade-offs: more capacity; about 3 times slower CPU inference and a 1 GB bundle; touches D-004.
+  3. **Lock decoding to the first title's occupation** in the notebook and runner. Trade-offs: measured +0.04 only; worth adding later on top of option 1.
+- **Recommendation:** Option 1; if it still falls short, option 2 with the same data.
 - **Blocked work:** ML-001 export and real Module 3 inference.
 - **Status:** Open
 

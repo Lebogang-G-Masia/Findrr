@@ -22,7 +22,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- **Awaiting merge: PR #TBD** (user-review category: training notebooks, model versions, artifact load contract). Unblocks: Kaggle training runs.
+- **Awaiting merge: PR #22** (user-review category: training notebooks, model versions, artifact load contract). Unblocks: Kaggle training runs.
 - After merging: run `notebooks/01_train_title_expander.ipynb` and `02_train_similarity_evaluator.ipynb` on Kaggle (GPU T4, Internet on), then extract the bundles into `models/title-expander/v2.0.0/` and `models/similarity-evaluator/v1.1.0/`. Do **not** run notebook 03.
 - Decide D-002, D-003, D-004, D-005 and D-006.
 
@@ -102,7 +102,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 | Date | Summary | Branch / PR |
 |---|---|---|
-| 2026-11-26 | PR #21 (runner contracts) self-merged after green CI. Rewrote the ML-001 and ML-002 notebooks to their specs: checksum-verified O*NET 31.0 data, occupation-disjoint splits, runner-identical prompts and pooling, all spec metrics measured, export blocked on failed acceptance, app manifest schema. ML-001 v2.0.0 and ML-002 v1.1.0. The registry now rejects wrong ID or version, missing required files and failed acceptance. Marked notebook 03 DO NOT RUN and raised D-006. Fixed registry dir precedence and test env leakage. 177 tests pass. Opened PR #TBD (awaiting user merge). | feature/ml-notebooks-spec-alignment / PR #TBD |
+| 2026-11-26 | PR #21 (runner contracts) self-merged after green CI. Rewrote the ML-001 and ML-002 notebooks to their specs: checksum-verified O*NET 31.0 data, occupation-disjoint splits, runner-identical prompts and pooling, all spec metrics measured, export blocked on failed acceptance, app manifest schema. ML-001 v2.0.0 and ML-002 v1.1.0. The registry now rejects wrong ID or version, missing required files and failed acceptance. Marked notebook 03 DO NOT RUN and raised D-006. Fixed registry dir precedence and test env leakage. 177 tests pass. Opened PR #22 (awaiting user merge). | feature/ml-notebooks-spec-alignment / PR #22 |
 | 2026-11-26 | Notebook review requested by the user: none of the three notebooks meets its approved spec (details in the notebook PR). Fixed the ML-003 runner: manifest path, integrity-call arguments, real greedy autoregressive generation, explicit `InferenceExecutionError` instead of silently substituting MOCK output, and the training system prompt. Removed unverified wording from the ML-003 mock. Aligned ML-001 runner levels to `ANY/ENTRY/MID/SENIOR/LEAD`. 167 tests pass. Opened PR #21. | fix/ml-runner-contracts / PR #21 |
 | 2026-11-26 | PR #19 (US-017) self-merged after green CI (`a015277`). The autonomous run paused: all remaining work is gated (D-002 to D-005, model artifacts, Penpot designs). 160 tests pass on `main`. | docs/iteration-6-closure |
 | 2026-11-26 | Iteration 6 started. US-014 requirements analysis raised D-005 (blocked). Implemented US-017: an active profile stored in `app_settings`, `profile use`, an active marker in `profile list`, no silent switching on create, and every default-profile call site routed through one resolver. 160 tests pass. Opened PR #19. | feature/iteration-6-multi-profile / PR #19 |

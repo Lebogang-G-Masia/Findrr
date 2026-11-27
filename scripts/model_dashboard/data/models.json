@@ -1,0 +1,92 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "name": "title-expander",
+   "version": "2.1.0",
+   "metrics_version": "2.0.0",
+   "architecture": "google/flan-t5-small (Seq2Seq Transformer, ONNX fp32 + KV cache)",
+   "runtime": "ONNX Runtime CPU",
+   "bundle_mb": 312.2,
+   "export_date": "2026-11-27",
+   "stage": 2,
+   "stage_label": "v2.1.0 awaiting its Kaggle run; metrics are from v2.0.0",
+   "integrity": "v2.1.0 not installed",
+   "acceptance": "Awaiting run",
+   "latency_budget_ms": 1500,
+   "memory_budget_mb": 550,
+   "open_decision": "",
+   "display": "Job Title Expander",
+   "task": "Turns a job title into up to 5 related, real O*NET job titles for search",
+   "feeds": "Module 3 (Search Terms)",
+   "base": "google/flan-t5-small",
+   "params_m": 80,
+   "training": "Full fine-tune, 15 epochs, lr 3e-4, batch 32, FP32",
+   "dataset": "O*NET 31.0 (CC BY 4.0)",
+   "train_size": 42624,
+   "test_size": 2525
+  },
+  {
+   "model_id": "ML-002",
+   "name": "similarity-evaluator",
+   "version": "1.1.0",
+   "metrics_version": "1.1.0",
+   "architecture": "sentence-transformers/all-MiniLM-L6-v2 (ONNX Bi-Encoder)",
+   "runtime": "ONNX Runtime CPU",
+   "bundle_mb": 23.8,
+   "export_date": "2026-11-26",
+   "stage": 5,
+   "stage_label": "Real inference verified in the app",
+   "integrity": "Verified",
+   "acceptance": "Passed",
+   "latency_budget_ms": 50,
+   "memory_budget_mb": 100,
+   "open_decision": "",
+   "display": "Similarity Evaluator",
+   "task": "Scores how alike two job titles are, to filter search terms and remove duplicate postings",
+   "feeds": "Module 3 (Search Terms), Module 4 (Find Postings)",
+   "base": "sentence-transformers/all-MiniLM-L6-v2",
+   "params_m": 22,
+   "training": "Contrastive fine-tune (MNRL), 4 epochs, lr 2e-5, batch 64, FP16",
+   "dataset": "O*NET 31.0 (CC BY 4.0)",
+   "train_size": 39927,
+   "test_size": 800
+  },
+  {
+   "model_id": "ML-003",
+   "name": "application-tailor",
+   "display": "Application Tailor",
+   "version": "1.0.0",
+   "metrics_version": null,
+   "task": "Phrases CV and cover-letter sentences from verified profile facts only",
+   "feeds": "Module 5 (Application Prep)",
+   "architecture": "Qwen2.5-0.5B-Instruct / Flan-T5-base",
+   "base": "Qwen/Qwen2.5-0.5B-Instruct (proposed)",
+   "params_m": 500,
+   "runtime": "ONNX Runtime CPU (planned)",
+   "training": "LoRA, 3 epochs, lr 1e-4 (proposed)",
+   "dataset": "Not decided (D-006)",
+   "train_size": null,
+   "test_size": null,
+   "bundle_mb": null,
+   "export_date": null,
+   "stage": 1,
+   "stage_label": "Spec approved, notebook on hold",
+   "integrity": "No bundle",
+   "acceptance": "Not trained",
+   "latency_budget_ms": 3000,
+   "memory_budget_mb": 450,
+   "open_decision": "D-006"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "src/findrr/ml/registry.py (active versions, architectures, runtimes); installed bundles in models/ (manifests, SHA-256 checks); docs/ml/models/*.md (budgets, section 12); docs/DECISIONS_PENDING.md (open decisions); docs/STATUS.md (verified integrations)"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

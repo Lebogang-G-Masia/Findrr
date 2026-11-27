@@ -1,0 +1,32 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "load_s": 6.05,
+   "peak_rss_mb": 1065,
+   "batch20_mean_ms": null,
+   "note": "Whole Python process after loading ML-001 v2.0.0"
+  },
+  {
+   "model_id": "ML-002",
+   "load_s": 0.14,
+   "peak_rss_mb": 68,
+   "batch20_mean_ms": 66.3,
+   "note": "Extra process memory after also loading ML-002"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "bench.py on the Findrr laptop (Intel i5-1235U, CPU only), 2026-11-27"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  },
+  {
+   "label": "Measured by",
+   "value": "scripts/model_dashboard/bench.py"
+  }
+ ]
+}

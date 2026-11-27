@@ -1,0 +1,34 @@
+{
+ "rows": [
+  {
+   "baseline": "Random dictionary title",
+   "occupation_precision": 0.007
+  },
+  {
+   "baseline": "Same SOC major group",
+   "occupation_precision": 0.114
+  },
+  {
+   "baseline": "Same SOC broad group",
+   "occupation_precision": 0.732
+  },
+  {
+   "baseline": "Same detailed SOC code",
+   "occupation_precision": 0.929
+  },
+  {
+   "baseline": "Gold references",
+   "occupation_precision": 1.0
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "docs/ml/training/title-expander.md (reference points, input-title split)"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

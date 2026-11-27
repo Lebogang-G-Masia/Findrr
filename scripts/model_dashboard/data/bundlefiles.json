@@ -1,0 +1,126 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "config.json",
+   "bytes": 1555,
+   "sha256": "9b022d86d3574e6e506c3da97383c82ccaa3924b4a12af4878fe68412b0b8e55"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "generation_config.json",
+   "bytes": 142,
+   "sha256": "8654c9f16c7d2ab8bb50074114ebf62bc1b0fbd50eaf7a93807c511799ddc3d1"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "model.safetensors",
+   "bytes": 307867048,
+   "sha256": "f6af017068d5f644dd6cf8a05d630762da5b2077b1187817ab0eb205c36fd478"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "preprocess_config.json",
+   "bytes": 361,
+   "sha256": "8fdb8fbfbc53f2f1f8d07e25434b55a884f0ab0cc1477fd793fbe19838c1e374"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "special_tokens_map.json",
+   "bytes": 2543,
+   "sha256": "7a1985a994c41886db38c719d2a3d2f40606663cc19d7c5d6a85d349320e06d2"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "spiece.model",
+   "bytes": 791656,
+   "sha256": "d60acb128cf7b7f2536e8f38a5b18a05535c9e14c7a355904270e15b0945ea86"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "titles.json",
+   "bytes": 1084200,
+   "sha256": "9ce05bfa93ef36b78608b74edc3675c14733afa4fb820bb8c9c4f367ada63238"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "tokenizer.json",
+   "bytes": 2422487,
+   "sha256": "638f32a2032c49c7dbb9e1c717bd17a30a5d500af02a03a49e1792e4eb63b9b7"
+  },
+  {
+   "model_id": "ML-001",
+   "version": "2.0.0",
+   "file": "tokenizer_config.json",
+   "bytes": 20772,
+   "sha256": "4c78cdcca5fe0143d86228a1e740b5a6ce444a1d8ac74d597549fe8b92d9bae5"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "config.json",
+   "bytes": 99,
+   "sha256": "7c8eb5bbca84dd24f798fe7330a7de03994a1ab0b28d8aef609300f5e0e4a892"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "model.onnx",
+   "bytes": 22878589,
+   "sha256": "f93e2689f2997bf84efd9a5ca589fd77064ccd41ca3510c182f126c9740cfa84"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "preprocess_config.json",
+   "bytes": 48,
+   "sha256": "2bb128dfe64c28cf939cdd1c5f24e405ace70a2b56baafd38534724c5558f9f9"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "special_tokens_map.json",
+   "bytes": 695,
+   "sha256": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "tokenizer.json",
+   "bytes": 711551,
+   "sha256": "f17212c38517cfedc9306b57eeffbaf58c4976fcb42e5a87b405f36a7b9a9eb2"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "tokenizer_config.json",
+   "bytes": 1434,
+   "sha256": "085f1ef19e247fdef3c6ff75d5115d7d9c7c3196861380c434af09df3d7cf9bc"
+  },
+  {
+   "model_id": "ML-002",
+   "version": "1.1.0",
+   "file": "vocab.txt",
+   "bytes": 231508,
+   "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "models/*/manifest.json (SHA-256); file sizes on disk"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

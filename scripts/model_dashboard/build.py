@@ -800,6 +800,71 @@ def main() -> None:
         ["docs/DECISIONS_PENDING.md (D-008)", se_doc],
     )
 
+    # Development page: how each bundle was made, what it contains, and how it was measured.
+    library_keys = ("transformers", "torch", "sentence_transformers", "onnxruntime")
+    notebooks = {"ML-001": "01_train_title_expander", "ML-002": "02_train_similarity_evaluator"}
+    bundles = [("ML-001", m1, te_dir), ("ML-002", m2, se_dir)]
+    write(
+        "provenance",
+        [
+            {
+                "model_id": model_id,
+                "bundle_version": manifest["version"],
+                "active_version": regs[model_id].active_version,
+                "architecture": manifest.get("architecture"),
+                "export_date": manifest["export_date"][:10],
+                "seed": manifest["metadata"].get("seed"),
+                "dataset": manifest["metadata"].get("dataset"),
+                "dataset_sha256": manifest["metadata"].get("dataset_sha256"),
+                "split": manifest["metadata"].get("split"),
+                "libraries": ", ".join(
+                    f"{k.replace('_', '-')} {manifest['metadata'][k]}"
+                    for k in library_keys
+                    if k in manifest["metadata"]
+                ),
+                "notebook": f"notebooks/{notebooks[model_id]}.ipynb",
+                "generator": "scripts/generate_kaggle_notebooks.py",
+                "acceptance_overridden": not manifest["metadata"]["acceptance"]["passed"],
+            }
+            for model_id, manifest, _ in bundles
+        ],
+        ["models/*/manifest.json", "src/findrr/ml/registry.py"],
+    )
+    write(
+        "bundlefiles",
+        [
+            {
+                "model_id": model_id,
+                "version": manifest["version"],
+                "file": name,
+                "bytes": (bundle_dir / name).stat().st_size,
+                "sha256": digest,
+            }
+            for model_id, manifest, bundle_dir in bundles
+            for name, digest in sorted(manifest["files"].items())
+            if (bundle_dir / name).exists()
+        ],
+        ["models/*/manifest.json (SHA-256)", "file sizes on disk"],
+    )
+    write(
+        "benchrun",
+        [
+            {
+                "measured_at": bench.get("measured_at"),
+                "ml001_version": measured_v.get("ML-001"),
+                "ml002_version": measured_v.get("ML-002"),
+                "ml001_requests": bench["title_expander"]["requests"],
+                "ml002_requests": bench["similarity_pair"]["requests"],
+                "batch_runs": bench["similarity_batch20"]["runs"],
+                "cpu_count": bench.get("cpu_count"),
+                "load_before": (bench.get("load_avg_1m") or [None, None])[0],
+                "load_after": (bench.get("load_avg_1m") or [None, None])[1],
+                "machine": "Findrr laptop (Intel i5-1235U, CPU only)",
+            }
+        ],
+        [f"{LAPTOP}, {measured}"],
+    )
+
     print("Wrote", ", ".join(sorted(p.name for p in data_dir.glob("*.json"))), "to", data_dir)
 
 

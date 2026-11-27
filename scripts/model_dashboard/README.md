@@ -4,7 +4,7 @@ Source and data for the **Findrr Model Observatory**, a private claude.ai dashbo
 
 | Path | What it is |
 |---|---|
-| `page.html` | The dashboard page: HTML, CSS and drawing scripts (stored on claude.ai as `files/index.html` of a Data artifact) |
+| `page.html` | The dashboard page, with a Models tab and a Development tab: HTML, CSS and drawing scripts (stored on claude.ai as `files/index.html` of a Data artifact) |
 | `dashboard.json` | The dashboard's title and datasets: each one's id, title, description and data file |
 | `data/` | The dashboard's data, committed so the dashboard can read it from GitHub |
 | `build.py` | Rebuilds every file in `data/` except `bench.json` |
@@ -48,6 +48,9 @@ Each data file is shaped `{rows, meta}`, and `meta` names its sources.
 | `labelmix.json` | ML-002 test-pair label mix (D-008) |
 | `benchmark.json`, `resources.json`, `samples.json` | Latency, load time and memory, and real outputs, from `bench.json` |
 | `decisions.json` | ML decisions from the decision log |
+| `provenance.json` | Seed, dataset checksum, split, library versions and notebook of each installed bundle (Development page) |
+| `bundlefiles.json` | Each bundle file's size and SHA-256 (Development page) |
+| `benchrun.json` | When and how the benchmark ran (Development page) |
 
 ## Caveats
 

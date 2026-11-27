@@ -12,7 +12,7 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | docs/ml-001-v2.1.0-evaluation |
+| Current branch | docs/record-d002-d006-decisions |
 | Open PR | see "Awaiting merge or approval" |
 | Latest release | None |
 
@@ -22,12 +22,15 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Decide D-002 (discovery source), D-003 (DOCX/PDF), D-005 (company research) and D-006 (ML-003 data).
+- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Pick Brave Search API (recommended), Vertex AI Search or job-board APIs.
 
 ## Next step
 
-1. ML-001 quality finding: skills can pull results off-topic ("Software Developer" + "Python, SQL, Git" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.
-2. When other decisions arrive: resume `/autonomous-run` (US-014, US-012, D-002 changes, the ML-003 rewrite).
+1. US-012 DOCX/PDF export (D-003: `python-docx` + `fpdf2`).
+2. US-014 company research, extractive (D-005).
+3. ML-003 dataset spec and notebook 03 rewrite with template-composed targets (D-006); user review before any Kaggle run.
+4. ML-001 quality finding: skills can pull results off-topic ("Software Developer" + "Python, SQL, Git" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.
+5. When D-002 is decided: search-provider change and driver clean-up.
 
 ## Blockers
 
@@ -88,12 +91,13 @@ Mark an item verified only after the check has actually been run.
 
 ## Open decisions
 
-See `docs/DECISIONS_PENDING.md`. Count of open items: 4
+See `docs/DECISIONS_PENDING.md`. Count of open items: 1
 
 ## Session log (newest first)
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-27 | Owner decisions recorded: D-003 option 2 (`python-docx` + `fpdf2`), D-005 option 1 (extractive research), D-006 option 1. For D-006, the owner preferred option 2 on their Claude subscription only if allowed; the Consumer Terms forbid using the Services to train models and forbid scripted access without an API key. D-002 stays open: the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01; options revised. | docs/record-d002-d006-decisions |
 | 2026-11-27 | Dashboard Development tab shows a "Project status" section parsed from this file (snapshot, model table, model-related open items, recent model work); the build now reads real-inference verification from the model table instead of a hard-coded list. New idle-machine benchmark of the current bundles: ML-001 v2.1.0 (ONNX) 391 ms mean per request, peak process memory 481 MB (budget < 550 MB); ML-002 v1.1.0 3.1 ms per pair. | feature/dashboard-project-status |
 | 2026-11-27 | Installed and verified ML-001 v2.1.0 (user's Kaggle re-export of the v2.0.0 weights to ONNX, no retraining). SHA-256 verified; every Kaggle metric identical to v2.0.0 (precision 0.851); ONNX parity 3.8e-5. Laptop, full test set through the app's ONNX path: precision 0.828, 456 ms mean latency, RSS 426 MB after load and 486 MB peak (budget < 550 MB), no PyTorch; 200/200 suggestions identical to v2.0.0 PyTorch. Wrote `title-expander-2.1.0.md`; model card, registry (Verified) and spec (memory budget approved via PR #40) updated. The skills defect remains. | docs/ml-001-v2.1.0-evaluation / PR #44 |
 | 2026-11-27 | D-012 delivery: claude.ai's GitHub entry is an integration, not a callable connector, so the dashboard is kept current by the cloud scheduled task "Findrr dashboard sync" (fires on PRs merged into `main`; uploads only changed dashboard files). Hand-tested: 34 s, all writes succeeded. Trigger configured in the claude.ai form by the owner; this PR's merge is its first live test. | docs/dashboard-sync-routine |

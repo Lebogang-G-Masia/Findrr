@@ -1,20 +1,20 @@
 {
  "rows": [
   {
-   "id": "D-005",
-   "model_id": "General",
-   "date": "2026-11-26",
-   "status": "Open",
-   "title": "Company research (US-014): sources and how summaries are produced",
-   "outcome": "Recommended: Option 1: Deterministic, extractive research, no new model"
-  },
-  {
    "id": "D-006",
    "model_id": "ML-003",
    "date": "2026-11-26",
-   "status": "Open",
+   "status": "Resolved",
    "title": "ML-003 (application tailor) training data and notebook rewrite",
-   "outcome": "Recommended: Option 1: Template-composed targets"
+   "outcome": "Option 1: Template-composed targets"
+  },
+  {
+   "id": "D-005",
+   "model_id": "General",
+   "date": "2026-11-26",
+   "status": "Resolved",
+   "title": "Company research (US-014): sources and how summaries are produced",
+   "outcome": "Option 1: Deterministic, extractive research, no new model"
   },
   {
    "id": "D-004",

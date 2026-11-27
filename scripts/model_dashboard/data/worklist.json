@@ -1,22 +1,22 @@
 {
  "rows": [
   {
-   "kind": "Waiting on you",
-   "order": 1,
-   "text": "Decide D-002 (discovery source), D-003 (DOCX/PDF), D-005 (company research) and D-006 (ML-003 data).",
-   "models": "ML-003"
-  },
-  {
-   "kind": "Next step",
-   "order": 1,
-   "text": "ML-001 quality finding: skills can pull results off-topic (\"Software Developer\" + \"Python, SQL, Git\" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.",
-   "models": "ML-001"
-  },
-  {
    "kind": "Next step",
    "order": 2,
-   "text": "When other decisions arrive: resume /autonomous-run (US-014, US-012, D-002 changes, the ML-003 rewrite).",
+   "text": "US-014 company research, extractive (D-005).",
+   "models": "General"
+  },
+  {
+   "kind": "Next step",
+   "order": 3,
+   "text": "ML-003 dataset spec and notebook 03 rewrite with template-composed targets (D-006); user review before any Kaggle run.",
    "models": "ML-003"
+  },
+  {
+   "kind": "Next step",
+   "order": 4,
+   "text": "ML-001 quality finding: skills can pull results off-topic (\"Software Developer\" + \"Python, SQL, Git\" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.",
+   "models": "ML-001"
   }
  ],
  "meta": [

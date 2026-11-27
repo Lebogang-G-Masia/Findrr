@@ -76,7 +76,7 @@
    "acceptance": "Not trained",
    "latency_budget_ms": 3000,
    "memory_budget_mb": 450,
-   "open_decision": "D-006"
+   "open_decision": ""
   }
  ],
  "meta": [

@@ -2,6 +2,12 @@
  "rows": [
   {
    "date": "2026-11-27",
+   "summary": "Owner decisions recorded: D-003 option 2 (python-docx + fpdf2), D-005 option 1 (extractive research), D-006 option 1. For D-006, the owner preferred option 2 on their Claude subscription only if allowed; the Consumer Terms forbid using the Services to train models and forbid scripted access without an API key. D-002 stays open: the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01; options revised.",
+   "ref": "docs/record-d002-d006-decisions",
+   "models": "General"
+  },
+  {
+   "date": "2026-11-27",
    "summary": "Dashboard Development tab shows a \"Project status\" section parsed from this file (snapshot, model table, model-related open items, recent model work); the build now reads real-inference verification from the model table instead of a hard-coded list. New idle-machine benchmark of the current bundles: ML-001 v2.1.0 (ONNX) 391 ms mean per request, peak process memory 481 MB (budget < 550 MB); ML-002 v1.1.0 3.1 ms per pair.",
    "ref": "feature/dashboard-project-status",
    "models": "ML-001, ML-002"
@@ -64,12 +70,6 @@
    "date": "2026-11-26",
    "summary": "ML-001 Kaggle run 3 (user, with the PR #31 fix): occupation precision 0.478 (target 0.75) failed; valid ratio 1.0, repetition 0.0001 and AC-ML-001.1 5 passed. Local analysis: the occupation-disjoint split means only 17.5% of test reference titles were ever training targets, and the 0.736 baseline behind the 0.75 threshold wrongly included the test occupations' own titles; the fair broad-group baseline is 0.579. Raised D-009.",
    "ref": "docs/d-009-ml-001-precision",
-   "models": "ML-001"
-  },
-  {
-   "date": "2026-11-26",
-   "summary": "ML-001 Kaggle run 2 (constrained decoding, user): occupation precision 0.521 (target 0.75), valid ratio 1.0, repetition 0.280 (target < 0.05), AC-ML-001.1 2 (target 3). The repetition was a bug in TitleTrieConstraint: a repeat was blocked only once complete, so beam search spelled it out and then had to stop. Each node now counts titles below it, and branches whose titles are all used are closed. Verified with the real tokenizer and batched beam search, with the repetition penalty off: repetition 0.0 on 96 test inputs. 191 tests pass. Re-run needed.",
-   "ref": "fix/title-constraint-dead-ends",
    "models": "ML-001"
   }
  ],

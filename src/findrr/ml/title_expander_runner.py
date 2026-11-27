@@ -114,64 +114,71 @@ class MockTitleExpanderRunner(IModelRunner):
 
 
 class TitleExpanderRunner(IModelRunner):
-    """Production runner loading verified PyTorch / HuggingFace Flan-T5 artifacts."""
+    """Production runner: Flan-T5 on ONNX Runtime with a KV cache (D-004, no PyTorch).
+
+    Decoding is the constrained 2-beam search shared verbatim with the training notebook
+    (``findrr.ml.t5_onnx_decoding``), so app outputs equal the notebook's evaluated outputs.
+    """
 
     def __init__(self, artifact_dir: Path, version: str = "1.0.0"):
         self.artifact_dir = artifact_dir
         self._version = version
-        self._model = None
+        self._generator = None
         self._tokenizer = None
         self._constraint: Optional[TitleTrieConstraint] = None
+        self._max_input_length = 128
         self._max_new_tokens = 64
         self._max_titles = 5
         self._num_beams = 2
-        self._repetition_penalty = 1.0  # D-010: off; the constraint prevents repeats
 
     def load(self) -> None:
-        """Verify integrity and load model into memory."""
+        """Verify integrity, then load the ONNX sessions, tokenizer and title dictionary."""
         manifest_path = self.artifact_dir / "manifest.json"
         manifest = load_manifest(manifest_path)
         verify_artifact_integrity(manifest, self.artifact_dir)
 
-        try:
-            import torch
-            from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-
-            torch.set_num_threads(4)  # Cap CPU inference threads
-            self._tokenizer = AutoTokenizer.from_pretrained(str(self.artifact_dir))
-            self._model = AutoModelForSeq2SeqLM.from_pretrained(str(self.artifact_dir))
-            self._model.eval()
-            logger.info("Successfully loaded verified Model 1 from %s", self.artifact_dir)
-        except ImportError as err:
-            raise RuntimeError(
-                f"Required ML dependencies missing to load real Model 1: {err}. "
-                "Ensure torch and transformers are installed."
-            ) from err
-
-        # D-007: decoding is constrained to the dictionary shipped in the verified bundle.
         prep_path = self.artifact_dir / "preprocess_config.json"
         if prep_path.exists():
             prep = json.loads(prep_path.read_text(encoding="utf-8"))
+            self._max_input_length = int(prep.get("max_input_length", self._max_input_length))
             self._max_new_tokens = int(prep.get("max_new_tokens", self._max_new_tokens))
             self._max_titles = int(prep.get("max_titles", self._max_titles))
             self._num_beams = int(prep.get("num_beams", self._num_beams))
-            self._repetition_penalty = float(
-                prep.get("repetition_penalty", self._repetition_penalty)
+            if float(prep.get("repetition_penalty", 1.0)) != 1.0:
+                raise InferenceExecutionError(
+                    "This runner supports repetition_penalty 1.0 only (D-010); "
+                    f"the bundle asks for {prep['repetition_penalty']}."
+                )
+        try:
+            from findrr.ml.t5_onnx_decoding import T5OnnxGenerator, TokenizersAdapter
+
+            self._tokenizer = TokenizersAdapter(
+                self.artifact_dir / "tokenizer.json", max_length=self._max_input_length
             )
+            self._generator = T5OnnxGenerator(self.artifact_dir)
+        except ImportError as err:
+            raise RuntimeError(
+                f"Required ML dependencies missing to load real Model 1: {err}. "
+                "Install the 'ml' extra (onnxruntime, tokenizers, numpy)."
+            ) from err
+
+        # D-007: decoding is constrained to the dictionary shipped in the verified bundle.
         titles = json.loads((self.artifact_dir / "titles.json").read_text(encoding="utf-8"))
         self._constraint = TitleTrieConstraint(titles, self._tokenizer, self._max_titles)
         logger.info(
-            "Model 1 decoding constrained to %d dictionary titles", len(self._constraint.titles)
+            "Loaded verified Model 1 from %s; decoding constrained to %d dictionary titles",
+            self.artifact_dir,
+            len(self._constraint.titles),
         )
 
     def unload(self) -> None:
-        self._model = None
+        self._generator = None
         self._tokenizer = None
         self._constraint = None
         logger.info("Unloaded Model 1 from memory")
 
     def is_loaded(self) -> bool:
-        return self._model is not None and self._tokenizer is not None
+        return self._generator is not None and self._tokenizer is not None
 
     @property
     def is_mock(self) -> bool:
@@ -187,38 +194,24 @@ class TitleExpanderRunner(IModelRunner):
         skills: List[str],
         seniority: Optional[str] = None,
     ) -> List[str]:
-        """Execute sequence-to-sequence title expansion."""
+        """Execute constrained sequence-to-sequence title expansion."""
         if not self.is_loaded():
             self.load()
-
-        import torch
 
         # Max 5 skills, matching MAX_SKILLS in the training notebook.
         skills_str = ", ".join(skills[:5]) if skills else "general"
         # Must match the level vocabulary in notebooks/01_train_title_expander.ipynb.
         sen_str = (seniority or "ANY").upper()
         prompt = f"expand titles: {generalized_title} | skills: {skills_str} | level: {sen_str}"
+        input_ids = self._tokenizer(prompt)["input_ids"]
 
-        inputs = self._tokenizer(
-            prompt,
-            return_tensors="pt",
-            max_length=128,
-            truncation=True,
+        generated = self._generator.generate(
+            input_ids,
+            self._constraint.allowed_tokens,
+            num_beams=self._num_beams,
+            max_new_tokens=self._max_new_tokens,
         )
-
-        with torch.no_grad():
-            outputs = self._model.generate(
-                **inputs,
-                max_new_tokens=self._max_new_tokens,
-                num_beams=self._num_beams,
-                do_sample=False,
-                repetition_penalty=self._repetition_penalty,
-                prefix_allowed_tokens_fn=self._constraint.prefix_allowed_tokens_fn(
-                    self._model.config.decoder_start_token_id
-                ),
-            )
-
-        titles = self._constraint.complete_titles(outputs[0].tolist(), self._tokenizer)
+        titles = self._constraint.complete_titles(generated, self._tokenizer)
         if not titles:
             raise InferenceExecutionError("Model 1 produced no complete dictionary title.")
         primary = generalized_title.strip().lower()

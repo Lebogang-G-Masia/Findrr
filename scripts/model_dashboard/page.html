@@ -385,7 +385,7 @@ dash.draw('blocked', (el) => {
   if (d.status !== 'ok') { el.textContent = ''; return; }
   const out = d.data.filter((m) => m.acceptance !== 'Passed');
   el.textContent = out.length
-    ? out.map((m) => `${m.model_id} (${m.display}) is not trained yet${m.open_decision ? ' and waits on decision ' + m.open_decision : ''}.`).join(' ')
+    ? out.map((m) => `${m.model_id} (${m.display}): ${m.stage_label}${m.open_decision ? ', waiting on ' + m.open_decision : ''}.`).join(' ')
     : 'Every model has passed.';
 });
 
@@ -395,7 +395,7 @@ dash.draw('cards', (el) => {
   const rows = dash.data('models').data;
   el.replaceChildren(...rows.map((m) => {
     const w = FMwhere({ model_id: m.model_id });
-    const pillCls = m.acceptance === 'Passed' ? 'ok' : m.acceptance === 'Failed' ? 'bad' : 'mute';
+    const pillCls = m.acceptance === 'Passed' ? 'ok' : m.acceptance === 'Failed' ? 'bad' : m.acceptance === 'Awaiting run' ? 'warn' : 'mute';
     const stat = (k, field, v, unit) => h('div', {}, h('span', { class: 'fm-k' }, k),
       h('span', { class: 'fm-v' }, v == null ? h('span', { class: 'fm-muted' }, '—') : h('span', { 'data-source': 'models', 'data-field': field, 'data-where': w }, v), v == null ? '' : unit));
     const b = h('button', { type: 'button', class: 'fm-mcard' + (m.model_id === FM.model ? ' is-on' : ''), 'data-model': m.model_id, 'aria-pressed': m.model_id === FM.model ? 'true' : 'false' },
@@ -424,7 +424,7 @@ dash.draw('detailname', (el) => {
 dash.draw('detailtask', (el) => {
   const m = FMmodel();
   el.setAttribute('data-where', FMwhere({ model_id: FM.model }));
-  el.textContent = m ? `${m.task}. Feeds ${m.feeds}.` : '—';
+  el.textContent = !m ? '—' : `${m.task}. Feeds ${m.feeds}.` + (m.metrics_version && m.metrics_version !== m.version ? ` The active version is v${m.version}, which has not been trained yet, so the metrics below are from the verified v${m.metrics_version} bundle.` : '');
 });
 
 /* Spec sheet */
@@ -443,6 +443,7 @@ dash.draw('spec', (el) => {
     ...row('Dataset', 'dataset', m.dataset),
     ...row(m.model_id === 'ML-002' ? 'Training pairs' : 'Training examples', 'train_size', m.train_size == null ? null : num(m.train_size)),
     ...row(m.model_id === 'ML-002' ? 'Test pairs' : 'Test examples', 'test_size', m.test_size == null ? null : num(m.test_size)),
+    ...row('Metrics from', 'metrics_version', m.metrics_version ? 'v' + m.metrics_version : null, m.metrics_version && m.metrics_version !== m.version ? ' (superseded bundle)' : ''),
     ...row('Bundle size', 'bundle_mb', m.bundle_mb, ' MB'),
     ...row('Exported', 'export_date', m.export_date ? d3.utcFormat('%-d %b %Y')(new Date(m.export_date)) : null),
     ...row('Open decision', 'open_decision', m.open_decision),

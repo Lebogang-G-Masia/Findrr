@@ -6,8 +6,7 @@
 root=$(git rev-parse --show-toplevel) || exit 0
 py="$root/.venv/bin/python"
 [ -x "$py" ] || exit 0
-[ -f "$root/models/title-expander/v2.0.0/manifest.json" ] || exit 0
-[ -f "$root/models/similarity-evaluator/v1.1.0/manifest.json" ] || exit 0
+[ -d "$root/models" ] || exit 0
 [ -f "$root/scripts/model_dashboard/data/bench.json" ] || exit 0
 if ! PYTHONPATH="$root/src" "$py" "$root/scripts/model_dashboard/build.py" >/dev/null 2>&1; then
   echo "model dashboard: build.py failed, data not rebuilt (the commit continues)" >&2

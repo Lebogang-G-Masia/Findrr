@@ -5,7 +5,7 @@
 > Never present an assumption as an approved requirement.
 > Keep the open-item count below equal to the number of entries under "Open decisions", and mirror it in `docs/STATUS.md`.
 
-**Open items: 5**
+**Open items: 4**
 
 ## Open decisions
 
@@ -36,40 +36,6 @@
   3. DOCX only for now and defer PDF. Trade-offs: smallest scope; the milestone gate would need re-scoping.
 - **Recommendation:** Option 2. Both libraries are pure Python and work offline, and the output stays fully deterministic and grounded.
 - **Blocked work:** US-012 implementation.
-- **Status:** Open
-
-### D-004: ML-001 runtime uses PyTorch, but ADR-0003 approved ONNX Runtime only
-- **Raised:** 2026-11-26, during the pre-Iteration-6 codebase audit
-- **Area:** ML / architecture
-- **Ambiguity:** `TitleExpanderRunner` loads Flan-T5 via `torch` + `transformers`. ADR-0003 rejected the PyTorch CPU engine and chose ONNX Runtime. *Update 2026-11-26: the approved ML-001 model spec (§10–12) itself specifies safetensors + `AutoModelForSeq2SeqLM` + `torch.no_grad()`, so the conflict is between two approved documents. The rewritten notebook follows the spec.* `STATUS.md` lists "needs torch in .venv". `torch` is installed in `.venv` but declared nowhere. The `ml` extra added on 2026-11-26 declares only ADR-0003 packages (onnxruntime, transformers, numpy).
-- **Why it matters:** this is a model compatibility and inference-architecture contract (approval gate), and `torch` is a large dependency (about 700 MB+ on CPU).
-- **Options:**
-  1. Export ML-001 to ONNX (seq2seq encoder/decoder, for example via `optimum`) in the Kaggle notebook, and run it with ONNX Runtime. Trade-offs: matches ADR-0003 and uses less memory; needs a notebook change, which you would run.
-  2. Accept PyTorch for ML-001 only: amend ADR-0003 and declare `torch` in the `ml` extra. Trade-offs: no retraining needed; larger install and memory use.
-- **Recommendation:** Option 2 short term, since it unblocks the artifacts that are already trained. Plan Option 1 for Milestone 5 optimisation.
-- **Update 2026-11-27 (evidence, local, inference only):** ML-001 v2.0.0 (Kaggle run 5) is installed and passes acceptance. The open question is now its memory, against a spec budget of < 300 MB.
-  - **PyTorch runner (current):** 994 MB after load, 1,105 MB after 20 requests, 1,248 MB after 2,525 requests (it grows). Importing PyTorch and `transformers` alone costs about 520 MB.
-  - **ONNX prototype:** the installed weights were exported locally to an encoder and a decoder (without a KV cache). It runs on ONNX Runtime + `tokenizers` with a NumPy copy of the 2-beam constrained search, and never imports PyTorch.
-  - **Fixed overhead without PyTorch:** ONNX Runtime + `findrr` 67 MB, tokenizer 32 MB, title trie 32 MB.
-  - **Results on the first 200 test examples:**
-
-    | Variant | Occupation precision | Same output as PyTorch | RSS after load | Mean latency |
-    |---|---|---|---|---|
-    | PyTorch (current) | 0.827 | — | 884 MB | 481 ms |
-    | ONNX fp32 | **0.827** | **200 / 200** (max logit diff 6e-5) | 531 MB | 1,062 ms (no KV cache) |
-    | ONNX INT8 (dynamic) | 0.728 | 107 / 200 | 254 MB | 741 ms |
-    | ONNX INT8 per-channel | 0.685 | 115 / 200 | 257 MB | 491 ms |
-    | ONNX INT8 per-channel, vocabulary layers fp32 | 0.714 | 125 / 200 | 382 MB | 840 ms |
-    | ONNX INT8 encoder + fp32 decoder | 0.724 | — | 437 MB | 1,565 ms |
-
-    Latencies are noisy: the laptop was also running other work.
-  - **Conclusion:** fp32 ONNX is exact and saves about 450 MB, but cannot reach 300 MB. Its weights alone are about 370 MB as exported, or about 240 MB if the shared embedding is stored once. With the dynamic and per-channel INT8 settings tried here, every variant falls below the 0.75 acceptance threshold. Reaching < 300 MB would need quantisation-aware fine-tuning or a smaller model, which means retraining on Kaggle and a new evaluation.
-- **Options (revised 2026-11-27):**
-  1. **ONNX fp32 with a KV cache, exported in notebook 01.** The runner drops PyTorch and keeps identical outputs. Amend the ML-001 memory budget to the measured value (about 550–650 MB, PROPOSED). Trade-offs: a notebook export change (no retraining is needed, but artifacts must come from the notebook, so you re-run it) and a NumPy beam search in the runner. The KV cache is needed to bring latency back to the PyTorch level.
-  2. **Keep PyTorch (former option 2).** Amend ADR-0003 and the budget to about 1.2 GB, declare `torch`, and investigate the RSS growth. Trade-offs: no work now, but the largest footprint, and a poor fit for the Milestone 4 server.
-  3. **Meet < 300 MB.** Quantisation-aware fine-tuning or distillation to a smaller model on Kaggle. Trade-offs: a new training approach (needs spec and dataset approval); success is uncertain.
-- **Recommendation (revised):** Option 1. It removes PyTorch, changes no output, and gives a budget that is honest and measured. Option 3 can be evaluated in Milestone 5 if memory matters on the server.
-- **Blocked work:** declaring `torch`; the ML-001 runtime and memory budget.
 - **Status:** Open
 
 ### D-005: Company research (US-014): sources and how summaries are produced
@@ -162,6 +128,45 @@ Move an entry here when the user decides. Change its status to Resolved, and add
 - **Status:** Resolved
 - **Decision:** Option 1, owner decision 2026-11-27 ("Go ahead with the in-repo PR"). The tool runs on demand only: it runs real CPU inference with the installed bundles, never trains, and writes to the git-ignored `build/model-dashboard/`.
 - **Recorded in:** `scripts/model_dashboard/` (README, `bench.py`, `build.py`)
+
+### D-004: ML-001 runtime uses PyTorch, but ADR-0003 approved ONNX Runtime only
+- **Raised:** 2026-11-26, during the pre-Iteration-6 codebase audit
+- **Area:** ML / architecture
+- **Ambiguity:** `TitleExpanderRunner` loads Flan-T5 via `torch` + `transformers`. ADR-0003 rejected the PyTorch CPU engine and chose ONNX Runtime. *Update 2026-11-26: the approved ML-001 model spec (§10–12) itself specifies safetensors + `AutoModelForSeq2SeqLM` + `torch.no_grad()`, so the conflict is between two approved documents. The rewritten notebook follows the spec.* `STATUS.md` lists "needs torch in .venv". `torch` is installed in `.venv` but declared nowhere. The `ml` extra added on 2026-11-26 declares only ADR-0003 packages (onnxruntime, transformers, numpy).
+- **Why it matters:** this is a model compatibility and inference-architecture contract (approval gate), and `torch` is a large dependency (about 700 MB+ on CPU).
+- **Options:**
+  1. Export ML-001 to ONNX (seq2seq encoder/decoder, for example via `optimum`) in the Kaggle notebook, and run it with ONNX Runtime. Trade-offs: matches ADR-0003 and uses less memory; needs a notebook change, which you would run.
+  2. Accept PyTorch for ML-001 only: amend ADR-0003 and declare `torch` in the `ml` extra. Trade-offs: no retraining needed; larger install and memory use.
+- **Recommendation:** Option 2 short term, since it unblocks the artifacts that are already trained. Plan Option 1 for Milestone 5 optimisation.
+- **Update 2026-11-27 (evidence, local, inference only):** ML-001 v2.0.0 (Kaggle run 5) is installed and passes acceptance. The open question is now its memory, against a spec budget of < 300 MB.
+  - **PyTorch runner (current):** 994 MB after load, 1,105 MB after 20 requests, 1,248 MB after 2,525 requests (it grows). Importing PyTorch and `transformers` alone costs about 520 MB.
+  - **ONNX prototype:** the installed weights were exported locally to an encoder and a decoder (without a KV cache). It runs on ONNX Runtime + `tokenizers` with a NumPy copy of the 2-beam constrained search, and never imports PyTorch.
+  - **Fixed overhead without PyTorch:** ONNX Runtime + `findrr` 67 MB, tokenizer 32 MB, title trie 32 MB.
+  - **Results on the first 200 test examples:**
+
+    | Variant | Occupation precision | Same output as PyTorch | RSS after load | Mean latency |
+    |---|---|---|---|---|
+    | PyTorch (current) | 0.827 | — | 884 MB | 481 ms |
+    | ONNX fp32 | **0.827** | **200 / 200** (max logit diff 6e-5) | 531 MB | 1,062 ms (no KV cache) |
+    | ONNX INT8 (dynamic) | 0.728 | 107 / 200 | 254 MB | 741 ms |
+    | ONNX INT8 per-channel | 0.685 | 115 / 200 | 257 MB | 491 ms |
+    | ONNX INT8 per-channel, vocabulary layers fp32 | 0.714 | 125 / 200 | 382 MB | 840 ms |
+    | ONNX INT8 encoder + fp32 decoder | 0.724 | — | 437 MB | 1,565 ms |
+
+    Latencies are noisy: the laptop was also running other work.
+  - **Conclusion:** fp32 ONNX is exact and saves about 450 MB, but cannot reach 300 MB. Its weights alone are about 370 MB as exported, or about 240 MB if the shared embedding is stored once. With the dynamic and per-channel INT8 settings tried here, every variant falls below the 0.75 acceptance threshold. Reaching < 300 MB would need quantisation-aware fine-tuning or a smaller model, which means retraining on Kaggle and a new evaluation.
+- **Options (revised 2026-11-27):**
+  1. **ONNX fp32 with a KV cache, exported in notebook 01.** The runner drops PyTorch and keeps identical outputs. Amend the ML-001 memory budget to the measured value (about 550–650 MB, PROPOSED). Trade-offs: a notebook export change (no retraining is needed, but artifacts must come from the notebook, so you re-run it) and a NumPy beam search in the runner. The KV cache is needed to bring latency back to the PyTorch level.
+  2. **Keep PyTorch (former option 2).** Amend ADR-0003 and the budget to about 1.2 GB, declare `torch`, and investigate the RSS growth. Trade-offs: no work now, but the largest footprint, and a poor fit for the Milestone 4 server.
+  3. **Meet < 300 MB.** Quantisation-aware fine-tuning or distillation to a smaller model on Kaggle. Trade-offs: a new training approach (needs spec and dataset approval); success is uncertain.
+- **Recommendation (revised):** Option 1. It removes PyTorch, changes no output, and gives a budget that is honest and measured. Option 3 can be evaluated in Milestone 5 if memory matters on the server.
+- **Blocked work:** declaring `torch`; the ML-001 runtime and memory budget.
+- **Status:** Resolved
+- **Decision:** Option 1 (revised), ONNX fp32 with a KV cache. Owner decision 2026-11-27. The ML-001 memory budget becomes < 550 MB RSS, a PROPOSED value confirmed by merging the implementing PR.
+- **Recorded in:**
+  - `src/findrr/ml/t5_onnx_decoding.py`, `src/findrr/ml/t5_onnx_export.py`, `TitleExpanderRunner`, registry (ML-001 v2.1.0);
+  - `notebooks/01_train_title_expander.ipynb`;
+  - `docs/ml/models/title-expander.md` §10–12 and §14, `docs/ml/training/title-expander.md`, ADR-0003 (update).
 
 ### D-010: ML-001 occupation precision 0.603; the model under-fits its training data
 - **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009). Revised the same day with local evidence; the first version blamed the repetition penalty, which the evidence below rules out as the main cause.

@@ -5,7 +5,7 @@
    "load_s": 6.05,
    "peak_rss_mb": 1065,
    "batch20_mean_ms": null,
-   "note": "Whole Python process after loading ML-001 with torch"
+   "note": "Whole Python process after loading ML-001 v2.0.0"
   },
   {
    "model_id": "ML-002",

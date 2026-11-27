@@ -17,13 +17,12 @@ import statistics
 import time
 from pathlib import Path
 
+from findrr.ml.registry import ModelRegistry
 from findrr.ml.similarity_evaluator_runner import SimilarityEvaluatorRunner
 from findrr.ml.title_expander_runner import TitleExpanderRunner
 
 REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-TE_REL = "title-expander/v2.0.0"
-SE_REL = "similarity-evaluator/v1.1.0"
 
 # Hand-picked public job titles: illustrations, not an evaluation set.
 TE_CASES = [
@@ -87,7 +86,16 @@ def main() -> None:
     cpus = os.cpu_count() or 1
     load_before = os.getloadavg()[0]
 
-    te = TitleExpanderRunner(args.models_dir / TE_REL, "2.0.0")
+    registry = ModelRegistry(base_models_dir=args.models_dir)
+    regs = {r.model_id: r for r in registry.list_registrations()}
+    for model_id in ("ML-001", "ML-002"):
+        if not registry.inspect_model_status(model_id)["integrity_verified"]:
+            raise SystemExit(
+                f"{model_id} v{regs[model_id].active_version} is not installed and verified, "
+                "so there is nothing current to measure. bench.json is unchanged."
+            )
+    versions = {m: regs[m].active_version for m in ("ML-001", "ML-002")}
+    te = TitleExpanderRunner(args.models_dir / regs["ML-001"].relative_path, versions["ML-001"])
     start = time.perf_counter()
     te.load()
     te_load = time.perf_counter() - start
@@ -111,7 +119,9 @@ def main() -> None:
             )
     rss_te = peak_rss_mb()
 
-    se = SimilarityEvaluatorRunner(args.models_dir / SE_REL, "1.1.0")
+    se = SimilarityEvaluatorRunner(
+        args.models_dir / regs["ML-002"].relative_path, versions["ML-002"]
+    )
     start = time.perf_counter()
     se.load()
     se_load = time.perf_counter() - start
@@ -134,6 +144,7 @@ def main() -> None:
     busy = max(load_before, load_after) / cpus > BUSY_LOAD_PER_CPU
     result = {
         "measured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "versions": versions,
         "cpu_count": cpus,
         "load_avg_1m": [round(load_before, 2), round(load_after, 2)],
         "machine_busy": busy,

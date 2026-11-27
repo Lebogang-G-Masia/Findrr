@@ -26,12 +26,13 @@ What updates by itself, and what doesn't:
 
 | Data | Source | Updates when |
 |---|---|---|
-| Metrics, integrity, bundle size, dataset sizes | Installed bundles in `models/` | The next commit after a bundle is installed |
+| Active versions, architectures, runtimes | The app's registry (`src/findrr/ml/registry.py`) | The commit that changes the registry |
+| Metrics, integrity, bundle size, dataset sizes | The active bundle in `models/`. If it is not installed yet, the newest intact earlier bundle, labelled as such | The next commit after a bundle is installed |
 | Decisions | `docs/DECISIONS_PENDING.md`, parsed (ML-area entries only) | The commit that edits the log |
 | Latency, memory, sample outputs | `data/bench.json` | You re-run `bench.py` on an idle machine and commit |
 | Earlier Kaggle runs, model descriptions, budgets, baselines | Typed into `build.py` from the docs | Someone edits `build.py` |
 
-After a new Kaggle run, add the previous current run to `RUN_HISTORY` in `build.py` and bump `CURRENT_RUN`.
+After a new Kaggle run, add the previous current run to `RUN_HISTORY` in `build.py`, bump `CURRENT_RUN`, and add the version to `INTEGRATION_VERIFIED` once real inference is verified. `bench.py` measures only the registry's active bundles, and refuses to run if they are not installed.
 
 ## Data files
 

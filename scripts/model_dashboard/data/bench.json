@@ -1,4 +1,9 @@
 {
+ "measured_at": "2026-11-27",
+ "versions": {
+  "ML-001": "2.0.0",
+  "ML-002": "1.1.0"
+ },
  "title_expander": {
   "load_s": 6.05,
   "requests": 50,
@@ -321,6 +326,5 @@
    "title_b": "Machine Learning Engineer",
    "score": 0.7521
   }
- ],
- "measured_at": "2026-11-27"
+ ]
 }

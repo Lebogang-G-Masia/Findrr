@@ -1,14 +1,14 @@
 """Build the Findrr Model Observatory's data files.
 
-Reads the installed bundle manifests, ``bench.json`` (from ``bench.py``) and the facts below,
-which are transcribed from ``docs/ml/`` and ``docs/DECISIONS_PENDING.md``. Writes one JSON file
-per dashboard dataset, each shaped ``{rows, meta}``, to ``<out>/data/``. Run from the repo root:
+Reads the app's model registry, the installed bundles, ``data/bench.json`` (from ``bench.py``),
+the decision log, and the facts below, which are transcribed from ``docs/ml/``. Writes one JSON
+file per dashboard dataset, each shaped ``{rows, meta}``, to ``data/``. Run from the repo root:
 
-    python scripts/model_dashboard/build.py [--out build/model-dashboard] [--models-dir models]
+    python scripts/model_dashboard/build.py [--out DIR] [--models-dir models]
 
-When a new Kaggle run or decision lands, update RUN_HISTORY or DECISIONS, re-run, and upload
-the changed files to the dashboard. Nothing here is fabricated: every value comes from a bundle
-manifest, the benchmark, or the cited document.
+The pre-commit hook in ``hooks/`` runs it before each commit (D-012). Nothing here is
+fabricated: every value comes from the registry, a bundle manifest, the benchmark, or the cited
+document.
 """
 
 from __future__ import annotations
@@ -18,12 +18,15 @@ import json
 import re
 from pathlib import Path
 
+from findrr.ml.manifest import load_manifest, verify_artifact_integrity
 from findrr.ml.registry import ModelRegistry
 
 REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-TE_REL = "title-expander/v2.0.0"
-SE_REL = "similarity-evaluator/v1.1.0"
+# Versions whose real inference in the app was verified (docs/STATUS.md, model status table).
+INTEGRATION_VERIFIED = {("ML-001", "2.0.0"), ("ML-002", "1.1.0")}
+# (latency ms, memory MB) budgets, spec section 12. ML-001 memory: < 550 MB RSS (D-004, PROPOSED).
+BUDGETS = {"ML-001": (1500, 550), "ML-002": (50, 100), "ML-003": (3000, 450)}
 LAPTOP = "bench.py on the Findrr laptop (Intel i5-1235U, CPU only)"
 
 # Kaggle runs before the current bundles, from the decision log. The latest run of each model
@@ -175,6 +178,25 @@ def parse_decisions(markdown: str) -> list[dict]:
     return rows
 
 
+def version_key(path: Path) -> tuple:
+    return tuple(int(x) for x in re.findall(r"\d+", path.name))
+
+
+def installed_bundle(models_dir: Path, reg) -> Path | None:
+    """The active bundle if installed and intact, else the newest intact installed version."""
+    active = models_dir / reg.relative_path
+    others = sorted((models_dir / reg.name).glob("v*"), key=version_key, reverse=True)
+    for d in [active] + [o for o in others if o != active]:
+        if not (d / "manifest.json").exists():
+            continue
+        try:
+            verify_artifact_integrity(load_manifest(d / "manifest.json"), d)
+        except Exception:  # corrupt or incomplete: never use it
+            continue
+        return d
+    return None
+
+
 def bundle_mb(path: Path) -> float:
     return round(sum(f.stat().st_size for f in path.iterdir() if f.is_file()) / 1e6, 1)
 
@@ -199,14 +221,20 @@ def main() -> None:
             "idle, or pass --allow-busy to build anyway."
         )
     measured = bench.get("measured_at", "")[:10]
-    m1 = json.loads((args.models_dir / TE_REL / "manifest.json").read_text())
-    m2 = json.loads((args.models_dir / SE_REL / "manifest.json").read_text())
-    e1, e2 = m1["evaluation_summary"], m2["evaluation_summary"]
+    # A bench.json without "versions" predates PR #40: it measured ML-001 2.0.0 and ML-002 1.1.0.
+    measured_v = bench.get("versions", {"ML-001": "2.0.0", "ML-002": "1.1.0"})
     registry = ModelRegistry(base_models_dir=args.models_dir)
-
-    def integrity(model_id):
-        status = registry.inspect_model_status(model_id)
-        return "Verified" if status["integrity_verified"] else "Failed"
+    regs = {r.model_id: r for r in registry.list_registrations()}
+    te_dir = installed_bundle(args.models_dir, regs["ML-001"])
+    se_dir = installed_bundle(args.models_dir, regs["ML-002"])
+    if te_dir is None or se_dir is None:
+        raise SystemExit(
+            "No intact ML-001 or ML-002 bundle is installed under " + str(args.models_dir)
+        )
+    m1 = json.loads((te_dir / "manifest.json").read_text())
+    m2 = json.loads((se_dir / "manifest.json").read_text())
+    e1, e2 = m1["evaluation_summary"], m2["evaluation_summary"]
+    decisions = parse_decisions(DECISIONS_DOC.read_text())
 
     def write(name, rows, sources):
         meta = [
@@ -218,71 +246,81 @@ def main() -> None:
         text = json.dumps({"rows": rows, "meta": meta}, indent=1, ensure_ascii=False) + "\n"
         (data_dir / f"{name}.json").write_text(text)
 
-    def accepted(manifest):
-        return "Passed" if manifest["metadata"]["acceptance"]["passed"] else "Failed"
+    def model_row(model_id, manifest, bundle_dir, **facts):
+        reg = regs[model_id]
+        active, used = reg.active_version, manifest["version"]
+        current = used == active
+        if current and (model_id, used) in INTEGRATION_VERIFIED:
+            stage, label = 5, "Real inference verified in the app"
+        elif current:
+            stage, label = 4, "Bundle verified"
+        else:
+            stage, label = 2, f"v{active} awaiting its Kaggle run; metrics are from v{used}"
+        passed_ = manifest["metadata"]["acceptance"]["passed"]
+        open_ = [d["id"] for d in decisions if d["model_id"] == model_id and d["status"] == "Open"]
+        return {
+            "model_id": model_id,
+            "name": reg.name,
+            "version": active,
+            "metrics_version": used,
+            "architecture": reg.architecture,
+            "runtime": "ONNX Runtime CPU"
+            if any(f.endswith(".onnx") for f in reg.required_files)
+            else "PyTorch CPU",
+            "bundle_mb": bundle_mb(bundle_dir),
+            "export_date": manifest["export_date"][:10],
+            "stage": stage,
+            "stage_label": label,
+            "integrity": "Verified" if current else f"v{active} not installed",
+            "acceptance": ("Passed" if passed_ else "Failed") if current else "Awaiting run",
+            "latency_budget_ms": BUDGETS[model_id][0],
+            "memory_budget_mb": BUDGETS[model_id][1],
+            "open_decision": ", ".join(open_),
+            **facts,
+        }
 
+    ml3 = regs["ML-003"]
     write(
         "models",
         [
-            {
-                "model_id": "ML-001",
-                "name": "title-expander",
-                "display": "Job Title Expander",
-                "version": m1["version"],
-                "task": "Turns a job title into up to 5 related, real O*NET job titles for search",
-                "feeds": "Module 3 (Search Terms)",
-                "architecture": "Seq2seq encoder-decoder (Flan-T5)",
-                "base": "google/flan-t5-small",
-                "params_m": 80,
-                "runtime": "PyTorch CPU (safetensors)",
-                "training": "Full fine-tune, 15 epochs, lr 3e-4, batch 32, FP32",
-                "dataset": "O*NET 31.0 (CC BY 4.0)",
-                "train_size": m1["metadata"]["examples"]["train"],
-                "test_size": m1["metadata"]["examples"]["test"],
-                "bundle_mb": bundle_mb(args.models_dir / TE_REL),
-                "export_date": m1["export_date"][:10],
-                "stage": 5,
-                "stage_label": "Real inference verified in the app",
-                "integrity": integrity("ML-001"),
-                "acceptance": accepted(m1),
-                "latency_budget_ms": 1500,
-                "memory_budget_mb": 300,
-                "open_decision": "D-004",
-            },
-            {
-                "model_id": "ML-002",
-                "name": "similarity-evaluator",
-                "display": "Similarity Evaluator",
-                "version": m2["version"],
-                "task": "Scores how alike two job titles are, to filter search terms and remove "
+            model_row(
+                "ML-001",
+                m1,
+                te_dir,
+                display="Job Title Expander",
+                task="Turns a job title into up to 5 related, real O*NET job titles for search",
+                feeds="Module 3 (Search Terms)",
+                base="google/flan-t5-small",
+                params_m=80,
+                training="Full fine-tune, 15 epochs, lr 3e-4, batch 32, FP32",
+                dataset="O*NET 31.0 (CC BY 4.0)",
+                train_size=m1["metadata"]["examples"]["train"],
+                test_size=m1["metadata"]["examples"]["test"],
+            ),
+            model_row(
+                "ML-002",
+                m2,
+                se_dir,
+                display="Similarity Evaluator",
+                task="Scores how alike two job titles are, to filter search terms and remove "
                 "duplicate postings",
-                "feeds": "Module 3 (Search Terms), Module 4 (Find Postings)",
-                "architecture": "Bi-encoder sentence transformer",
-                "base": "sentence-transformers/all-MiniLM-L6-v2",
-                "params_m": 22,
-                "runtime": "ONNX Runtime CPU (INT8)",
-                "training": "Contrastive fine-tune (MNRL), 4 epochs, lr 2e-5, batch 64, FP16",
-                "dataset": "O*NET 31.0 (CC BY 4.0)",
-                "train_size": m2["metadata"]["train_pairs"],
-                "test_size": int(e2["test_pairs"]),
-                "bundle_mb": bundle_mb(args.models_dir / SE_REL),
-                "export_date": m2["export_date"][:10],
-                "stage": 5,
-                "stage_label": "Real inference verified in the app",
-                "integrity": integrity("ML-002"),
-                "acceptance": accepted(m2),
-                "latency_budget_ms": 50,
-                "memory_budget_mb": 100,
-                "open_decision": "",
-            },
+                feeds="Module 3 (Search Terms), Module 4 (Find Postings)",
+                base="sentence-transformers/all-MiniLM-L6-v2",
+                params_m=22,
+                training="Contrastive fine-tune (MNRL), 4 epochs, lr 2e-5, batch 64, FP16",
+                dataset="O*NET 31.0 (CC BY 4.0)",
+                train_size=m2["metadata"]["train_pairs"],
+                test_size=int(e2["test_pairs"]),
+            ),
             {
                 "model_id": "ML-003",
-                "name": "application-tailor",
+                "name": ml3.name,
                 "display": "Application Tailor",
-                "version": "1.0.0-draft",
+                "version": ml3.active_version,
+                "metrics_version": None,
                 "task": "Phrases CV and cover-letter sentences from verified profile facts only",
                 "feeds": "Module 5 (Application Prep)",
-                "architecture": "Small instruction-tuned transformer",
+                "architecture": ml3.architecture,
                 "base": "Qwen/Qwen2.5-0.5B-Instruct (proposed)",
                 "params_m": 500,
                 "runtime": "ONNX Runtime CPU (planned)",
@@ -296,17 +334,21 @@ def main() -> None:
                 "stage_label": "Spec approved, notebook on hold",
                 "integrity": "No bundle",
                 "acceptance": "Not trained",
-                "latency_budget_ms": 3000,
-                "memory_budget_mb": 450,
-                "open_decision": "D-006",
+                "latency_budget_ms": BUDGETS["ML-003"][0],
+                "memory_budget_mb": BUDGETS["ML-003"][1],
+                "open_decision": ", ".join(
+                    d["id"]
+                    for d in decisions
+                    if d["model_id"] == "ML-003" and d["status"] == "Open"
+                ),
             },
         ],
         [
-            "docs/ml/models/*.md",
-            "docs/ml/model-registry.md",
-            "models/*/manifest.json",
-            "findrr model inspect",
-            "docs/STATUS.md (model status)",
+            "src/findrr/ml/registry.py (active versions, architectures, runtimes)",
+            "installed bundles in models/ (manifests, SHA-256 checks)",
+            "docs/ml/models/*.md (budgets, section 12)",
+            "docs/DECISIONS_PENDING.md (open decisions)",
+            "docs/STATUS.md (verified integrations)",
         ],
     )
 
@@ -551,12 +593,19 @@ def main() -> None:
         {
             "model_id": "ML-001",
             "scenario": "One expansion request",
+            "version": measured_v["ML-001"],
             "request": i + 1,
             "latency_ms": v,
         }
         for i, v in enumerate(bench["title_expander"]["latencies"])
     ] + [
-        {"model_id": "ML-002", "scenario": "One title pair", "request": i + 1, "latency_ms": v}
+        {
+            "model_id": "ML-002",
+            "scenario": "One title pair",
+            "version": measured_v["ML-002"],
+            "request": i + 1,
+            "latency_ms": v,
+        }
         for i, v in enumerate(bench["similarity_pair"]["latencies"])
     ]
     write("benchmark", bench_rows, [f"{LAPTOP}, {measured}"])
@@ -569,7 +618,7 @@ def main() -> None:
                 "load_s": bench["title_expander"]["load_s"],
                 "peak_rss_mb": bench["peak_rss_mb_after_ml001"],
                 "batch20_mean_ms": None,
-                "note": "Whole Python process after loading ML-001 with torch",
+                "note": f"Whole Python process after loading ML-001 v{measured_v['ML-001']}",
             },
             {
                 "model_id": "ML-002",
@@ -605,12 +654,12 @@ def main() -> None:
     ]
     write("samples", samples, [f"Real inference with the app's runners via {LAPTOP}, {measured}"])
 
-    write("decisions", parse_decisions(DECISIONS_DOC.read_text()), ["docs/DECISIONS_PENDING.md"])
+    write("decisions", decisions, ["docs/DECISIONS_PENDING.md"])
 
     # Dataset sizes. Split counts come from the manifests where they record them; occupation and
     # input-title counts are the local data-preparation measurements in the training docs.
     ex1 = m1["metadata"]["examples"]
-    dictionary = len(json.loads((args.models_dir / TE_REL / "titles.json").read_text()))
+    dictionary = len(json.loads((te_dir / "titles.json").read_text()))
 
     def split(model, name, kind, unit, count, occupations, inputs, source):
         return {
@@ -722,7 +771,7 @@ def main() -> None:
         ],
         [
             "models/*/manifest.json",
-            "models/title-expander/v2.0.0/titles.json",
+            "titles.json in the installed ML-001 bundle",
             te_doc,
             se_doc,
             "docs/DECISIONS_PENDING.md (D-008, D-010)",

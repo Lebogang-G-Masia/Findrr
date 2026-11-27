@@ -94,7 +94,7 @@
  "meta": [
   {
    "label": "Built from",
-   "value": "models/*/manifest.json; models/title-expander/v2.0.0/titles.json; docs/ml/training/title-expander.md; docs/ml/training/similarity-evaluator.md; docs/DECISIONS_PENDING.md (D-008, D-010)"
+   "value": "models/*/manifest.json; titles.json in the installed ML-001 bundle; docs/ml/training/title-expander.md; docs/ml/training/similarity-evaluator.md; docs/DECISIONS_PENDING.md (D-008, D-010)"
   },
   {
    "label": "Built by",

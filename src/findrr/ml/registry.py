@@ -37,17 +37,18 @@ CATALOG: Dict[str, ModelRegistration] = {
         model_id="ML-001",
         name="title-expander",
         # 2.0.0: retrained on O*NET 31.0; level vocabulary ANY/ENTRY/MID/SENIOR/LEAD.
-        active_version="2.0.0",
-        relative_path="title-expander/v2.0.0",
+        # 2.1.0: same model family, ONNX Runtime bundle with a KV cache, no PyTorch (D-004).
+        active_version="2.1.0",
+        relative_path="title-expander/v2.1.0",
         purpose="Generative search term expansion from generalized titles and skills",
-        architecture="google/flan-t5-small (Seq2Seq Transformer)",
+        architecture="google/flan-t5-small (Seq2Seq Transformer, ONNX fp32 + KV cache)",
         required_files=[
             "manifest.json",
-            "model.safetensors",
+            "encoder.onnx",
+            "decoder.onnx",
+            "embeddings.npy",
             "config.json",
-            "tokenizer.json",
-            "tokenizer_config.json",
-            "special_tokens_map.json",
+            "tokenizer.json",  # the ONNX runner reads only this tokenizer file
             "preprocess_config.json",
             "titles.json",  # D-007: constrained-decoding dictionary
         ],

@@ -73,26 +73,31 @@ The Job Title Expander generates context-aware, industry-standard alternative jo
 - **RAM / Disk:** Standard Kaggle GPU session (16 GB GPU VRAM, 30 GB disk space).
 
 ## 10. Artifact Formats & Export Bundle
+*Amended by D-004 (owner decision 2026-11-27, option 1): ONNX fp32 with a KV cache replaces safetensors, from v2.1.0.*
+
 The Kaggle notebook must package and export `title_expander_bundle.tar.gz` containing:
-- `model.safetensors` (trained weights, ~150 MB in FP16).
-- `config.json` (model architecture configuration).
-- `tokenizer.json`, `tokenizer_config.json`, `special_tokens_map.json`, `spiece.model`.
+- `encoder.onnx`: the encoder; input `inputs_embeds`, `attention_mask`; output `hidden` (about 76 MB).
+- `decoder.onnx`: one KV-cached decoding step; inputs `inputs_embeds`, `encoder_hidden_states`, `encoder_attention_mask`, `past_keys`, `past_values` (`(layers, batch, heads, past, d_kv)`); outputs `logits` (last position), `present_keys`, `present_values` (about 167 MB).
+- `embeddings.npy`: the shared token embedding (32128 × 512, fp32, about 66 MB), stored once and memory-mapped by the app.
+- The export must reproduce the trained model's logits (max absolute difference <= 1e-3 at every step, starting from an empty cache), or the notebook stops. The measured difference is recorded in the manifest (`onnx_parity`).
+- `config.json` (model architecture configuration, for reference).
+- `tokenizer.json` (read by the app with the `tokenizers` library), plus whatever tokenizer files `save_pretrained` writes.
 - `preprocess_config.json` (max input length = 128, max output length = 64, `max_new_tokens` = 64, `max_titles` = 5, `constrained_decoding` = true).
 - `titles.json`: the constrained-decoding dictionary of real O*NET titles (D-007).
 - `manifest.json` (cryptographic SHA-256 hashes, date, base checkpoint, evaluation results).
 
 ## 11. Server-Side Loading Requirements (Module 9)
-- Check all files exist in `models/title-expander/v1.0.0/`.
+- Check all files exist in `models/title-expander/v<version>/` (v2.1.0 from D-004).
 - Compute SHA-256 hashes and match against `manifest.json`.
 - Reject loading with `ArtifactCorruptedError` if any checksum differs.
-- Load via Hugging Face `AutoModelForSeq2SeqLM` and `AutoTokenizer` in evaluation mode.
+- Load the two ONNX Runtime CPU sessions, `tokenizer.json` with `tokenizers`, and `embeddings.npy` memory-mapped (D-004). PyTorch and `transformers` are not used at runtime.
 
 ## 12. Inference Requirements
-- **Execution Mode:** CPU inference using `torch.no_grad()`, `eval()`.
+- **Execution Mode:** ONNX Runtime CPU, fp32, with a KV cache (D-004). The 2-beam constrained search is implemented in NumPy in `findrr.ml.t5_onnx_decoding` and embedded verbatim in the notebook. It reproduces transformers' `generate` (length penalty 1.0, no early stopping); on 200 test inputs, its outputs were identical to the PyTorch model's.
 - **Generation Settings:** Beam search (`num_beams=2`, `do_sample=False`), max new tokens = 64, repetition penalty = 1.0 (off; amended by D-010, was 1.2). *Amended by D-007: temperature is dropped (no effect with beam search), and max new tokens is raised from 48 to 64 so five titles are not cut off.*
 - **Constrained decoding (D-007):** every generated title must be a complete entry of `titles.json` (token trie via `prefix_allowed_tokens_fn`), separated by commas. A title already generated cannot be repeated. At most `max_titles` titles are generated. Implemented once in `findrr.ml.title_constraint` and embedded verbatim in the notebook.
 - **Latency Budget:** < 1,500 ms per generation request on host Intel i5 CPU.
-- **Memory Footprint:** < 300 MB active RAM.
+- **Memory Footprint:** < 300 MB active RAM. *D-004 (owner decision 2026-11-27): not reachable without retraining (INT8 variants scored 0.685–0.728 occupation precision); amended to **< 550 MB RSS** for a process running only this model, a **PROPOSED** value from local measurements of v2.1.0 (about 435 MB after load; peak 486 MB over 400 requests, with no growth), confirmed by merging the implementing PR.*
 
 ## 13. Acceptance Criteria
 - **AC-ML-001.1:** The model generates at least 3 distinct alternative titles for standard roles (e.g. "Software Developer" yields "Backend Engineer", "Python Developer", "Full Stack Developer").
@@ -112,3 +117,9 @@ The Kaggle notebook must package and export `title_expander_bundle.tar.gz` conta
   - 15 epochs instead of 5;
   - repetition penalty 1.0 (off), read by the runner from `preprocess_config.json`;
   - precision on 500 training inputs is reported.
+- **D-004 (owner decision 2026-11-27, option 1), version 2.1.0:**
+  - the bundle is ONNX fp32 with a KV cache (§10), and the app runner no longer uses PyTorch or `transformers`;
+  - the model, training recipe, prompts and decoding settings are unchanged, so outputs equal v2.0.0's;
+  - the notebook evaluates the exported ONNX files with the app's own decoding code;
+  - the notebook can re-export an accepted v2.0.0 bundle without retraining (`REUSE_BUNDLE_DIR`);
+  - the memory budget is amended (§12).

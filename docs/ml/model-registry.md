@@ -30,7 +30,7 @@ Every model catalog entry defines:
 
 | Model ID | Model Name | Version | Framework | Target Task | Status | Checksum Manifest (SHA-256) |
 |---|---|---|---|---|---|---|
-| **ML-001** | `title-expander` | `v2.0.0` | PyTorch CPU (safetensors; see D-004) | Job title & search term expansion (Module 3) | **Verified** 2026-11-27 (Kaggle run 5; acceptance passed; memory budget not met, D-004) | `manifest.json` `f4ec8281…1b0e`, `model.safetensors` `f6af0170…fd478`, `titles.json` `9ce05bfa…63238`. Report: `docs/ml/evaluation-reports/title-expander-2.0.0.md` |
+| **ML-001** | `title-expander` | `v2.1.0` | ONNX Runtime (fp32, KV cache; D-004) | Job title & search term expansion (Module 3) | **Notebook Authored** (export change, 2026-11-27); awaiting a Kaggle run. v2.0.0 (PyTorch, run 5) was Verified 2026-11-27 and is superseded | v2.0.0: `manifest.json` `f4ec8281…1b0e`. Report: `docs/ml/evaluation-reports/title-expander-2.0.0.md` |
 | **ML-002** | `similarity-evaluator` | `v1.1.0` | ONNX Runtime (INT8) | Semantic similarity & deduplication (Modules 3 & 4) | **Verified** 2026-11-27 (acceptance passed) | `manifest.json` `943d2314…dc1e6`, `model.onnx` `f93e2689…cfa84`. Report: `docs/ml/evaluation-reports/similarity-evaluator-1.1.0.md` |
 | **ML-003** | `application-tailor` | `v1.0.0-draft` | ONNX Runtime | Tailored CV/cover letter assistant (Module 5) | **Notebook superseded: do not run** (D-006) | Blocked on D-006 |
 
@@ -43,9 +43,9 @@ Every model catalog entry defines:
   "active_models": {
     "title_expander": {
       "model_id": "ML-001",
-      "version": "v2.0.0",
-      "status": "VERIFIED",
-      "artifact_path": "models/title-expander/v2.0.0/"
+      "version": "v2.1.0",
+      "status": "NOTEBOOK_AUTHORED",
+      "artifact_path": "models/title-expander/v2.1.0/"
     },
     "similarity_evaluator": {
       "model_id": "ML-002",

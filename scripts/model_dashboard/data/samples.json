@@ -1,0 +1,194 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "input": "Software Developer",
+   "context": "skills: Python, SQL, Docker · level: ANY",
+   "output": "Application Developer, Application Integration Engineer, Developer, DevOps Engineer, Infrastructure Engineer",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Registered Nurse",
+   "context": "skills: general · level: ANY",
+   "output": "APN, Board Certified Clinical Nurse Specialist, Clinical Nurse Specialists, CNS, Critical Care CNS",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Data Analyst",
+   "context": "skills: Excel, Tableau · level: ENTRY",
+   "output": "Market Survey Representative, Research Fellow, Research Interviewer, Research Scientist",
+   "n_titles": 4,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Electrician",
+   "context": "skills: general · level: SENIOR",
+   "output": "Electrical and Instrumentation Technician, Electrical Technician, Instrument and Control Technician, Instrumentation and Control Technician, Substation Electrician",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Accountant",
+   "context": "skills: Excel · level: ANY",
+   "output": "Bank Examiner, Bank Secrecy Act Anti-Money Laundering Officer, Community Reinvestment Act Officer, Compliance Analyst, Compliance Specialist",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Graphic Designer",
+   "context": "skills: Adobe Photoshop · level: ANY",
+   "output": "Artist, Brand Designer, Designer, Graphic Artist, Graphic Design Coordinator",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Truck Driver",
+   "context": "skills: general · level: ANY",
+   "output": "CDL Driver, Driver, Heavy and Tractor-Trailer Truck Drivers, Line Haul Driver, Log Truck Driver",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Teacher",
+   "context": "skills: general · level: ANY",
+   "output": "Bilingual Kindergarten Teacher, Classroom Teacher, Educator, Instructor, Kinder Teacher",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Chef",
+   "context": "skills: general · level: LEAD",
+   "output": "Banquet Chef, Executive Chef, Executive Pastry Chef, Executive Sous Chef",
+   "n_titles": 4,
+   "score": null
+  },
+  {
+   "model_id": "ML-001",
+   "input": "Mechanical Engineer",
+   "context": "skills: AutoCAD · level: MID",
+   "output": "Automotive Sheet Metal Engineer, Ceramic Engineer, Extrusion Engineer, Materials Development Engineer, Materials Engineers",
+   "n_titles": 5,
+   "score": null
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Software Developer",
+   "context": "Software Engineer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.9083
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Software Developer",
+   "context": "Dental Assistant",
+   "output": "",
+   "n_titles": null,
+   "score": 0.2516
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Data Analyst",
+   "context": "Business Intelligence Analyst",
+   "output": "",
+   "n_titles": null,
+   "score": 0.783
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Registered Nurse",
+   "context": "Staff Nurse",
+   "output": "",
+   "n_titles": null,
+   "score": 0.8282
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Registered Nurse",
+   "context": "Truck Driver",
+   "output": "",
+   "n_titles": null,
+   "score": 0.184
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Accountant",
+   "context": "Bookkeeper",
+   "output": "",
+   "n_titles": null,
+   "score": 0.5246
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Chef",
+   "context": "Line Cook",
+   "output": "",
+   "n_titles": null,
+   "score": 0.7963
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Electrician",
+   "context": "Software Engineer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.3306
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Graphic Designer",
+   "context": "Visual Designer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.8904
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Teacher",
+   "context": "Mechanical Engineer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.1975
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Backend Engineer",
+   "context": "Python Developer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.5426
+  },
+  {
+   "model_id": "ML-002",
+   "input": "Data Scientist",
+   "context": "Machine Learning Engineer",
+   "output": "",
+   "n_titles": null,
+   "score": 0.7521
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "Real inference with the app's runners via bench.py on the Findrr laptop (Intel i5-1235U, CPU only), 2026-11-27"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  },
+  {
+   "label": "Measured by",
+   "value": "scripts/model_dashboard/bench.py"
+  }
+ ]
+}

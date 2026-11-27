@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from findrr.ml.registry import ModelRegistry
@@ -105,56 +106,7 @@ CURRENT_RUN = {
     "ML-002": (2, "Pearson reported, not gated"),
 }
 
-DECISIONS = [
-    (
-        "D-004",
-        "ML-001",
-        "2026-11-26",
-        "Open",
-        "ML-001 runs on PyTorch, but ADR-0003 approved ONNX Runtime only",
-        "Recommended: accept PyTorch for ML-001 now, export to ONNX in Milestone 5",
-    ),
-    (
-        "D-006",
-        "ML-003",
-        "2026-11-26",
-        "Open",
-        "ML-003 training data and notebook rewrite",
-        "Recommended: targets built only from input facts, checked word by word",
-    ),
-    (
-        "D-007",
-        "ML-001",
-        "2026-11-26",
-        "Resolved",
-        "ROUGE-L target unreachable; model repeated and invented titles",
-        "Constrained decoding over real O*NET titles; occupation precision replaces ROUGE-L",
-    ),
-    (
-        "D-008",
-        "ML-002",
-        "2026-11-26",
-        "Resolved",
-        "Pearson r capped by noisy proxy labels",
-        "Pearson r reported, no longer gated",
-    ),
-    (
-        "D-009",
-        "ML-001",
-        "2026-11-26",
-        "Resolved",
-        "Precision 0.478; threshold set against an unfair baseline",
-        "Split by input title instead of occupation; 0.75 kept",
-    ),
-    (
-        "D-010",
-        "ML-001",
-        "2026-11-27",
-        "Resolved",
-        "Precision 0.603; the model under-fits",
-        "Up to 30 extra input titles per occupation, 15 epochs, repetition penalty off",
-    ),
-]
+DECISIONS_DOC = REPO / "docs/DECISIONS_PENDING.md"
 
 # docs/ml/training/title-expander.md, reference points for the input-title split (D-009).
 BASELINES = [
@@ -172,13 +124,64 @@ def passed(value, threshold, op):
     return value >= threshold if op == ">=" else value < threshold
 
 
+def first_sentence(text: str) -> str:
+    text = re.sub(r"[*`]", "", text).strip()
+    match = re.match(r"(.+?[.;])(\s|$)", text)
+    return (match.group(1) if match else text).rstrip(".;")
+
+
+def parse_decisions(markdown: str) -> list[dict]:
+    """ML decisions from the decision log, in document order (open first, then resolved)."""
+    rows = []
+    for block in re.split(r"^### ", markdown, flags=re.M)[1:]:
+        head = re.match(r"(D-\d{3}): (.+)", block)
+        if not head:
+            continue  # the template's D-NNN
+
+        def field(name, text=block):
+            found = re.search(rf"^- \*\*{name}:\*\* (.+)$", text, flags=re.M)
+            return found.group(1).strip() if found else ""
+
+        if "ML" not in field("Area").split(" / ") and "ML" != field("Area"):
+            continue
+        status = field("Status") or "Open"
+        raised = re.search(r"\d{4}-\d{2}-\d{2}", field("Raised"))
+        models = re.findall(r"ML-00\d", head.group(2)) or re.findall(r"ML-00\d", block)
+        options = {
+            m.group(1): re.sub(r"\s*\(recommended\)", "", m.group(2), flags=re.I).rstrip(".")
+            for m in re.finditer(r"^\s+(\d)\. \*\*(.+?)\*\*", block, flags=re.M)
+        }
+
+        def named(text):
+            chosen = re.search(r"Option (\d)", text)
+            if chosen and chosen.group(1) in options:
+                return f"Option {chosen.group(1)}: {options[chosen.group(1)]}"
+            return first_sentence(text)
+
+        if status == "Resolved" and field("Decision"):
+            outcome = named(field("Decision"))
+        else:
+            outcome = "Recommended: " + named(field("Recommendation"))
+        rows.append(
+            {
+                "id": head.group(1),
+                "model_id": models[0] if models else "General",
+                "date": raised.group(0) if raised else None,
+                "status": status,
+                "title": head.group(2).strip(),
+                "outcome": outcome,
+            }
+        )
+    return rows
+
+
 def bundle_mb(path: Path) -> float:
     return round(sum(f.stat().st_size for f in path.iterdir() if f.is_file()) / 1e6, 1)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--out", type=Path, default=REPO / "build/model-dashboard")
+    parser.add_argument("--out", type=Path, default=HERE / "data")
     parser.add_argument("--models-dir", type=Path, default=REPO / "models")
     parser.add_argument(
         "--allow-busy",
@@ -186,10 +189,8 @@ def main() -> None:
         help="build even if bench.json was measured on a busy machine",
     )
     args = parser.parse_args()
-    data_dir = args.out / "data"
+    data_dir = args.out
     data_dir.mkdir(parents=True, exist_ok=True)
-
-    code = {name: (HERE / name).read_text() for name in ("build.py", "bench.py")}
     bench = json.loads((args.out / "bench.json").read_text())
     if bench.get("machine_busy") and not args.allow_busy:
         raise SystemExit(
@@ -210,13 +211,12 @@ def main() -> None:
     def write(name, rows, sources):
         meta = [
             {"label": "Built from", "value": "; ".join(sources)},
-            {"label": "build.py", "value": code["build.py"], "type": "code", "lang": "python"},
+            {"label": "Built by", "value": "scripts/model_dashboard/build.py"},
         ]
         if any(LAPTOP in s for s in sources):
-            meta.append(
-                {"label": "bench.py", "value": code["bench.py"], "type": "code", "lang": "python"}
-            )
-        (data_dir / f"{name}.json").write_text(json.dumps({"rows": rows, "meta": meta}, indent=1))
+            meta.append({"label": "Measured by", "value": "scripts/model_dashboard/bench.py"})
+        text = json.dumps({"rows": rows, "meta": meta}, indent=1, ensure_ascii=False) + "\n"
+        (data_dir / f"{name}.json").write_text(text)
 
     def accepted(manifest):
         return "Passed" if manifest["metadata"]["acceptance"]["passed"] else "Failed"
@@ -604,14 +604,7 @@ def main() -> None:
     ]
     write("samples", samples, [f"Real inference with the app's runners via {LAPTOP}, {measured}"])
 
-    write(
-        "decisions",
-        [
-            {"id": i, "model_id": m, "date": d, "status": st, "title": t, "outcome": o}
-            for i, m, d, st, t, o in DECISIONS
-        ],
-        ["docs/DECISIONS_PENDING.md"],
-    )
+    write("decisions", parse_decisions(DECISIONS_DOC.read_text()), ["docs/DECISIONS_PENDING.md"])
 
     # Dataset sizes. Split counts come from the manifests where they record them; occupation and
     # input-title counts are the local data-preparation measurements in the training docs.
@@ -757,7 +750,7 @@ def main() -> None:
         ["docs/DECISIONS_PENDING.md (D-008)", se_doc],
     )
 
-    print("Wrote", ", ".join(sorted(p.name for p in data_dir.iterdir())), "to", data_dir)
+    print("Wrote", ", ".join(sorted(p.name for p in data_dir.glob("*.json"))), "to", data_dir)
 
 
 if __name__ == "__main__":

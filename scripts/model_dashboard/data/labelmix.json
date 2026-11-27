@@ -1,0 +1,38 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-002",
+   "label": 3,
+   "meaning": "Same occupation",
+   "pairs": 306
+  },
+  {
+   "model_id": "ML-002",
+   "label": 2,
+   "meaning": "Closely related (Primary-Short)",
+   "pairs": 99
+  },
+  {
+   "model_id": "ML-002",
+   "label": 1,
+   "meaning": "Loosely related (Primary-Long)",
+   "pairs": 89
+  },
+  {
+   "model_id": "ML-002",
+   "label": 0,
+   "meaning": "Different major group",
+   "pairs": 306
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "docs/DECISIONS_PENDING.md (D-008); docs/ml/training/similarity-evaluator.md"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

@@ -111,6 +111,21 @@ Copy this block for each new decision. Number entries `D-001`, `D-002`, and so o
 
 Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
 
+### D-012: How the model dashboard's numbers stay current
+- **Raised:** 2026-11-27, owner request: "The numbers on the dashboard should NOT be a snapshot. They should update if anything changes."
+- **Area:** process
+- **Ambiguity:** The dashboard's data is files built on the laptop and uploaded by hand. A dashboard page can only read live data through a claude.ai connector, and there is no GitHub connector in this setup. Half the numbers (the installed bundles' manifests, the latency benchmark, sample outputs) exist only on the laptop: `models/` is git-ignored. Run history and decisions are also typed into `build.py` instead of read from a machine-readable source.
+- **Why it matters:** each option changes what is committed to this public repo or adds automation that acts on the owner's account.
+- **Options:**
+  1. **Commit the built data and read it live from GitHub.** `build.py` writes small JSON files (metrics, benchmark and splits; no weights) to a committed folder. A git hook rebuilds them on each commit, and the dashboard reads them through a GitHub connector every time it is opened. Trade-offs: truly live for anything merged to `main`, and every reader sees the same data. Needs the owner to connect GitHub on claude.ai. Laptop-only facts change when the hook runs.
+  2. **Local watcher.** A user-level systemd unit watches `models/` and `docs/`, rebuilds, and runs headless Claude Code to upload the changed files. Trade-offs: updates within a minute of any local change, with nothing new committed; works only while the laptop is on, and gives headless Claude upload rights.
+  3. **Cloud routine on every push to `main`.** A scheduled-task webhook rebuilds from the repo and uploads. Trade-offs: no connector and no laptop needed, but like option 1 it needs the data committed, and every run costs usage.
+- **Recommendation:** Option 1. It is the only option where the page itself reads live data, and it has no moving parts beyond a git hook.
+- **Blocked work:** live dashboard data.
+- **Status:** Resolved
+- **Decision:** Option 1, owner decision 2026-11-27 ("Live from GitHub"). `build.py` writes `scripts/model_dashboard/data/` (committed), reads decisions straight from this log, and a `pre-commit` hook in `scripts/model_dashboard/hooks/` rebuilds and stages the data before each commit, without ever blocking one. The dashboard reads `data/` through a GitHub connector once the owner connects GitHub on claude.ai; until then the files are uploaded by hand.
+- **Recorded in:** `scripts/model_dashboard/README.md`, `build.py`, `bench.py`, `hooks/pre-commit`
+
 ### D-011: Where the model dashboard's data tool lives
 - **Raised:** 2026-11-27, after building the Findrr Model Observatory (a private claude.ai dashboard about ML-001 to ML-003) at the user's request, outside the plan
 - **Area:** process

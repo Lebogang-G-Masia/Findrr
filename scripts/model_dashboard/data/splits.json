@@ -1,0 +1,104 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "split": "Train",
+   "kind": "split",
+   "unit": "examples",
+   "count": 42624,
+   "occupations": 894,
+   "distinct_inputs": 22967,
+   "source": "manifest; occupations and inputs: docs/ml/training/title-expander.md"
+  },
+  {
+   "model_id": "ML-001",
+   "split": "Validation",
+   "kind": "split",
+   "unit": "examples",
+   "count": 2720,
+   "occupations": 432,
+   "distinct_inputs": 483,
+   "source": "manifest; occupations and inputs: docs/ml/training/title-expander.md"
+  },
+  {
+   "model_id": "ML-001",
+   "split": "Test",
+   "kind": "split",
+   "unit": "examples",
+   "count": 2525,
+   "occupations": 403,
+   "distinct_inputs": 459,
+   "source": "manifest; occupations and inputs: docs/ml/training/title-expander.md"
+  },
+  {
+   "model_id": "ML-001",
+   "split": "Test inputs never seen in training",
+   "kind": "subset",
+   "unit": "examples",
+   "count": 110,
+   "occupations": null,
+   "distinct_inputs": 22,
+   "source": "manifest; inputs: docs/ml/training/title-expander.md"
+  },
+  {
+   "model_id": "ML-001",
+   "split": "Training-input sample (under-fit check)",
+   "kind": "subset",
+   "unit": "examples",
+   "count": 500,
+   "occupations": null,
+   "distinct_inputs": null,
+   "source": "D-010"
+  },
+  {
+   "model_id": "ML-001",
+   "split": "Constrained-decoding dictionary",
+   "kind": "vocabulary",
+   "unit": "titles",
+   "count": 45713,
+   "occupations": null,
+   "distinct_inputs": null,
+   "source": "titles.json in the bundle"
+  },
+  {
+   "model_id": "ML-002",
+   "split": "Train",
+   "kind": "split",
+   "unit": "pairs",
+   "count": 39927,
+   "occupations": null,
+   "distinct_inputs": null,
+   "source": "manifest"
+  },
+  {
+   "model_id": "ML-002",
+   "split": "Validation",
+   "kind": "split",
+   "unit": "pairs",
+   "count": null,
+   "occupations": null,
+   "distinct_inputs": null,
+   "source": "not recorded in the manifest"
+  },
+  {
+   "model_id": "ML-002",
+   "split": "Test",
+   "kind": "split",
+   "unit": "pairs",
+   "count": 800,
+   "occupations": 102,
+   "distinct_inputs": null,
+   "source": "manifest; occupations: D-008"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "models/*/manifest.json; models/title-expander/v2.0.0/titles.json; docs/ml/training/title-expander.md; docs/ml/training/similarity-evaluator.md; docs/DECISIONS_PENDING.md (D-008, D-010)"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

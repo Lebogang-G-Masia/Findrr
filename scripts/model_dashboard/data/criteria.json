@@ -1,0 +1,190 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "metric": "occupation_precision",
+   "label": "Occupation precision",
+   "value": 0.8505363528009535,
+   "op": ">=",
+   "threshold": 0.75,
+   "gated": true,
+   "passed": true,
+   "note": "Share of generated titles in the input's occupation or a closely related one"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "valid_title_ratio",
+   "label": "Valid title ratio",
+   "value": 1.0,
+   "op": ">=",
+   "threshold": 0.85,
+   "gated": true,
+   "passed": true,
+   "note": "Share of generated titles that are real O*NET titles"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "repetition_rate",
+   "label": "Repetition rate",
+   "value": 0.0,
+   "op": "<",
+   "threshold": 0.05,
+   "gated": true,
+   "passed": true,
+   "note": "Share of titles repeated within one answer"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "distinct_titles",
+   "label": "Distinct titles for \"Software Developer\"",
+   "value": 5.0,
+   "op": ">=",
+   "threshold": 3,
+   "gated": true,
+   "passed": true,
+   "note": "AC-ML-001.1"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "precision_novel",
+   "label": "Precision on never-seen wording",
+   "value": 0.936247723132969,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "110 test examples whose wording never appears in training"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "precision_train",
+   "label": "Precision on training inputs",
+   "value": 0.8795180722891566,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "500 seeded training inputs; checks for under-fitting (D-010)"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "rougeL",
+   "label": "ROUGE-L",
+   "value": 0.6834955241852941,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "Reported only since D-007"
+  },
+  {
+   "model_id": "ML-001",
+   "metric": "bleu4",
+   "label": "BLEU-4",
+   "value": 0.6399621028095025,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "Reported only"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "precision_at_0_70",
+   "label": "Precision at 0.70",
+   "value": 0.9629629629629629,
+   "op": ">=",
+   "threshold": 0.9,
+   "gated": true,
+   "passed": true,
+   "note": "Share of pairs scored 0.70 or more that really are the same or a closely related occupation"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "synonym",
+   "label": "\"Software Developer\" vs \"Software Engineer\"",
+   "value": 0.9082897489579137,
+   "op": ">=",
+   "threshold": 0.85,
+   "gated": true,
+   "passed": true,
+   "note": "AC-ML-002.1"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "distinct",
+   "label": "\"Software Developer\" vs \"Dental Assistant\"",
+   "value": 0.25160762427000233,
+   "op": "<",
+   "threshold": 0.3,
+   "gated": true,
+   "passed": true,
+   "note": "AC-ML-002.2"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "pearson_r",
+   "label": "Pearson r vs proxy labels",
+   "value": 0.745012611315731,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "Was gated at 0.85; reported only since D-008"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "spearman_rho",
+   "label": "Spearman rho vs proxy labels",
+   "value": 0.7671550164106441,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "Reported only"
+  },
+  {
+   "model_id": "ML-002",
+   "metric": "onnx_parity",
+   "label": "INT8 ONNX vs PyTorch cosine",
+   "value": 0.9722317879190944,
+   "op": ">=",
+   "threshold": null,
+   "gated": false,
+   "passed": null,
+   "note": "How closely the shipped INT8 model matches the full-precision one"
+  },
+  {
+   "model_id": "ML-003",
+   "metric": "fact_precision",
+   "label": "Factual precision",
+   "value": null,
+   "op": ">=",
+   "threshold": 1.0,
+   "gated": true,
+   "passed": null,
+   "note": "Zero invented entities. Not trained yet"
+  },
+  {
+   "model_id": "ML-003",
+   "metric": "json_compliance",
+   "label": "JSON schema compliance",
+   "value": null,
+   "op": ">=",
+   "threshold": 0.99,
+   "gated": true,
+   "passed": null,
+   "note": "Not trained yet"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "models/*/manifest.json; docs/ml/models/application-tailor.md §8"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

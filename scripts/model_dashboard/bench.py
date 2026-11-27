@@ -21,6 +21,7 @@ from findrr.ml.similarity_evaluator_runner import SimilarityEvaluatorRunner
 from findrr.ml.title_expander_runner import TitleExpanderRunner
 
 REPO = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve().parent
 TE_REL = "title-expander/v2.0.0"
 SE_REL = "similarity-evaluator/v1.1.0"
 
@@ -76,8 +77,11 @@ def peak_rss_mb() -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--out", type=Path, default=REPO / "build/model-dashboard")
+    parser.add_argument("--out", type=Path, default=HERE / "data")
     parser.add_argument("--models-dir", type=Path, default=REPO / "models")
+    parser.add_argument(
+        "--allow-busy", action="store_true", help="save the results even on a busy machine"
+    )
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     cpus = os.cpu_count() or 1
@@ -151,17 +155,20 @@ def main() -> None:
         "te_samples": te_samples,
         "pair_samples": se_samples,
     }
-    (args.out / "bench.json").write_text(json.dumps(result, indent=1))
-    print(
+    summary = (
         f"ML-001 mean {result['title_expander']['mean_ms']} ms, "
         f"ML-002 mean {result['similarity_pair']['mean_ms']} ms, "
-        f"peak RSS {result['peak_rss_mb_both']} MB -> {args.out / 'bench.json'}"
+        f"peak RSS {result['peak_rss_mb_both']} MB"
     )
-    if busy:
-        print(
-            f"WARNING: load average {result['load_avg_1m']} on {cpus} CPUs. Other processes "
-            "were competing, so these latencies are not representative. Re-run when idle."
+    if busy and not args.allow_busy:
+        raise SystemExit(
+            f"NOT SAVED ({summary}): load average {result['load_avg_1m']} on {cpus} CPUs. "
+            "Other processes were competing, so these latencies are not representative. "
+            "Re-run when the machine is idle, or pass --allow-busy."
         )
+    text = json.dumps(result, indent=1, ensure_ascii=False) + "\n"
+    (args.out / "bench.json").write_text(text)
+    print(f"{summary} -> {args.out / 'bench.json'}")
 
 
 if __name__ == "__main__":

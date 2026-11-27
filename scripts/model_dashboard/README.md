@@ -1,49 +1,56 @@
-# Model dashboard data tool
+# Model dashboard
 
-A developer tool that builds the data behind the **Findrr Model Observatory**, a private claude.ai dashboard about Findrr's ML models (ML-001, ML-002, ML-003). It is not part of the Findrr app: nothing in `src/` imports it, and it never trains a model. Decision: D-011.
+Source and data for the **Findrr Model Observatory**, a private claude.ai dashboard about Findrr's ML models (ML-001, ML-002, ML-003). It is a developer tool, not part of the Findrr app: nothing in `src/` imports it, and it never trains a model. Decisions: D-011 (it lives here) and D-012 (its data stays current).
 
-## What it produces
+| Path | What it is |
+|---|---|
+| `page.html` | The dashboard page: HTML, CSS and drawing scripts (stored on claude.ai as `files/index.html` of a Data artifact) |
+| `dashboard.json` | The dashboard's title and datasets: each one's id, title, description and data file |
+| `data/` | The dashboard's data, committed so the dashboard can read it from GitHub |
+| `build.py` | Rebuilds every file in `data/` except `bench.json` |
+| `bench.py` | Measures the installed bundles on this machine and writes `data/bench.json` |
+| `hooks/pre-commit` | Runs `build.py` before each commit and adds any data change to the commit |
 
-Ten JSON files, each shaped `{rows, meta}`, one per dashboard dataset:
+## How the numbers stay current (D-012)
 
-| File | Contents | Source |
-|---|---|---|
-| `models.json` | Spec, runtime, bundle size, lifecycle, integrity, acceptance | Model specs, registry, bundle manifests, `ModelRegistry.inspect_model_status` |
-| `criteria.json` | Gated and reported metrics of the installed bundles | Bundle manifests |
-| `runs.json` | Metrics per Kaggle run | `RUN_HISTORY` in `build.py` (from `docs/DECISIONS_PENDING.md`) and the manifests |
-| `baselines.json` | ML-001 occupation-precision reference points | `docs/ml/training/title-expander.md` |
-| `benchmark.json` | Per-request CPU latency | `bench.py` |
-| `resources.json` | Load time, peak process memory, batch latency | `bench.py` |
-| `samples.json` | Real outputs for hand-picked inputs | `bench.py` (the app's own runners) |
-| `splits.json` | Train, validation and test sizes, evaluation subsets, title dictionary | Manifests, `titles.json`, training docs |
-| `labelmix.json` | ML-002 test-pair label mix | D-008 |
-| `decisions.json` | ML decisions, open and resolved | `DECISIONS` in `build.py` (from `docs/DECISIONS_PENDING.md`) |
-
-Output goes to `build/model-dashboard/`, which `.gitignore` excludes. Never commit it.
-
-## Page source
-
-- `page.html` is the dashboard page: its HTML, CSS and drawing scripts. On claude.ai it is stored as `files/index.html` of a Data (dashboard) artifact.
-- `dashboard.json` lists the dashboard's title and its datasets: each one's id, title, description and data file.
-
-Together with the data files, they recreate the whole dashboard from this repo. If the page is edited on claude.ai, copy it back here.
-
-## Refresh after a Kaggle run or a decision
-
-1. Install the new bundle and run `findrr model inspect ML-00x`. It must report `Integrity Verified: Yes`.
-2. If a run or decision is new, add it to `RUN_HISTORY` or `DECISIONS` in `build.py` (with the number of the run the installed bundle came from in `CURRENT_RUN`).
-3. With the virtual environment active and the machine otherwise idle, run:
+1. **Before each commit**, the hook rebuilds `data/` from its sources and adds any change to the commit. Install it once per clone:
 
    ```bash
-   python scripts/model_dashboard/bench.py
-   python scripts/model_dashboard/build.py
+   git config core.hooksPath scripts/model_dashboard/hooks
    ```
 
-4. Upload the changed files from `build/model-dashboard/data/` to the dashboard (ask Claude to do it).
+   The hook never blocks a commit. Without `.venv/`, the installed bundles or `data/bench.json`, it does nothing, so CI and fresh clones are unaffected.
+2. **When the commit is merged to `main`**, the dashboard picks it up. Once the dashboard reads through a GitHub connector, each reader's page loads `data/` from `main` when it opens. Until then the files are uploaded to the dashboard by hand.
+
+What updates by itself, and what doesn't:
+
+| Data | Source | Updates when |
+|---|---|---|
+| Metrics, integrity, bundle size, dataset sizes | Installed bundles in `models/` | The next commit after a bundle is installed |
+| Decisions | `docs/DECISIONS_PENDING.md`, parsed (ML-area entries only) | The commit that edits the log |
+| Latency, memory, sample outputs | `data/bench.json` | You re-run `bench.py` on an idle machine and commit |
+| Earlier Kaggle runs, model descriptions, budgets, baselines | Typed into `build.py` from the docs | Someone edits `build.py` |
+
+After a new Kaggle run, add the previous current run to `RUN_HISTORY` in `build.py` and bump `CURRENT_RUN`.
+
+## Data files
+
+Each data file is shaped `{rows, meta}`, and `meta` names its sources.
+
+| File | Contents |
+|---|---|
+| `models.json` | Spec, runtime, bundle size, lifecycle, integrity (checked with `ModelRegistry`), acceptance |
+| `criteria.json` | Gated and reported metrics of the installed bundles |
+| `runs.json` | Metrics per Kaggle run |
+| `baselines.json` | ML-001 occupation-precision reference points |
+| `splits.json` | Train, validation and test sizes, evaluation subsets, the title dictionary |
+| `labelmix.json` | ML-002 test-pair label mix (D-008) |
+| `benchmark.json`, `resources.json`, `samples.json` | Latency, load time and memory, and real outputs, from `bench.json` |
+| `decisions.json` | ML decisions from the decision log |
 
 ## Caveats
 
-- `bench.py` runs real CPU inference and needs both bundles installed, plus `torch` for ML-001 (see D-004).
-- Latency depends on what else the machine is doing. `bench.py` records the load average and warns when the machine is busy, and `build.py` refuses such a benchmark unless you pass `--allow-busy`. The 0.5 load-per-CPU limit is provisional.
+- `bench.py` runs real CPU inference. It needs both bundles installed, plus `torch` for ML-001 (see D-004). It refuses to save results from a busy machine (load above 0.5 per CPU, a provisional limit) unless you pass `--allow-busy`.
 - Peak memory is the whole Python process, runtime included, so it is not directly comparable with the specs' model RAM budgets.
 - The samples illustrate behaviour. They are not an evaluation.
+- The repo is public, so everything in `data/` is published. It holds metrics, timings and public O*NET titles only. Never put personal data in it.

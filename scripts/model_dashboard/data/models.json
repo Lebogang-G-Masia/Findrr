@@ -1,0 +1,89 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "name": "title-expander",
+   "display": "Job Title Expander",
+   "version": "2.0.0",
+   "task": "Turns a job title into up to 5 related, real O*NET job titles for search",
+   "feeds": "Module 3 (Search Terms)",
+   "architecture": "Seq2seq encoder-decoder (Flan-T5)",
+   "base": "google/flan-t5-small",
+   "params_m": 80,
+   "runtime": "PyTorch CPU (safetensors)",
+   "training": "Full fine-tune, 15 epochs, lr 3e-4, batch 32, FP32",
+   "dataset": "O*NET 31.0 (CC BY 4.0)",
+   "train_size": 42624,
+   "test_size": 2525,
+   "bundle_mb": 312.2,
+   "export_date": "2026-11-27",
+   "stage": 4,
+   "stage_label": "Trained, bundle verified",
+   "integrity": "Verified",
+   "acceptance": "Passed",
+   "latency_budget_ms": 1500,
+   "memory_budget_mb": 300,
+   "open_decision": "D-004"
+  },
+  {
+   "model_id": "ML-002",
+   "name": "similarity-evaluator",
+   "display": "Similarity Evaluator",
+   "version": "1.1.0",
+   "task": "Scores how alike two job titles are, to filter search terms and remove duplicate postings",
+   "feeds": "Module 3 (Search Terms), Module 4 (Find Postings)",
+   "architecture": "Bi-encoder sentence transformer",
+   "base": "sentence-transformers/all-MiniLM-L6-v2",
+   "params_m": 22,
+   "runtime": "ONNX Runtime CPU (INT8)",
+   "training": "Contrastive fine-tune (MNRL), 4 epochs, lr 2e-5, batch 64, FP16",
+   "dataset": "O*NET 31.0 (CC BY 4.0)",
+   "train_size": 39927,
+   "test_size": 800,
+   "bundle_mb": 23.8,
+   "export_date": "2026-11-26",
+   "stage": 4,
+   "stage_label": "Trained, bundle verified",
+   "integrity": "Verified",
+   "acceptance": "Passed",
+   "latency_budget_ms": 50,
+   "memory_budget_mb": 100,
+   "open_decision": ""
+  },
+  {
+   "model_id": "ML-003",
+   "name": "application-tailor",
+   "display": "Application Tailor",
+   "version": "1.0.0-draft",
+   "task": "Phrases CV and cover-letter sentences from verified profile facts only",
+   "feeds": "Module 5 (Application Prep)",
+   "architecture": "Small instruction-tuned transformer",
+   "base": "Qwen/Qwen2.5-0.5B-Instruct (proposed)",
+   "params_m": 500,
+   "runtime": "ONNX Runtime CPU (planned)",
+   "training": "LoRA, 3 epochs, lr 1e-4 (proposed)",
+   "dataset": "Not decided (D-006)",
+   "train_size": null,
+   "test_size": null,
+   "bundle_mb": null,
+   "export_date": null,
+   "stage": 1,
+   "stage_label": "Spec approved, notebook on hold",
+   "integrity": "No bundle",
+   "acceptance": "Not trained",
+   "latency_budget_ms": 3000,
+   "memory_budget_mb": 450,
+   "open_decision": "D-006"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "docs/ml/models/*.md; docs/ml/model-registry.md; models/*/manifest.json; findrr model inspect"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

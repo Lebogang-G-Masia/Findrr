@@ -2,6 +2,12 @@
  "rows": [
   {
    "date": "2026-11-27",
+   "summary": "D-002: researched free discovery sources from the providers' own pages (Tavily, Brave, Adzuna, Greenhouse, Lever, Ashby, Jooble, Serper, DuckDuckGo and SearXNG); options and recommendation revised. D-006 option 1 reconfirmed by the owner (pivot to a text generator only if needed).",
+   "ref": "docs/d002-free-provider-research",
+   "models": "General"
+  },
+  {
+   "date": "2026-11-27",
    "summary": "Owner decisions recorded: D-003 option 2 (python-docx + fpdf2), D-005 option 1 (extractive research), D-006 option 1. For D-006, the owner preferred option 2 on their Claude subscription only if allowed; the Consumer Terms forbid using the Services to train models and forbid scripted access without an API key. D-002 stays open: the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01; options revised.",
    "ref": "docs/record-d002-d006-decisions",
    "models": "General"
@@ -65,12 +71,6 @@
    "summary": "D-009 resolved by the user: option 1. Notebook 01 now splits by input title (hashed per normalised anchor; no wording crosses splits; every occupation trained on). Local data prep: 21,304/2,720/2,525 examples, no anchor overlap, test occupations all in training; broad-group baseline 0.732, same-detailed-SOC 0.929. Reports precision on never-seen wording (110 examples). 192 tests pass.",
    "ref": "feature/ml-001-title-split",
    "models": "General"
-  },
-  {
-   "date": "2026-11-26",
-   "summary": "ML-001 Kaggle run 3 (user, with the PR #31 fix): occupation precision 0.478 (target 0.75) failed; valid ratio 1.0, repetition 0.0001 and AC-ML-001.1 5 passed. Local analysis: the occupation-disjoint split means only 17.5% of test reference titles were ever training targets, and the 0.736 baseline behind the 0.75 threshold wrongly included the test occupations' own titles; the fair broad-group baseline is 0.579. Raised D-009.",
-   "ref": "docs/d-009-ml-001-precision",
-   "models": "ML-001"
   }
  ],
  "meta": [

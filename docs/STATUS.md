@@ -22,7 +22,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Pick Brave Search API (recommended), Vertex AI Search or job-board APIs.
+- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Free alternatives researched (see D-002): recommended Adzuna (job listings) + Tavily (web search), if Adzuna covers your job market.
 
 ## Next step
 
@@ -97,6 +97,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 1
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-27 | D-002: researched free discovery sources from the providers' own pages (Tavily, Brave, Adzuna, Greenhouse, Lever, Ashby, Jooble, Serper, DuckDuckGo and SearXNG); options and recommendation revised. D-006 option 1 reconfirmed by the owner (pivot to a text generator only if needed). | docs/d002-free-provider-research |
 | 2026-11-27 | Owner decisions recorded: D-003 option 2 (`python-docx` + `fpdf2`), D-005 option 1 (extractive research), D-006 option 1. For D-006, the owner preferred option 2 on their Claude subscription only if allowed; the Consumer Terms forbid using the Services to train models and forbid scripted access without an API key. D-002 stays open: the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01; options revised. | docs/record-d002-d006-decisions |
 | 2026-11-27 | Dashboard Development tab shows a "Project status" section parsed from this file (snapshot, model table, model-related open items, recent model work); the build now reads real-inference verification from the model table instead of a hard-coded list. New idle-machine benchmark of the current bundles: ML-001 v2.1.0 (ONNX) 391 ms mean per request, peak process memory 481 MB (budget < 550 MB); ML-002 v1.1.0 3.1 ms per pair. | feature/dashboard-project-status |
 | 2026-11-27 | Installed and verified ML-001 v2.1.0 (user's Kaggle re-export of the v2.0.0 weights to ONNX, no retraining). SHA-256 verified; every Kaggle metric identical to v2.0.0 (precision 0.851); ONNX parity 3.8e-5. Laptop, full test set through the app's ONNX path: precision 0.828, 456 ms mean latency, RSS 426 MB after load and 486 MB peak (budget < 550 MB), no PyTorch; 200/200 suggestions identical to v2.0.0 PyTorch. Wrote `title-expander-2.1.0.md`; model card, registry (Verified) and spec (memory budget approved via PR #40) updated. The skills defect remains. | docs/ml-001-v2.1.0-evaluation / PR #44 |

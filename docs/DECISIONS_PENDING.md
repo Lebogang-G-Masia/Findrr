@@ -31,7 +31,25 @@
   - 1a. **Brave Search API.** An independent index. Needs an API key kept outside git. Check its current free-tier limits and terms in the dependency evaluation.
   - 1b. **Google Vertex AI Search.** Google's named successor. It searches only sites you list, such as job boards, and needs a Google Cloud project with billing.
   - 2. **Official job-board APIs.** Unchanged, for example the Adzuna API; needs per-source adapters.
-- **Revised recommendation:** 1a for general discovery, behind the existing search-provider interface (NFR-010), plus the option 3 clean-up in every case. Add option 2 adapters later.
+- **Revised recommendation (superseded below):** 1a for general discovery, behind the existing search-provider interface (NFR-010), plus the option 3 clean-up in every case. Add option 2 adapters later.
+- **Research 2026-11-27 (owner asked for free alternatives).** Sources are the providers' own pages, read on this date. The limits change often, so re-check them in the dependency evaluation.
+
+  | Source | Kind | Free allowance | Notes |
+  |---|---|---|---|
+  | Tavily | Web search API | 1,000 credits a month, "No credit card required" | Credits per basic search are not stated on the pricing page. Usable for D-005 (finding an employer's site). |
+  | Brave Search API | Web search API | Monthly free credit; the pages say both $5 and "up to $20". About 1,000 searches at $5 per 1,000 | A card is requested "to prevent abuse". Storing results needs a custom plan. The old 2,000-query free plan has ended. |
+  | Adzuna | Job-listings API | Free key, "no payment details required". Limits are not published and "may vary" | Terms permit "Personal job search". Each displayed listing must carry an "Adzuna" link. Revenue-generating use needs a licence. Country list not confirmed. |
+  | Greenhouse, Lever, Ashby | Employer job boards (ATS) | Keyless public JSON endpoints | Each needs the employer's board name, so they suit employer-direct follow-up, not open discovery. Lever: published postings "are publicly viewable". |
+  | Jooble | Job-listings API | Key by request form; limits not stated on its page | Third-party reports mention a lifetime cap of about 500 requests per key. Unverified. |
+  | Serper | Google results API | 2,500 queries once, no refill | Not ongoing. |
+  | DuckDuckGo, SearXNG | — | — | No official search API. SearXNG sends bot traffic to other engines and is blocked by CAPTCHAs. Not compliant with BR-004. |
+
+- **Revised options (2026-11-27, after research):**
+  1. **Tavily** as the web-search provider behind the NFR-010 interface. Free with no card; about 1,000 searches a month.
+  2. **Adzuna** as the job-listings source, plus Tavily for general search. Adzuna returns structured postings (title, company, location, salary) rather than pages to parse, and personal job search is its permitted use. It depends on country coverage.
+  3. **Brave Search API.** Similar to Tavily, but needs a card.
+  4. Any of the above, plus **Greenhouse, Lever and Ashby adapters** for employers the user names (keyless, Milestone 5).
+- **Recommendation (after research):** Option 2, if Adzuna covers the owner's job market; otherwise option 1. Do the option 3 clean-up (evasion flags, `--no-sandbox`, robots.txt) in every case.
 - **Status:** Open
 
 ## Entry template

@@ -29,10 +29,11 @@ What updates by itself, and what doesn't:
 | Active versions, architectures, runtimes | The app's registry (`src/findrr/ml/registry.py`) | The commit that changes the registry |
 | Metrics, integrity, bundle size, dataset sizes | The active bundle in `models/`. If it is not installed yet, the newest intact earlier bundle, labelled as such | The next commit after a bundle is installed |
 | Decisions | `docs/DECISIONS_PENDING.md`, parsed (ML-area entries only) | The commit that edits the log |
+| Project status, model status, open items, recent work | `docs/STATUS.md`, parsed (model-related items only) | The commit that edits the status log |
 | Latency, memory, sample outputs | `data/bench.json` | You re-run `bench.py` on an idle machine and commit |
 | Earlier Kaggle runs, model descriptions, budgets, baselines | Typed into `build.py` from the docs | Someone edits `build.py` |
 
-After a new Kaggle run, add the previous current run to `RUN_HISTORY` in `build.py`, bump `CURRENT_RUN`, and add the version to `INTEGRATION_VERIFIED` once real inference is verified. `bench.py` measures only the registry's active bundles, and refuses to run if they are not installed.
+After a new Kaggle run, add the previous current run to `RUN_HISTORY` in `build.py`, bump `CURRENT_RUN`, and record real-inference verification in the model table of `docs/STATUS.md`, which the build reads. `bench.py` measures only the registry's active bundles, and refuses to run if they are not installed.
 
 ## Data files
 
@@ -51,6 +52,7 @@ Each data file is shaped `{rows, meta}`, and `meta` names its sources.
 | `provenance.json` | Seed, dataset checksum, split, library versions and notebook of each installed bundle (Development page) |
 | `bundlefiles.json` | Each bundle file's size and SHA-256 (Development page) |
 | `benchrun.json` | When and how the benchmark ran (Development page) |
+| `project.json`, `modelstatus.json`, `worklist.json`, `activity.json` | The status log's snapshot, model table, open model items and recent model work (Development page) |
 
 ## Caveats
 

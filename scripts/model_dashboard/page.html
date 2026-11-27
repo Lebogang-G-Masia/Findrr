@@ -175,6 +175,21 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
 .fm-files td:nth-child(4) { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fm-hash { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
 .fm-steps { margin: 0; padding-left: 1.4em; display: grid; gap: var(--cds-gap-sm); line-height: 1.5; max-width: 70ch; }
+.fm-status td { font-size: var(--cds-font-size-caption); line-height: 1.45; min-width: 8rem; }
+.fm-status td:first-child { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.fm-status tr.is-sel td { background: color-mix(in srgb, var(--color-fg) 6%, transparent); }
+.fm-yes { color: var(--color-ok); font-weight: var(--cds-font-weight-medium); }
+.fm-no { color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
+.fm-work, .fm-activity { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--cds-gap-sm); }
+.fm-work li { display: grid; gap: 4px; padding: var(--cds-pad-sm) 0; border-bottom: 1px solid var(--color-border-line); line-height: 1.45; }
+.fm-work li:last-child, .fm-activity li:last-child { border-bottom: 0; }
+.fm-activity li { border-bottom: 1px solid var(--color-border-line); padding-bottom: var(--cds-pad-sm); }
+.fm-activity details summary { cursor: pointer; display: flex; gap: var(--cds-gap-sm); flex-wrap: wrap; align-items: baseline; list-style: none; }
+.fm-activity details summary::-webkit-details-marker { display: none; }
+.fm-activity details summary .fm-sum { flex: 1 1 14rem; min-width: 0; }
+.fm-activity details[open] summary .fm-sum { display: none; }
+.fm-activity details p { margin: 6px 0 0; line-height: 1.5; font-size: var(--cds-font-size-body); }
+.fm-date { font-variant-numeric: tabular-nums; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); white-space: nowrap; }
 .fm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media print { .fm-tabs { display: none; } }
 
@@ -273,7 +288,7 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
         <dt>Where the latest numbers come from</dt>
         <dd>The current metrics are read from the manifests inside the bundles on disk. The app's own inspector, <span class="fm-mono">findrr model inspect</span>, verified both bundles' SHA-256 checksums on 27 Nov 2026. Earlier runs come from the Kaggle output recorded in the decision log and the project status log. ML-001's run 2 exposed a bug in the decoding constraint that let titles repeat, which PR #31 fixed.</dd>
         <dt>Memory</dt>
-        <dd>Peak memory is the whole Python process, including the PyTorch or ONNX runtime, not only the model weights. ML-001's budget (under 550 MB, proposed under D-004) is a whole-process figure for v2.1.0. The current measurement is of v2.0.0 on PyTorch, so it shows the old runtime. ML-002's 100 MB budget describes the model's active RAM, so its figure is not directly comparable.</dd>
+        <dd>Peak memory is the whole Python process, including the PyTorch or ONNX runtime, not only the model weights. ML-001's budget (under 550 MB, set under D-004) is a whole-process figure, so its measurement compares directly. ML-002's 100 MB budget describes the model's active RAM, so its figure is not directly comparable. The Development tab's benchmark card names the versions measured.</dd>
         <dt>Real outputs</dt>
         <dd>The samples are a handful of hand-picked inputs, run once through the app's own runners. They illustrate behaviour and are not an evaluation.</dd>
       </dl>
@@ -285,6 +300,35 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
       <h2>Development</h2>
       <p class="fm-muted">How each model was built and measured, what its bundle contains, and the decisions behind it.</p>
     </div>
+    <section class="fm-card" id="project-status" aria-labelledby="project-status-h">
+      <div class="fm-cardhead">
+        <h3 id="project-status-h">Project status</h3>
+        <span class="fm-note" data-draw="devupdated">—</span>
+      </div>
+      <div class="fm-tiles dash-skeleton" data-draw="devproject" data-source="project"></div>
+      <p class="fm-gsub">Where each model stands</p>
+      <div class="fm-tablewrap">
+        <table class="fm-table fm-status" data-source="modelstatus" data-row-key="model_id">
+          <thead><tr><th data-field="model">Model</th><th data-field="spec">Spec</th><th data-field="notebook">Notebook</th><th data-field="trained">Trained</th><th data-field="artifacts">Bundle</th><th data-field="integration">Real inference in the app</th></tr></thead>
+          <tbody data-draw="devstatus"></tbody>
+        </table>
+      </div>
+      <div class="fm-grid2">
+        <div>
+          <p class="fm-gsub">Open items for the models</p>
+          <ul class="fm-work" data-draw="devwork" data-source="worklist"></ul>
+        </div>
+        <div>
+          <div class="fm-cardhead">
+            <p class="fm-gsub">Recent model work</p>
+            <label class="fm-check"><input type="checkbox" id="fm-activity-model"> Selected model only</label>
+          </div>
+          <ol class="fm-activity" data-draw="devactivity" data-source="activity"></ol>
+        </div>
+      </div>
+      <p class="fm-note">From <span class="fm-mono">docs/STATUS.md</span>, the project's status log. Only items about the models are shown here.</p>
+    </section>
+
     <div class="fm-modelbar" role="group" aria-label="Model">
       <button type="button" class="fm-chip" data-model="ML-001" aria-pressed="true">ML-001 · Title Expander</button>
       <button type="button" class="fm-chip" data-model="ML-002" aria-pressed="false">ML-002 · Similarity Evaluator</button>
@@ -361,7 +405,7 @@ window.FM = window.FM || { model: 'ML-001', metric: null, baselines: true, scope
 window.FM_DEFAULT_METRIC = { 'ML-001': 'occupation_precision', 'ML-002': 'precision_at_0_70' };
 window.FM_STEPS = ['Spec approved', 'Notebook written', 'Trained on Kaggle', 'Bundle verified', 'Integrated in the app'];
 window.FM_BATCH_BUDGET_MS = 150; // spec: < 150 ms for a batch of 20 pairs (ML-002)
-window.FM_DRAWINGS = ['cards', 'detailname', 'detailtask', 'spec', 'gate', 'datasplits', 'dataextra', 'devprov', 'devbench', 'devfiles', 'metricsel', 'runs', 'runlist', 'latstats', 'latency', 'trynote', 'tryit', 'decrows'];
+window.FM_DRAWINGS = ['cards', 'detailname', 'detailtask', 'spec', 'gate', 'datasplits', 'dataextra', 'devprov', 'devbench', 'devfiles', 'devstatus', 'devactivity', 'metricsel', 'runs', 'runlist', 'latstats', 'latency', 'trynote', 'tryit', 'decrows'];
 
 window.h = function (tag, attrs, ...kids) {
   const el = document.createElement(tag);
@@ -988,6 +1032,70 @@ dash.draw('devfiles', (el) => {
       h('td', { class: 'fm-muted' }, human(+r.bytes)),
       h('td', { title: r.sha256 }, r.sha256),
       h('td', {}, copy));
+  }));
+});
+</script>
+
+<script>
+/* Development: project status from docs/STATUS.md */
+window.FM.activityModelOnly = window.FM.activityModelOnly || false;
+document.querySelectorAll('#fm-activity-model').forEach((c) => c.addEventListener('change', () => { FM.activityModelOnly = c.checked; dash.draw('devactivity'); }));
+const fmDay = (iso) => { const d = new Date(iso); return isNaN(d) ? iso : d3.utcFormat('%-d %b %Y')(d); };
+
+dash.draw('devupdated', (el) => {
+  const p = dash.data('project');
+  const r = p.status === 'ok' ? p.data[0] : null;
+  el.textContent = r && r.last_updated ? 'Status log last updated ' + fmDay(r.last_updated) : '—';
+});
+
+dash.draw('devproject', (el) => {
+  if (FMwait(el, 'project')) return;
+  const r = dash.data('project').data[0];
+  if (!r) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'The status log has no snapshot.')); return; }
+  const tile = (label, field, value, sub) => h('div', { class: 'fm-tile' },
+    h('span', { class: 'fm-k' }, label),
+    h('span', { class: field === 'open_decisions' ? 'fm-big' : 'fm-v' }, h('span', { 'data-source': 'project', 'data-field': field, 'data-row': '0' }, value == null || value === '' ? '—' : value)),
+    sub ? h('small', {}, sub) : null);
+  el.replaceChildren(
+    tile('Milestone', 'milestone', r.milestone),
+    tile('Phase', 'phase', r.phase),
+    tile('Open decisions', 'open_decisions', r.open_decisions, 'Listed in the decision log below'),
+    tile('Latest release', 'latest_release', r.latest_release));
+});
+
+dash.draw('devstatus', (el) => {
+  const d = dash.data('modelstatus');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const cell = (text) => {
+    const m = /^(Yes|No|Approved)\b(.*)$/.exec(text || '');
+    if (!m) return h('td', {}, text || '—');
+    return h('td', {}, h('span', { class: m[1] === 'No' ? 'fm-no' : 'fm-yes' }, m[1]), m[2]);
+  };
+  el.replaceChildren(...d.data.map((r) => h('tr', { class: r.model_id === FM.model ? 'is-sel' : '' },
+    h('td', {}, r.model), cell(r.spec), cell(r.notebook), cell(r.trained), cell(r.artifacts), cell(r.integration))));
+});
+
+dash.draw('devwork', (el) => {
+  const d = dash.data('worklist');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  if (!d.data.length) { el.replaceChildren(h('li', { class: 'fm-empty' }, 'Nothing about the models is waiting.')); return; }
+  const cls = { 'Waiting on you': 'warn', 'Blocker': 'bad', 'Next step': 'mute' };
+  el.replaceChildren(...d.data.map((r) => h('li', {},
+    h('div', { class: 'fm-sin' }, h('span', { class: 'fm-pill ' + (cls[r.kind] || 'mute') }, r.kind), h('small', {}, r.models)),
+    h('span', { 'data-source': 'worklist', 'data-field': 'text', 'data-where': FMwhere({ kind: r.kind, order: r.order }) }, r.text))));
+});
+
+dash.draw('devactivity', (el) => {
+  const d = dash.data('activity');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const rows = d.data.filter((r) => !FM.activityModelOnly || r.models.split(', ').includes(FM.model));
+  if (!rows.length) { el.replaceChildren(h('li', { class: 'fm-empty' }, 'No recent work on this model in the status log.')); return; }
+  el.replaceChildren(...rows.map((r) => {
+    const first = r.summary.split(/(?<=[.:])\s/)[0];
+    return h('li', {}, h('details', {},
+      h('summary', {}, h('span', { class: 'fm-date' }, fmDay(r.date)), h('span', { class: 'fm-sum' }, first.length > 140 ? first.slice(0, 137) + '…' : first), h('small', { class: 'fm-muted' }, r.models)),
+      h('p', {}, r.summary),
+      r.ref ? h('small', { class: 'fm-mono fm-muted' }, r.ref) : null));
   }));
 });
 </script>

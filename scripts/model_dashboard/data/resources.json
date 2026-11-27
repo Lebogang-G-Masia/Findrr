@@ -2,16 +2,16 @@
  "rows": [
   {
    "model_id": "ML-001",
-   "load_s": 6.05,
-   "peak_rss_mb": 1065,
+   "load_s": 1.83,
+   "peak_rss_mb": 481,
    "batch20_mean_ms": null,
-   "note": "Whole Python process after loading ML-001 v2.0.0"
+   "note": "Whole Python process after loading ML-001 v2.1.0"
   },
   {
    "model_id": "ML-002",
    "load_s": 0.14,
-   "peak_rss_mb": 68,
-   "batch20_mean_ms": 66.3,
+   "peak_rss_mb": 0,
+   "batch20_mean_ms": 21.4,
    "note": "Extra process memory after also loading ML-002"
   }
  ],

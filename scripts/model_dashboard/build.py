@@ -23,8 +23,9 @@ from findrr.ml.registry import ModelRegistry
 
 REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-# Versions whose real inference in the app was verified (docs/STATUS.md, model status table).
-INTEGRATION_VERIFIED = {("ML-001", "2.0.0"), ("ML-002", "1.1.0")}
+STATUS_DOC = REPO / "docs/STATUS.md"
+# Words that make a STATUS.md item relevant to the models, besides ML decision IDs.
+ML_WORDS = re.compile(r"\bML-\d{3}\b|model|notebook|Kaggle|bundle|inference|ONNX|dashboard", re.I)
 # (latency ms, memory MB) budgets, spec section 12. ML-001 memory: < 550 MB RSS (D-004, PROPOSED).
 BUDGETS = {"ML-001": (1500, 550), "ML-002": (50, 100), "ML-003": (3000, 450)}
 LAPTOP = "bench.py on the Findrr laptop (Intel i5-1235U, CPU only)"
@@ -105,7 +106,7 @@ RUN_HISTORY = [
     ),
 ]
 CURRENT_RUN = {
-    "ML-001": (5, "More input titles, 15 epochs"),
+    "ML-001": (5, "More input titles, 15 epochs (exported to ONNX as v2.1.0)"),
     "ML-002": (2, "Pearson reported, not gated"),
 }
 
@@ -178,6 +179,45 @@ def parse_decisions(markdown: str) -> list[dict]:
     return rows
 
 
+def plain(text: str) -> str:
+    """Markdown cell or line to plain text."""
+    return re.sub(r"\*\*|`", "", text).strip()
+
+
+def parse_status(markdown: str) -> dict:
+    """Sections of docs/STATUS.md: tables as row dicts, lists as item strings, text as text."""
+    sections = {}
+    for block in re.split(r"^## ", markdown, flags=re.M)[1:]:
+        title, _, body = block.partition("\n")
+        lines = [ln for ln in body.splitlines() if ln.strip()]
+        table = [ln for ln in lines if ln.startswith("|")]
+        if len(table) >= 2:
+            head = [plain(c) for c in table[0].strip("|").split("|")]
+            rows = [
+                dict(zip(head, (c.strip() for c in ln.strip("|").split("|")))) for ln in table[2:]
+            ]
+        else:
+            rows = []
+        items = [
+            plain(re.sub(r"^(\s*[-*]|\s*\d+\.)\s+", "", ln))
+            for ln in lines
+            if re.match(r"^(\s*[-*]|\s*\d+\.)\s+", ln)
+        ]
+        text = " ".join(plain(ln) for ln in lines if not ln.startswith(("|", ">")))
+        sections[title.strip()] = {"rows": rows, "items": items, "text": text}
+    return sections
+
+
+def integration_verified(status_rows: list[dict], model_id: str, version: str) -> bool:
+    """STATUS.md's model table says real inference is verified for this version."""
+    for row in status_rows:
+        if model_id in row.get("Model", ""):
+            cell = plain(row.get("Integration verified (real inference)", ""))
+            named = re.findall(r"v(\d+\.\d+\.\d+)", cell)
+            return cell.lower().startswith("yes") and (not named or version in named)
+    return False
+
+
 def version_key(path: Path) -> tuple:
     return tuple(int(x) for x in re.findall(r"\d+", path.name))
 
@@ -235,6 +275,8 @@ def main() -> None:
     m2 = json.loads((se_dir / "manifest.json").read_text())
     e1, e2 = m1["evaluation_summary"], m2["evaluation_summary"]
     decisions = parse_decisions(DECISIONS_DOC.read_text())
+    status = parse_status(STATUS_DOC.read_text())
+    status_models = status.get("Model status", {}).get("rows", [])
 
     def write(name, rows, sources):
         meta = [
@@ -250,7 +292,7 @@ def main() -> None:
         reg = regs[model_id]
         active, used = reg.active_version, manifest["version"]
         current = used == active
-        if current and (model_id, used) in INTEGRATION_VERIFIED:
+        if current and integration_verified(status_models, model_id, used):
             stage, label = 5, "Real inference verified in the app"
         elif current:
             stage, label = 4, "Bundle verified"
@@ -864,6 +906,77 @@ def main() -> None:
         ],
         [f"{LAPTOP}, {measured}"],
     )
+
+    # Development page: what docs/STATUS.md says about the models.
+    ml_ids = {d["id"] for d in decisions}
+
+    def relevant(text):
+        return bool(ML_WORDS.search(text)) or any(i in text for i in ml_ids)
+
+    snapshot = {
+        plain(r.get("Field", "")): plain(r.get("Value", ""))
+        for r in status.get("Snapshot", {}).get("rows", [])
+    }
+    open_count = re.search(r"open items:\s*(\d+)", status.get("Open decisions", {}).get("text", ""))
+    write(
+        "project",
+        [
+            {
+                "last_updated": snapshot.get("Last updated"),
+                "milestone": snapshot.get("Current milestone"),
+                "phase": snapshot.get("Current phase"),
+                "latest_release": snapshot.get("Latest release"),
+                "open_decisions": int(open_count.group(1)) if open_count else None,
+            }
+        ],
+        ["docs/STATUS.md (Snapshot, Open decisions)"],
+    )
+    write(
+        "modelstatus",
+        [
+            {
+                "model_id": (re.search(r"ML-\d{3}", row.get("Model", "")) or [None])[0],
+                "model": plain(row.get("Model", "")),
+                "spec": plain(row.get("Spec approved", "")),
+                "notebook": plain(row.get("Notebook written", "")),
+                "trained": plain(row.get("Trained by user", "")),
+                "artifacts": plain(row.get("Artifacts supplied", "")),
+                "integration": plain(row.get("Integration verified (real inference)", "")),
+            }
+            for row in status_models
+        ],
+        ["docs/STATUS.md (Model status)"],
+    )
+    worklist = []
+    for section, kind in (
+        ("Awaiting merge or approval", "Waiting on you"),
+        ("Next step", "Next step"),
+        ("Blockers", "Blocker"),
+    ):
+        for i, item in enumerate(status.get(section, {}).get("items", [])):
+            if relevant(item):
+                models = sorted(set(re.findall(r"ML-\d{3}", item)))
+                worklist.append(
+                    {
+                        "kind": kind,
+                        "order": i + 1,
+                        "text": item,
+                        "models": ", ".join(models) or "General",
+                    }
+                )
+    write("worklist", worklist, ["docs/STATUS.md (Awaiting, Next step, Blockers; ML items only)"])
+    activity = [
+        {
+            "date": plain(row.get("Date", "")),
+            "summary": plain(row.get("Summary", "")),
+            "ref": plain(row.get("Branch / PR", "")),
+            "models": ", ".join(sorted(set(re.findall(r"ML-\d{3}", row.get("Summary", "")))))
+            or "General",
+        }
+        for row in status.get("Session log (newest first)", {}).get("rows", [])
+        if relevant(row.get("Summary", ""))
+    ][:12]
+    write("activity", activity, ["docs/STATUS.md (Session log, ML entries, newest 12)"])
 
     print("Wrote", ", ".join(sorted(p.name for p in data_dir.glob("*.json"))), "to", data_dir)
 

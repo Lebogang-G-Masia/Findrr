@@ -348,7 +348,7 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
       <ol class="fm-steps">
         <li><span class="fm-mono">scripts/model_dashboard/build.py</span> reads the app's model registry, the installed bundles, the decision log and the benchmark, and writes the data files in <span class="fm-mono">scripts/model_dashboard/data/</span>.</li>
         <li>A pre-commit hook runs the build before every commit, and adds any changed data to that commit.</li>
-        <li>Once the change is merged to <span class="fm-mono">main</span>, the dashboard shows it.</li>
+        <li>When the pull request is merged into <span class="fm-mono">main</span>, a cloud scheduled task uploads the changed files to this dashboard, usually within a few minutes.</li>
         <li><span class="fm-mono">bench.py</span> is run by hand, on an idle machine. It refuses to save a run if other work is competing for the CPU.</li>
       </ol>
       <p class="fm-note">Earlier Kaggle runs, model descriptions, budgets and baselines are typed into <span class="fm-mono">build.py</span> from the docs, so they change only when someone edits it. Decision D-012 describes the design.</p>

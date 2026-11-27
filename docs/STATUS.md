@@ -22,7 +22,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Researched for South Africa and scale (see D-002): recommended Careerjet (primary jobs) + Adzuna (second, once `za` is confirmed) + Tavily (web search).
+- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Free-only sources researched (see D-002): recommended ATS adapters (Greenhouse, Lever, Workable, Recruitee) now, plus Careerjet once a fixed IP is available.
 
 ## Next step
 

@@ -59,6 +59,22 @@
   - **Jooble:** its site terms forbid bots, and no API terms were found. Ruled out for now.
   - **Common Crawl / Web Data Commons JobPosting data:** free and large, but published yearly, so too stale for live postings. Ruled out for discovery.
 - **Recommendation (scalable):** Careerjet as the primary job source for South Africa, Adzuna as a second source once a live call confirms `za`, and Tavily for web search (D-005 company sites). Each sits behind the NFR-010 provider interface, so a free key can later become a paid or licensed one without changes to the core. Greenhouse, Lever and Ashby adapters are for employer-direct follow-up. Do the option 3 clean-up in every case. Before building: read Careerjet's publisher terms; run one test call per provider when the owner has keys.
+- **Update 2026-11-27 (owner: completely free sources only).** From providers' own pages:
+  - **Careerjet Job Search API:** "free", and Careerjet pays a "revenue share" for referred traffic. You must "declare your IP address(es)" first; "Dynamic IP addresses or serverless environments without fixed outbound IP addresses are not supported." Prohibited: building "an independent job database" or competing search, redistributing the data, AI/ML training or evaluation on it, and bulk extraction not for showing jobs to job seekers. No numeric limits stated; Careerjet may suspend use "outside the permitted scope". It is framed for partners' "websites". Display and caching rules are not stated.
+  - **Employer ATS public endpoints, no key:**
+    - Greenhouse and Lever (confirmed earlier);
+    - Workable `GET workable.com/api/accounts/{subdomain}`;
+    - Recruitee `GET {company}.recruitee.com/api/offers/`;
+    - SmartRecruiters `GET api.smartrecruiters.com/v1/companies/{id}/postings`. Its docs mention API keys, so auth is unclear; the general limit is 10 requests a second.
+    - Each needs the employer's identifier.
+  - **Web search:** no free option permits commercial use. Marginalia's free key is "non-commercial" (results CC BY-NC-SA). Tavily's and Brave's free tiers are capped trials of paid services.
+- **Free-only options:**
+  - F1. **Careerjet + ATS adapters + Wikipedia** (D-005). Postings from Careerjet; employer-direct postings from ATS boards; company facts from the posting, the employer's site and Wikipedia. No web search at all. Trade-offs:
+    - needs a fixed public IP, which a home connection usually lacks (the Milestone 4 server would have one);
+    - Findrr must not store Careerjet postings as its own database, beyond what the user tracks;
+    - postings must never be used for ML training (relevant to ML-003).
+  - F2. **ATS adapters only**, over a curated list of South African employers' boards. Completely free, keyless and compliant. Coverage is limited to employers on the list that use these systems.
+- **Recommendation (free-only):** F1 for Milestone 4, starting with F2 now: it works on the laptop today and stays useful at scale. Apply for Careerjet when a fixed IP is available. Do the option 3 clean-up in every case.
 - **Status:** Open
 
 ## Entry template

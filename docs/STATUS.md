@@ -24,8 +24,8 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 - **Awaiting merge: PR #40** (user review: D-004 implementation, ML-001 v2.1.0 ONNX bundle, notebook 01 export change). Merging also **confirms the PROPOSED ML-001 memory budget of < 550 MB**; say so if you want a different value.
 - **After merging, re-run notebook 01 on Kaggle (GPU T4, Internet on).** No retraining is needed:
-  1. Upload your extracted `models/title-expander/v2.0.0/` folder as a private Kaggle dataset.
-  2. Attach it, and set `REUSE_BUNDLE_DIR` in the training cell to its `/kaggle/input/...` path.
+  1. Upload `title_expander_v200.tar.gz` (the v2.0.0 bundle packed as one archive) as a private Kaggle dataset.
+  2. Attach it, and set `REUSE_BUNDLE_DIR` in the training cell to the dataset folder under `/kaggle/input/`.
   3. Run All. The CPU evaluation of the ONNX files takes about 20–30 minutes.
   4. Extract the bundle into `models/title-expander/v2.1.0/`, run `findrr model inspect ML-001`, and paste the evaluation output.
 

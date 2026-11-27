@@ -61,9 +61,9 @@ The notebook prints 15 sample predictions with the metrics. If any criterion fai
 - After training, `export_t5_bundle` (embedded from `src/findrr/ml/t5_onnx_export.py`) writes `encoder.onnx`, a KV-cached one-step `decoder.onnx` and `embeddings.npy`. It stops if the ONNX logits differ from the model's own logits by more than 1e-3.
 - **All metrics are measured on the exported files**, using the app's decoding code (`src/findrr/ml/t5_onnx_decoding.py`, embedded verbatim). This evaluation runs on the CPU (about 20–30 minutes for about 3,000 requests).
 - **No retraining for an accepted v2.0.0 model:**
-  1. Upload your extracted `models/title-expander/v2.0.0/` folder as a private Kaggle dataset.
-  2. Attach it to the notebook.
-  3. Set `REUSE_BUNDLE_DIR` in the training cell to its path under `/kaggle/input/`.
+  1. Pack the installed bundle into one archive: `tar -czf title_expander_v200.tar.gz -C models/title-expander/v2.0.0 .`. Kaggle datasets take files, not folders.
+  2. Upload that archive as a private Kaggle dataset, and attach it to the notebook.
+  3. Set `REUSE_BUNDLE_DIR` in the training cell to the dataset folder under `/kaggle/input/`. The notebook accepts the archive whether or not Kaggle unpacked it, and refuses unsafe archive paths.
 
   The notebook checks the bundle's checksums, ID, version and acceptance, then skips training. The manifest records `reused_bundle`.
 - **Verified locally on 2026-11-27 (no training):**

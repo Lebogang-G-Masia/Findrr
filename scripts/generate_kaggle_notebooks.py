@@ -369,9 +369,9 @@ def title_expander_notebook() -> dict:
                 (`findrr.ml.t5_onnx_decoding`, embedded below). This evaluation runs on the CPU and
                 takes about 20-30 minutes.
 
-                **No retraining needed for a v{ML001_REUSABLE_VERSION} model:** attach your accepted
-                v{ML001_REUSABLE_VERSION} bundle (the extracted folder) as a Kaggle dataset and set
-                `REUSE_BUNDLE_DIR` below. The notebook verifies its checksums and acceptance, skips
+                **No retraining needed for a v{ML001_REUSABLE_VERSION} model:** upload your accepted
+                v{ML001_REUSABLE_VERSION} bundle as one archive (`.tar.gz` or `.zip`) to a private Kaggle
+                dataset, attach it, and set `REUSE_BUNDLE_DIR` below to the dataset folder. The notebook verifies its checksums and acceptance, skips
                 training and re-exports it.
 
                 Decoding is constrained to real O*NET titles (D-007), and the bundle ships the
@@ -603,21 +603,45 @@ def title_expander_notebook() -> dict:
             code(version_guard({'transformers': '4.46.3', 'datasets': '3.1.0'})),
             code(
                 rf'''
-                import json
+                import json, shutil
                 import numpy as np, torch
                 from transformers import (AutoModelForSeq2SeqLM, AutoTokenizer, DataCollatorForSeq2Seq,
                                           Seq2SeqTrainer, Seq2SeqTrainingArguments, set_seed)
                 set_seed(SEED)
                 BASE_MODEL = 'google/flan-t5-small'
                 MAX_INPUT_LEN, MAX_TARGET_LEN = 128, 64
-                # D-004: set to the folder of an attached, accepted v{ML001_REUSABLE_VERSION} bundle (for example
-                # '/kaggle/input/findrr-title-expander-v200') to skip training and re-export it.
+                # D-004: to skip training and re-export an accepted v{ML001_REUSABLE_VERSION} model, upload its bundle
+                # as ONE archive (title_expander_bundle.tar.gz or a .zip) to a private Kaggle dataset,
+                # attach it, and set this to the dataset folder, e.g. '/kaggle/input/findrr-title-expander-v200'.
                 REUSE_BUNDLE_DIR = None
                 REUSED_BUNDLE = None
                 if REUSE_BUNDLE_DIR:
-                    import hashlib
+                    import hashlib, tarfile, zipfile
                     src = Path(REUSE_BUNDLE_DIR)
-                    hits = list(src.rglob('manifest.json'))
+                    hits = list(src.rglob('manifest.json')) if src.is_dir() else []
+                    if not hits:
+                        # Kaggle datasets hold files, not folders: accept the bundle as one archive
+                        # (.tar.gz or .zip), whether or not Kaggle unpacked it on upload.
+                        archives = [src] if src.is_file() else sorted(
+                            p for p in src.rglob('*') if p.name.endswith(('.tar.gz', '.tgz', '.zip')))
+                        if len(archives) != 1:
+                            raise RuntimeError(f'Expected one bundle archive under {{src}}, found {{len(archives)}}.')
+                        unpacked = Path('/kaggle/working/reused-bundle')
+                        shutil.rmtree(unpacked, ignore_errors=True); unpacked.mkdir(parents=True)
+                        if archives[0].name.endswith('.zip'):
+                            with zipfile.ZipFile(archives[0]) as zf:
+                                names = zf.namelist()
+                                if any(n.startswith('/') or '..' in Path(n).parts for n in names):
+                                    raise RuntimeError('Unsafe path in the bundle archive.')
+                                zf.extractall(unpacked)
+                        else:
+                            with tarfile.open(archives[0]) as tar:
+                                members = tar.getmembers()
+                                if any(not (m.isfile() or m.isdir()) or m.name.startswith('/')
+                                       or '..' in Path(m.name).parts for m in members):
+                                    raise RuntimeError('Unsafe entry in the bundle archive.')
+                                tar.extractall(unpacked, members=members)
+                        hits = list(unpacked.rglob('manifest.json'))
                     if len(hits) != 1:
                         raise RuntimeError(f'Expected exactly one manifest.json under {{src}}, found {{len(hits)}}.')
                     src = hits[0].parent

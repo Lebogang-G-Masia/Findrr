@@ -20,7 +20,7 @@ Source and data for the **Findrr Model Observatory**, a private claude.ai dashbo
    ```
 
    The hook never blocks a commit. Without `.venv/`, the installed bundles or `data/bench.json`, it does nothing, so CI and fresh clones are unaffected.
-2. **When the commit is merged to `main`**, the dashboard picks it up. Once the dashboard reads through a GitHub connector, each reader's page loads `data/` from `main` when it opens. Until then the files are uploaded to the dashboard by hand.
+2. **When a pull request is merged into `main`**, the cloud scheduled task "Findrr dashboard sync" (claude.ai, Code → Routines) checks out `main`, lists the dashboard files the merge changed, and uploads only those. A merge that touches no dashboard file costs one `git diff`. claude.ai's GitHub integration gives cloud sessions access to the repo, but it is not a connector the page can read from, so a direct live read is not possible (D-012).
 
 What updates by itself, and what doesn't:
 

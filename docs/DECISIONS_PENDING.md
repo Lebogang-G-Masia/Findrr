@@ -112,6 +112,7 @@ Move an entry here when the user decides. Change its status to Resolved, and add
 - **Blocked work:** live dashboard data.
 - **Status:** Resolved
 - **Decision:** Option 1, owner decision 2026-11-27 ("Live from GitHub"). `build.py` writes `scripts/model_dashboard/data/` (committed), reads decisions straight from this log, and a `pre-commit` hook in `scripts/model_dashboard/hooks/` rebuilds and stages the data before each commit, without ever blocking one. The dashboard reads `data/` through a GitHub connector once the owner connects GitHub on claude.ai; until then the files are uploaded by hand.
+- **Update 2026-11-27:** the GitHub entry on claude.ai is the built-in integration (repository access for chats, Projects and cloud sessions), not a connector with callable tools, so the dashboard cannot read GitHub itself. Delivery uses option 3 instead: the cloud scheduled task "Findrr dashboard sync" fires when a pull request is merged into `main`, compares the merge with its parent, and uploads only changed dashboard files (no dashboard change: it stops after one `git diff`). Tested by hand on 2026-11-27 (34 s, all writes succeeded). Manage it at https://claude.ai/code/routines.
 - **Recorded in:** `scripts/model_dashboard/README.md`, `build.py`, `bench.py`, `hooks/pre-commit`
 
 ### D-011: Where the model dashboard's data tool lives

@@ -8,7 +8,7 @@
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-11-26 |
+| Last updated | 2026-11-27 |
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
@@ -99,6 +99,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 5
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-27 | D-011 (owner decision): added `scripts/model_dashboard/` (`bench.py`, `build.py`, README), the on-demand data tool for the Findrr Model Observatory dashboard. Not part of the app; real CPU inference only, no training; output git-ignored. Verified with the installed bundles: `findrr model inspect` reports integrity verified for ML-001 2.0.0 (manifest: occupation precision 0.851, acceptance passed against the unedited 0.75 threshold) and ML-002 1.1.0. Laptop benchmark on an idle machine: ML-001 mean 611 ms (budget 1,500), ML-002 5.7 ms per pair (budget 50); peak process memory about 1,065 MB with ML-001 loaded. A second benchmark ran on a saturated machine (load 13) and was discarded; `bench.py` now records the load and `build.py` rejects busy runs. The Model status table above predates these bundles and is left for the evaluation-reports work. | feature/model-dashboard-tool |
 | 2026-11-27 | D-010 option 1 implemented: up to 30 O*NET job titles per occupation as training-only inputs (train 42,624 examples, 22,967 input titles; val/test unchanged, no overlap), 15 epochs, repetition penalty off (runner reads it from `preprocess_config.json`), training-sample precision reported. 193 tests pass. | feature/ml-001-more-anchors / PR #36 |
 | 2026-11-27 | D-010 revised with local inference on the run-4 bundle (500 inputs): penalty off 0.591, 4 beams 0.568, first-title occupation lock 0.635, training inputs 0.727. The model under-fits; decoding changes cannot reach 0.75. Found the bundle's threshold edited to 0.0. | docs/d-010-revised |
 | 2026-11-27 | ML-001 Kaggle run 4 (user, input-title split): occupation precision 0.603 (target 0.75) failed. Local analysis: `repetition_penalty=1.2` penalises shared words, and 97% of gold outputs repeat a word across titles; the constraint already prevents repeats. Raised D-010. | docs/d-010-ml-001-decoding |

@@ -111,6 +111,21 @@ Copy this block for each new decision. Number entries `D-001`, `D-002`, and so o
 
 Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
 
+### D-011: Where the model dashboard's data tool lives
+- **Raised:** 2026-11-27, after building the Findrr Model Observatory (a private claude.ai dashboard about ML-001 to ML-003) at the user's request, outside the plan
+- **Area:** process
+- **Ambiguity:** The dashboard's data is built by two scripts (benchmark and data build). They were in a temporary folder, so the dashboard could not be refreshed after the next Kaggle run. The tool is not in the roadmap or backlog.
+- **Why it matters:** the scripts depend on Findrr's bundle manifests, registry and runners, and the repo is public.
+- **Options:**
+  1. **In this repo, as a developer tool** (`scripts/model_dashboard/`). Trade-offs: stays in step with the manifests and runners; adds unplanned tooling to the repo, though the app never imports it.
+  2. **A separate project.** Trade-offs: keeps Findrr strictly on plan; breaks silently when Findrr changes, and still needs Findrr's environment.
+  3. **Pin the dashboard only.** Trade-offs: no repo change; the data can never be refreshed.
+- **Recommendation:** Option 1.
+- **Blocked work:** none.
+- **Status:** Resolved
+- **Decision:** Option 1, owner decision 2026-11-27 ("Go ahead with the in-repo PR"). The tool runs on demand only: it runs real CPU inference with the installed bundles, never trains, and writes to the git-ignored `build/model-dashboard/`.
+- **Recorded in:** `scripts/model_dashboard/` (README, `bench.py`, `build.py`)
+
 ### D-010: ML-001 occupation precision 0.603; the model under-fits its training data
 - **Raised:** 2026-11-27, after the user's fourth Kaggle run of `01_train_title_expander.ipynb` (v2.0.0, input-title split from D-009). Revised the same day with local evidence; the first version blamed the repetition penalty, which the evidence below rules out as the main cause.
 - **Area:** ML

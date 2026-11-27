@@ -12,6 +12,25 @@ from findrr.ml.manifest import load_manifest, verify_artifact_integrity
 
 logger = logging.getLogger(__name__)
 
+# Must match max_seq_length in the bundle's config.json and the training notebook.
+MAX_SEQ_LENGTH = 128
+
+
+def load_tokenizer(artifact_dir: Path):
+    """Load the bundle's fast tokenizer with the ``tokenizers`` library only.
+
+    ``transformers.AutoTokenizer`` would import PyTorch when it is installed, which costs
+    about 520 MB of RAM against the 100 MB budget (spec §12). ``tokenizer.json`` holds the
+    complete pipeline (normalizer, WordPiece model and [CLS]/[SEP] post-processor), so the
+    token IDs are identical.
+    """
+    from tokenizers import Tokenizer
+
+    tokenizer = Tokenizer.from_file(str(artifact_dir / "tokenizer.json"))
+    tokenizer.enable_truncation(max_length=MAX_SEQ_LENGTH)
+    tokenizer.no_padding()
+    return tokenizer
+
 
 def _compute_mock_similarity(text_a: str, text_b: str) -> float:
     """Deterministic token/ngram similarity heuristic for Mock Model 2."""
@@ -107,7 +126,6 @@ class SimilarityEvaluatorRunner(IModelRunner):
 
         try:
             import onnxruntime as ort
-            from transformers import AutoTokenizer
 
             sess_options = ort.SessionOptions()
             sess_options.intra_op_num_threads = 4
@@ -120,12 +138,12 @@ class SimilarityEvaluatorRunner(IModelRunner):
                 sess_options,
                 providers=["CPUExecutionProvider"],
             )
-            self._tokenizer = AutoTokenizer.from_pretrained(str(self.artifact_dir))
+            self._tokenizer = load_tokenizer(self.artifact_dir)
             logger.info("Successfully loaded verified Model 2 from %s", self.artifact_dir)
         except ImportError as err:
             raise RuntimeError(
                 f"Required ONNX / Tokenizer dependencies missing: {err}. "
-                "Ensure onnxruntime and transformers are installed."
+                "Ensure onnxruntime and tokenizers are installed (the 'ml' extra)."
             ) from err
 
     def unload(self) -> None:
@@ -153,27 +171,17 @@ class SimilarityEvaluatorRunner(IModelRunner):
         """Compute normalized dense embedding for a single text using batch size 1."""
         import numpy as np
 
-        encoded = self._tokenizer(
-            text,
-            truncation=True,
-            max_length=128,
-            return_tensors="np",
-        )
-        ort_inputs = {
-            "input_ids": encoded["input_ids"],
-            "attention_mask": encoded["attention_mask"],
-        }
+        encoding = self._tokenizer.encode(text)
+        input_ids = np.array([encoding.ids], dtype=np.int64)
+        attention_mask = np.array([encoding.attention_mask], dtype=np.int64)
+        ort_inputs = {"input_ids": input_ids, "attention_mask": attention_mask}
         input_names = [inp.name for inp in self._session.get_inputs()]
         if "token_type_ids" in input_names:
-            ort_inputs["token_type_ids"] = encoded.get(
-                "token_type_ids",
-                np.zeros_like(encoded["input_ids"]),
-            )
+            ort_inputs["token_type_ids"] = np.array([encoding.type_ids], dtype=np.int64)
 
         outputs = self._session.run(None, ort_inputs)
         # Apply mean pooling over token embeddings
         token_embeddings = outputs[0]  # shape: (1, seq_len, hidden_dim)
-        attention_mask = encoded["attention_mask"]
         input_mask_expanded = np.broadcast_to(
             np.expand_dims(attention_mask, -1),
             token_embeddings.shape,

@@ -23,6 +23,7 @@ dependencies = [
 # torch is intentionally not listed: see DECISIONS_PENDING D-004.
 ml = [
     "onnxruntime>=1.18.0",
+    "tokenizers>=0.20.0",  # ML-002 tokenizer without transformers/torch (memory budget)
     "transformers>=4.40.0",
     "numpy>=1.26.0",
 ]

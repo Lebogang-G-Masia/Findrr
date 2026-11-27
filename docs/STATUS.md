@@ -12,7 +12,7 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | feature/ml-001-onnx-kv-cache |
+| Current branch | docs/ml-001-v2.1.0-evaluation |
 | Open PR | see "Awaiting merge or approval" |
 | Latest release | None |
 
@@ -22,26 +22,16 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- **Awaiting merge: PR #40** (user review: D-004 implementation, ML-001 v2.1.0 ONNX bundle, notebook 01 export change). Merging also **confirms the PROPOSED ML-001 memory budget of < 550 MB**; say so if you want a different value.
-- **After merging, re-run notebook 01 on Kaggle (GPU T4, Internet on).** No retraining is needed:
-  1. Upload `title_expander_v200.tar.gz` (the v2.0.0 bundle packed as one archive) as a private Kaggle dataset.
-  2. Attach it, and set `REUSE_BUNDLE_DIR` in the training cell to the dataset folder under `/kaggle/input/`.
-  3. Run All. The CPU evaluation of the ONNX files takes about 20–30 minutes.
-  4. Extract the bundle into `models/title-expander/v2.1.0/`, run `findrr model inspect ML-001`, and paste the evaluation output.
-
-  Until then, the app falls back to the explicit MOCK title expander: it no longer loads v2.0.0.
 - Decide D-002 (discovery source), D-003 (DOCX/PDF), D-005 (company research) and D-006 (ML-003 data).
 
 ## Next step
 
-1. When the v2.1.0 bundle arrives: verify it, re-measure memory and latency, and write `docs/ml/evaluation-reports/title-expander-2.1.0.md`.
-2. ML-001 quality finding: skills can pull results off-topic ("Software Developer" + "Python, SQL, Git" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.
-3. When other decisions arrive: resume `/autonomous-run` (US-014, US-012, D-002 changes, the ML-003 rewrite).
+1. ML-001 quality finding: skills can pull results off-topic ("Software Developer" + "Python, SQL, Git" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.
+2. When other decisions arrive: resume `/autonomous-run` (US-014, US-012, D-002 changes, the ML-003 rewrite).
 
 ## Blockers
 
 - Live discovery needs a person to solve the Google CAPTCHA (see D-002).
-- Real ML-001 inference waits for the v2.1.0 Kaggle export (PR #40).
 
 ## Bootstrap and approval tracker
 
@@ -74,7 +64,7 @@ Mark an item verified only after the check has actually been run.
 
 | Model | Spec approved | Notebook written | Trained by user | Artifacts supplied | Integration verified (real inference) |
 |---|---|---|---|---|---|
-| `title-expander` (ML-001) | Approved (Gate 4; amended by D-004, D-007, D-009, D-010) | Yes (v2.1.0 ONNX export, PR #40) | Yes (run 5, 2026-11-27; v2.0.0) | v2.0.0 installed (superseded); **v2.1.0 pending Kaggle export** | v2.0.0: yes (precision 0.828). v2.1.0: ONNX path verified locally on v2.0.0 weights (200/200 identical outputs); awaiting the bundle |
+| `title-expander` (ML-001) | Approved (Gate 4; amended by D-004, D-007, D-009, D-010) | Yes (v2.1.0 ONNX export, PR #40) | Yes (run 5, 2026-11-27; v2.0.0) | Yes (`models/title-expander/v2.1.0/`, SHA-256 verified; v2.0.0 superseded) | **Yes**, 2026-11-27 (v2.1.0 ONNX): all Kaggle metrics identical to v2.0.0; laptop precision 0.828, 456 ms mean, peak 486 MB, no PyTorch |
 | `similarity-evaluator` (ML-002) | Approved (Gate 4; amended by D-008) | Yes (`notebooks/02_train_similarity_evaluator.ipynb`) | Yes (2026-11-26) | Yes (`models/similarity-evaluator/v1.1.0/`, SHA-256 verified) | **Yes**, 2026-11-27: Kaggle values reproduced exactly; 119 MB after PR #37 |
 | `application-tailor` (ML-003) | Approved (Gate 4) | Yes (`notebooks/03_train_application_tailor.ipynb`) | No | No | No |
 
@@ -104,6 +94,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 4
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-27 | Installed and verified ML-001 v2.1.0 (user's Kaggle re-export of the v2.0.0 weights to ONNX, no retraining). SHA-256 verified; every Kaggle metric identical to v2.0.0 (precision 0.851); ONNX parity 3.8e-5. Laptop, full test set through the app's ONNX path: precision 0.828, 456 ms mean latency, RSS 426 MB after load and 486 MB peak (budget < 550 MB), no PyTorch; 200/200 suggestions identical to v2.0.0 PyTorch. Wrote `title-expander-2.1.0.md`; model card, registry (Verified) and spec (memory budget approved via PR #40) updated. The skills defect remains. | docs/ml-001-v2.1.0-evaluation / PR #44 |
 | 2026-11-27 | D-012 delivery: claude.ai's GitHub entry is an integration, not a callable connector, so the dashboard is kept current by the cloud scheduled task "Findrr dashboard sync" (fires on PRs merged into `main`; uploads only changed dashboard files). Hand-tested: 34 s, all writes succeeded. Trigger configured in the claude.ai form by the owner; this PR's merge is its first live test. | docs/dashboard-sync-routine |
 | 2026-11-27 | D-011 and D-012 (owner decisions): added `scripts/model_dashboard/`, the source and data of the Findrr Model Observatory dashboard: `page.html`, `dashboard.json`, `bench.py`, `build.py`, committed `data/`, and a `pre-commit` hook that rebuilds and stages `data/` before each commit (never blocks; no-op without the bundles). Decisions are parsed from this log. Not part of the app; real CPU inference only, no training. Laptop benchmark on an idle machine (before PR #37): ML-001 mean 611 ms per request (budget 1,500), ML-002 5.7 ms per pair (budget 50). A run on a saturated machine (load 13) was discarded; `bench.py` now refuses to save busy runs. The build follows the registry: after PR #40 it shows ML-001 v2.1.0 awaiting its Kaggle run, with metrics from v2.0.0. Hook not yet installed (`git config core.hooksPath scripts/model_dashboard/hooks`); GitHub connector for live reads not yet connected. | feature/model-dashboard-tool / PR #38 |
 | 2026-11-27 | D-004 resolved by the user: option 1, ONNX fp32 with a KV cache. New `t5_onnx_decoding` (NumPy beam search, shared with the notebook) and `t5_onnx_export` (decoder step written against the weights, parity-checked). `TitleExpanderRunner` no longer uses PyTorch. ML-001 v2.1.0 registry entry. Notebook 01 exports and evaluates the ONNX files, and can reuse an accepted v2.0.0 bundle without retraining. Local evidence on the v2.0.0 weights: logit difference 3.8e-5, 200/200 outputs identical to PyTorch, 435 MB after load, peak 486 MB over 400 requests (was 994–1,248 MB). Found: skills can pull ML-001 off-topic. Opened PR #40 (user review). | feature/ml-001-onnx-kv-cache / PR #40 |

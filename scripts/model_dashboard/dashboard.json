@@ -62,6 +62,24 @@
    "description": "How the 800 ML-002 test pairs divide across the four proxy labels, from decision D-008.",
    "file": "labelmix.json",
    "format": "json"
+  },
+  "provenance": {
+   "title": "Bundle provenance",
+   "description": "How each installed bundle was made: seed, dataset checksum, split, library versions and notebook, from its manifest.",
+   "file": "provenance.json",
+   "format": "json"
+  },
+  "bundlefiles": {
+   "title": "Bundle files",
+   "description": "Every file in each installed bundle, with its size on disk and the SHA-256 its manifest records.",
+   "file": "bundlefiles.json",
+   "format": "json"
+  },
+  "benchrun": {
+   "title": "Benchmark conditions",
+   "description": "When the laptop benchmark ran, on which bundle versions, how many requests, and the CPU load.",
+   "file": "benchrun.json",
+   "format": "json"
   }
  }
 }

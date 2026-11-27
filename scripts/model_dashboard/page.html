@@ -161,6 +161,23 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
 .fm-legend li { display: flex; gap: 6px; align-items: baseline; }
 .fm-legend i { width: 10px; height: 10px; border-radius: 2px; flex: none; align-self: center; }
 
+/* Pages */
+.fm-tabs { display: flex; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); flex-wrap: wrap; }
+.fm-tab { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-sm) var(--cds-pad-md); border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+.fm-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.fm-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.fm-page { display: grid; gap: var(--cds-gap-xl); }
+.fm-modelbar { display: flex; gap: var(--cds-gap-sm); flex-wrap: wrap; }
+.fm-modelbar .fm-chip { padding: 4px 12px; font-size: var(--cds-font-size-body); }
+.fm-modelbar .fm-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.fm-files td { font-variant-numeric: tabular-nums; }
+.fm-files td:first-child, .fm-files td:nth-child(4) { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
+.fm-files td:nth-child(4) { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-hash { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
+.fm-steps { margin: 0; padding-left: 1.4em; display: grid; gap: var(--cds-gap-sm); line-height: 1.5; max-width: 70ch; }
+.fm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media print { .fm-tabs { display: none; } }
+
 @media (prefers-reduced-motion: no-preference) {
   .fm-fill { transition: width var(--cds-dur-slow) var(--cds-ease-out); }
 }
@@ -173,53 +190,129 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
     <p class="fm-lede"><b data-draw="readycount" data-source="summary" data-field="ready" data-row="0">—</b> of <b data-draw="modelcount" data-source="summary" data-field="models" data-row="0">—</b> models have a bundle that passes both its integrity check and its acceptance gate. <span data-draw="blocked">—</span></p>
   </header>
 
-  <nav class="fm-pipe" id="pipeline" aria-label="Where each model sits in Findrr">
-    <div class="fm-node">Your profile<small>Module 1</small></div>
-    <span class="fm-arrow" aria-hidden="true">→</span>
-    <button type="button" class="fm-node" data-model="ML-001" aria-pressed="true"><strong>ML-001</strong><small>Expands your job title</small></button>
-    <span class="fm-arrow" aria-hidden="true">→</span>
-    <button type="button" class="fm-node" data-model="ML-002" aria-pressed="false"><strong>ML-002</strong><small>Checks titles and duplicates</small></button>
-    <span class="fm-arrow" aria-hidden="true">→</span>
-    <div class="fm-node">Search terms and postings<small>Modules 3 and 4</small></div>
-    <span class="fm-arrow" aria-hidden="true">→</span>
-    <button type="button" class="fm-node" data-model="ML-003" aria-pressed="false"><strong>ML-003</strong><small>Phrases CV and letter text</small></button>
-    <span class="fm-arrow" aria-hidden="true">→</span>
-    <div class="fm-node">Application documents<small>Module 5</small></div>
-  </nav>
+  <div class="fm-tabs" role="tablist" aria-label="Dashboard pages">
+    <button type="button" role="tab" class="fm-tab" id="tab-models" data-page="model-overview" aria-controls="model-overview" aria-selected="true">Models</button>
+    <button type="button" role="tab" class="fm-tab" id="tab-development" data-page="development" aria-controls="development" aria-selected="false">Development</button>
+  </div>
 
-  <section id="models" aria-label="Models">
-    <div class="fm-cards dash-skeleton" data-draw="cards" data-source="models"></div>
-  </section>
+  <div class="fm-page" id="model-overview" role="tabpanel" aria-labelledby="tab-models">
+    <nav class="fm-pipe" id="pipeline" aria-label="Where each model sits in Findrr">
+      <div class="fm-node">Your profile<small>Module 1</small></div>
+      <span class="fm-arrow" aria-hidden="true">→</span>
+      <button type="button" class="fm-node" data-model="ML-001" aria-pressed="true"><strong>ML-001</strong><small>Expands your job title</small></button>
+      <span class="fm-arrow" aria-hidden="true">→</span>
+      <button type="button" class="fm-node" data-model="ML-002" aria-pressed="false"><strong>ML-002</strong><small>Checks titles and duplicates</small></button>
+      <span class="fm-arrow" aria-hidden="true">→</span>
+      <div class="fm-node">Search terms and postings<small>Modules 3 and 4</small></div>
+      <span class="fm-arrow" aria-hidden="true">→</span>
+      <button type="button" class="fm-node" data-model="ML-003" aria-pressed="false"><strong>ML-003</strong><small>Phrases CV and letter text</small></button>
+      <span class="fm-arrow" aria-hidden="true">→</span>
+      <div class="fm-node">Application documents<small>Module 5</small></div>
+    </nav>
 
-  <section class="fm-detail" id="detail">
+    <section id="models" aria-label="Models">
+      <div class="fm-cards dash-skeleton" data-draw="cards" data-source="models"></div>
+    </section>
+
+    <section class="fm-detail" id="detail">
+      <div class="fm-detail-head">
+        <h2 data-draw="detailname" data-source="models" data-field="display">—</h2>
+        <p class="fm-muted" data-draw="detailtask" data-source="models" data-field="task">—</p>
+      </div>
+
+      <div class="fm-grid2">
+        <div class="fm-card" id="spec">
+          <h3>Spec sheet</h3>
+          <dl class="fm-dl dash-skeleton" data-draw="spec" data-source="models"></dl>
+        </div>
+        <div class="fm-card" id="gate">
+          <h3>Acceptance gate</h3>
+          <p class="fm-note">The green band is the passing range and the black tick is the threshold. If a gated metric fails, the notebook refuses to export the model. Reported metrics are tracked but do not block.</p>
+          <div class="fm-gate dash-skeleton" data-draw="gate" data-source="criteria"></div>
+        </div>
+      </div>
+
+      <div class="fm-card" id="data">
+        <div class="fm-cardhead">
+          <h3>Training data</h3>
+          <div class="fm-seg" role="group" aria-label="Show split sizes as">
+            <button type="button" class="fm-unitbtn" data-unit="count" aria-pressed="true">Counts</button>
+            <button type="button" class="fm-unitbtn" data-unit="share" aria-pressed="false">Share of total</button>
+          </div>
+        </div>
+        <p class="fm-note">Every dataset is built from O*NET 31.0, a public occupational taxonomy (CC BY 4.0), and holds no real user data. Point at a bar for its occupations and source.</p>
+        <div class="fm-splits dash-skeleton" data-draw="datasplits" data-source="splits"></div>
+        <div class="fm-gate" data-draw="dataextra" data-source="splits labelmix"></div>
+      </div>
+
+
+      <div class="fm-grid2">
+        <div class="fm-card" id="speed">
+          <h3>Speed and memory on the Findrr laptop</h3>
+          <p class="fm-note">Real CPU inference with the verified bundle: 50 expansion requests for ML-001 or 100 title pairs for ML-002, measured on 27 Nov 2026. The dashed line is the spec's latency budget.</p>
+          <div class="fm-tiles dash-skeleton" data-draw="latstats" data-source="latstats resources models"></div>
+          <div class="fm-chart fm-chart-s dash-skeleton" data-draw="latency" data-source="benchmark models"></div>
+        </div>
+        <div class="fm-card" id="tryit">
+          <h3>What the model actually says</h3>
+          <p class="fm-note" data-draw="trynote">—</p>
+          <div class="dash-skeleton" data-draw="tryit" data-source="samples"></div>
+        </div>
+      </div>
+    </section>
+
+    <details class="fm-notes" id="notes">
+      <summary>Definitions and caveats</summary>
+      <dl>
+        <dt>Occupation precision (ML-001)</dt>
+        <dd>The share of generated titles that belong to the input title's O*NET occupation, or to an occupation O*NET lists as closely related ("Primary-Short"). The reference baselines show what random titles from progressively closer occupation groups would score.</dd>
+        <dt>Precision at 0.70 (ML-002)</dt>
+        <dd>Of all title pairs the model scores at 0.70 or above, the share that really are the same or a closely related occupation. 0.70 is the spec's relevance threshold and 0.88 its duplicate threshold.</dd>
+        <dt>Proxy labels</dt>
+        <dd>No human-labelled title-similarity benchmark exists, so ML-002 is evaluated against labels derived from O*NET's occupation structure. Those labels sometimes disagree with what titles mean, which is why Pearson r is reported but no longer gated (D-008).</dd>
+        <dt>Where the latest numbers come from</dt>
+        <dd>The current metrics are read from the manifests inside the bundles on disk. The app's own inspector, <span class="fm-mono">findrr model inspect</span>, verified both bundles' SHA-256 checksums on 27 Nov 2026. Earlier runs come from the Kaggle output recorded in the decision log and the project status log. ML-001's run 2 exposed a bug in the decoding constraint that let titles repeat, which PR #31 fixed.</dd>
+        <dt>Memory</dt>
+        <dd>Peak memory is the whole Python process, including the PyTorch or ONNX runtime, not only the model weights. ML-001's budget (under 550 MB, proposed under D-004) is a whole-process figure for v2.1.0. The current measurement is of v2.0.0 on PyTorch, so it shows the old runtime. ML-002's 100 MB budget describes the model's active RAM, so its figure is not directly comparable.</dd>
+        <dt>Real outputs</dt>
+        <dd>The samples are a handful of hand-picked inputs, run once through the app's own runners. They illustrate behaviour and are not an evaluation.</dd>
+      </dl>
+    </details>
+  </div>
+
+  <div class="fm-page" id="development" role="tabpanel" aria-labelledby="tab-development" hidden>
     <div class="fm-detail-head">
-      <h2 data-draw="detailname" data-source="models" data-field="display">—</h2>
-      <p class="fm-muted" data-draw="detailtask" data-source="models" data-field="task">—</p>
+      <h2>Development</h2>
+      <p class="fm-muted">How each model was built and measured, what its bundle contains, and the decisions behind it.</p>
+    </div>
+    <div class="fm-modelbar" role="group" aria-label="Model">
+      <button type="button" class="fm-chip" data-model="ML-001" aria-pressed="true">ML-001 · Title Expander</button>
+      <button type="button" class="fm-chip" data-model="ML-002" aria-pressed="false">ML-002 · Similarity Evaluator</button>
+      <button type="button" class="fm-chip" data-model="ML-003" aria-pressed="false">ML-003 · Application Tailor</button>
     </div>
 
     <div class="fm-grid2">
-      <div class="fm-card" id="spec">
-        <h3>Spec sheet</h3>
-        <dl class="fm-dl dash-skeleton" data-draw="spec" data-source="models"></dl>
+      <div class="fm-card" id="reproducibility">
+        <h3>Reproducibility</h3>
+        <p class="fm-note">Read from the bundle's manifest, which the training notebook writes on Kaggle.</p>
+        <dl class="fm-dl dash-skeleton" data-draw="devprov" data-source="provenance"></dl>
       </div>
-      <div class="fm-card" id="gate">
-        <h3>Acceptance gate</h3>
-        <p class="fm-note">The green band is the passing range and the black tick is the threshold. If a gated metric fails, the notebook refuses to export the model. Reported metrics are tracked but do not block.</p>
-        <div class="fm-gate dash-skeleton" data-draw="gate" data-source="criteria"></div>
+      <div class="fm-card" id="bench-conditions">
+        <h3>Benchmark conditions</h3>
+        <p class="fm-note">The conditions behind the speed and memory figures on the Models page.</p>
+        <dl class="fm-dl dash-skeleton" data-draw="devbench" data-source="benchrun models"></dl>
       </div>
     </div>
 
-    <div class="fm-card" id="data">
-      <div class="fm-cardhead">
-        <h3>Training data</h3>
-        <div class="fm-seg" role="group" aria-label="Show split sizes as">
-          <button type="button" class="fm-unitbtn" data-unit="count" aria-pressed="true">Counts</button>
-          <button type="button" class="fm-unitbtn" data-unit="share" aria-pressed="false">Share of total</button>
-        </div>
+    <div class="fm-card" id="bundle-files">
+      <h3>Bundle files</h3>
+      <p class="fm-note">Every file the manifest lists, with its SHA-256. The app refuses to load a bundle if any checksum differs.</p>
+      <div class="fm-tablewrap">
+        <table class="fm-table fm-files" data-source="bundlefiles" data-row-key="model_id,file">
+          <thead><tr><th data-field="file">File</th><th data-field="bytes">Bytes</th><th>Size</th><th data-field="sha256">SHA-256</th><th><span class="fm-sr">Copy</span></th></tr></thead>
+          <tbody data-draw="devfiles"></tbody>
+        </table>
       </div>
-      <p class="fm-note">Every dataset is built from O*NET 31.0, a public occupational taxonomy (CC BY 4.0), and holds no real user data. Point at a bar for its occupations and source.</p>
-      <div class="fm-splits dash-skeleton" data-draw="datasplits" data-source="splits"></div>
-      <div class="fm-gate" data-draw="dataextra" data-source="splits labelmix"></div>
     </div>
 
     <div class="fm-card" id="history">
@@ -234,54 +327,33 @@ button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible,
       <ol class="fm-runlist" data-draw="runlist" data-source="runs"></ol>
     </div>
 
-    <div class="fm-grid2">
-      <div class="fm-card" id="speed">
-        <h3>Speed and memory on the Findrr laptop</h3>
-        <p class="fm-note">Real CPU inference with the verified bundle: 50 expansion requests for ML-001 or 100 title pairs for ML-002, measured on 27 Nov 2026. The dashed line is the spec's latency budget.</p>
-        <div class="fm-tiles dash-skeleton" data-draw="latstats" data-source="latstats resources models"></div>
-        <div class="fm-chart fm-chart-s dash-skeleton" data-draw="latency" data-source="benchmark models"></div>
+    <section class="fm-card" id="decisions">
+      <div class="fm-cardhead">
+        <h3>Decisions that shaped the models</h3>
+        <div class="fm-seg" role="group" aria-label="Which decisions to show">
+          <button type="button" class="fm-segbtn" data-scope="all" aria-pressed="true">All models</button>
+          <button type="button" class="fm-segbtn" data-scope="model" aria-pressed="false">Selected model</button>
+        </div>
       </div>
-      <div class="fm-card" id="tryit">
-        <h3>What the model actually says</h3>
-        <p class="fm-note" data-draw="trynote">—</p>
-        <div class="dash-skeleton" data-draw="tryit" data-source="samples"></div>
+      <div class="fm-tablewrap">
+        <table class="fm-table" data-source="decisions" data-row-key="id">
+          <thead><tr><th data-field="id">Decision</th><th data-field="model_id">Model</th><th data-field="date">Raised</th><th data-field="status">Status</th><th data-field="title">Problem</th><th data-field="outcome">Outcome</th></tr></thead>
+          <tbody data-draw="decrows"></tbody>
+        </table>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="fm-card" id="decisions">
-    <div class="fm-cardhead">
-      <h3>Decisions that shaped the models</h3>
-      <div class="fm-seg" role="group" aria-label="Which decisions to show">
-        <button type="button" class="fm-segbtn" data-scope="all" aria-pressed="true">All models</button>
-        <button type="button" class="fm-segbtn" data-scope="model" aria-pressed="false">Selected model</button>
-      </div>
+    <div class="fm-card" id="pipeline-info">
+      <h3>How this dashboard stays current</h3>
+      <ol class="fm-steps">
+        <li><span class="fm-mono">scripts/model_dashboard/build.py</span> reads the app's model registry, the installed bundles, the decision log and the benchmark, and writes the data files in <span class="fm-mono">scripts/model_dashboard/data/</span>.</li>
+        <li>A pre-commit hook runs the build before every commit, and adds any changed data to that commit.</li>
+        <li>Once the change is merged to <span class="fm-mono">main</span>, the dashboard shows it.</li>
+        <li><span class="fm-mono">bench.py</span> is run by hand, on an idle machine. It refuses to save a run if other work is competing for the CPU.</li>
+      </ol>
+      <p class="fm-note">Earlier Kaggle runs, model descriptions, budgets and baselines are typed into <span class="fm-mono">build.py</span> from the docs, so they change only when someone edits it. Decision D-012 describes the design.</p>
     </div>
-    <div class="fm-tablewrap">
-      <table class="fm-table" data-source="decisions" data-row-key="id">
-        <thead><tr><th data-field="id">Decision</th><th data-field="model_id">Model</th><th data-field="date">Raised</th><th data-field="status">Status</th><th data-field="title">Problem</th><th data-field="outcome">Outcome</th></tr></thead>
-        <tbody data-draw="decrows"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <details class="fm-notes" id="notes">
-    <summary>Definitions and caveats</summary>
-    <dl>
-      <dt>Occupation precision (ML-001)</dt>
-      <dd>The share of generated titles that belong to the input title's O*NET occupation, or to an occupation O*NET lists as closely related ("Primary-Short"). The reference baselines show what random titles from progressively closer occupation groups would score.</dd>
-      <dt>Precision at 0.70 (ML-002)</dt>
-      <dd>Of all title pairs the model scores at 0.70 or above, the share that really are the same or a closely related occupation. 0.70 is the spec's relevance threshold and 0.88 its duplicate threshold.</dd>
-      <dt>Proxy labels</dt>
-      <dd>No human-labelled title-similarity benchmark exists, so ML-002 is evaluated against labels derived from O*NET's occupation structure. Those labels sometimes disagree with what titles mean, which is why Pearson r is reported but no longer gated (D-008).</dd>
-      <dt>Where the latest numbers come from</dt>
-      <dd>The current metrics are read from the manifests inside the bundles on disk. The app's own inspector, <span class="fm-mono">findrr model inspect</span>, verified both bundles' SHA-256 checksums on 27 Nov 2026. Earlier runs come from the Kaggle output recorded in the decision log and the project status log. ML-001's run 2 exposed a bug in the decoding constraint that let titles repeat, which PR #31 fixed.</dd>
-      <dt>Memory</dt>
-      <dd>Peak memory is the whole Python process, including the PyTorch or ONNX runtime, not only the model weights. The specs' budgets (300 MB for ML-001, 100 MB for ML-002) describe the model's active RAM, so the two are not directly comparable. A process-level figure this far over budget still deserves a closer look.</dd>
-      <dt>Real outputs</dt>
-      <dd>The samples are a handful of hand-picked inputs, run once through the app's own runners. They illustrate behaviour and are not an evaluation.</dd>
-    </dl>
-  </details>
+  </div>
 </div>
 
 <script>
@@ -289,7 +361,7 @@ window.FM = window.FM || { model: 'ML-001', metric: null, baselines: true, scope
 window.FM_DEFAULT_METRIC = { 'ML-001': 'occupation_precision', 'ML-002': 'precision_at_0_70' };
 window.FM_STEPS = ['Spec approved', 'Notebook written', 'Trained on Kaggle', 'Bundle verified', 'Integrated in the app'];
 window.FM_BATCH_BUDGET_MS = 150; // spec: < 150 ms for a batch of 20 pairs (ML-002)
-window.FM_DRAWINGS = ['cards', 'detailname', 'detailtask', 'spec', 'gate', 'datasplits', 'dataextra', 'metricsel', 'runs', 'runlist', 'latstats', 'latency', 'trynote', 'tryit', 'decrows'];
+window.FM_DRAWINGS = ['cards', 'detailname', 'detailtask', 'spec', 'gate', 'datasplits', 'dataextra', 'devprov', 'devbench', 'devfiles', 'metricsel', 'runs', 'runlist', 'latstats', 'latency', 'trynote', 'tryit', 'decrows'];
 
 window.h = function (tag, attrs, ...kids) {
   const el = document.createElement(tag);
@@ -821,5 +893,101 @@ dash.draw('dataextra', (el) => {
       h('span', {}, `${r.label} · ${r.meaning}: `, h('b', { 'data-source': 'labelmix', 'data-field': 'pairs', 'data-where': FMwhere({ model_id: r.model_id, label: r.label }) }, num(+r.pairs)))))));
   }
   el.replaceChildren(...parts);
+});
+</script>
+
+<script>
+/* Pages: Models and Development */
+window.FM.page = window.FM.page || 'model-overview';
+window.FMshowPage = function (id, link) {
+  if (!document.getElementById(id)) id = 'model-overview';
+  FM.page = id;
+  document.querySelectorAll('.fm-page').forEach((p) => { p.hidden = p.id !== id; });
+  document.querySelectorAll('.fm-tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.page === id ? 'true' : 'false'));
+  if (link) dash.setLink(id);
+};
+document.querySelectorAll('.fm-tab').forEach((t) => t.addEventListener('click', () => FMshowPage(t.dataset.page, true)));
+document.querySelectorAll('.fm-tabs').forEach((bar) => bar.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+  const tabs = [...bar.querySelectorAll('.fm-tab')];
+  const i = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+  const next = tabs[(i + (ev.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  FMshowPage(next.dataset.page, true);
+  next.focus();
+}));
+const fmFromHash = () => { const h = location.hash.slice(1); if (h === 'development' || h === 'model-overview') FMshowPage(h, false); };
+fmFromHash();
+window.addEventListener('hashchange', fmFromHash);
+window.addEventListener('beforeprint', () => document.querySelectorAll('.fm-page').forEach((p) => { p.hidden = false; }));
+window.addEventListener('afterprint', () => FMshowPage(FM.page, false));
+
+/* Development: reproducibility */
+dash.draw('devprov', (el) => {
+  if (FMwait(el, 'provenance')) return;
+  const r = dash.data('provenance').data.find((x) => x.model_id === FM.model);
+  if (!r) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'No bundle exists yet, so there is nothing to reproduce. The notebook is on hold until D-006 is decided.')); return; }
+  const w = FMwhere({ model_id: r.model_id });
+  const row = (k, field, v, opts = {}) => [h('dt', {}, k), h('dd', {}, v == null || v === '' ? h('span', { class: 'fm-muted' }, 'Not recorded') : h('span', { class: opts.cls || null, 'data-source': 'provenance', 'data-field': field, 'data-where': w }, v), opts.after || '')];
+  el.replaceChildren(
+    ...row('Bundle', 'bundle_version', 'v' + r.bundle_version, { after: r.bundle_version !== r.active_version ? ` (the active version, v${r.active_version}, has no trained bundle yet)` : '' }),
+    ...row('As exported', 'architecture', r.architecture),
+    ...row('Exported', 'export_date', r.export_date ? d3.utcFormat('%-d %b %Y')(new Date(r.export_date)) : null),
+    ...row('Random seed', 'seed', r.seed),
+    ...row('Dataset', 'dataset', r.dataset),
+    ...row('Dataset SHA-256', 'dataset_sha256', r.dataset_sha256, { cls: 'fm-hash' }),
+    ...row('Split', 'split', r.split),
+    ...row('Libraries', 'libraries', r.libraries),
+    ...row('Notebook', 'notebook', r.notebook, { cls: 'fm-mono', after: ', generated by ' }),
+    ...[h('dt', {}, 'Acceptance'), h('dd', {}, r.acceptance_overridden ? h('span', { class: 'fm-pill bad' }, 'Exported with an override') : h('span', { class: 'fm-pill ok' }, 'Exported only after passing'))],
+  );
+  // The generator path is plain text after the notebook, inside the same dd.
+  const dds = el.querySelectorAll('dd');
+  const nb = dds[dds.length - 2];
+  if (nb && r.generator) nb.append(h('span', { class: 'fm-mono', 'data-source': 'provenance', 'data-field': 'generator', 'data-where': w }, r.generator));
+});
+
+/* Development: benchmark conditions */
+dash.draw('devbench', (el) => {
+  if (FMwait(el, 'benchrun', 'models')) return;
+  const b = dash.data('benchrun').data[0];
+  if (!b) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'No benchmark recorded.')); return; }
+  const models = dash.data('models').data;
+  const active = (id) => (models.find((m) => m.model_id === id) || {}).version;
+  const cell = (field, v) => h('span', { 'data-source': 'benchrun', 'data-field': field, 'data-row': '0' }, v);
+  const stale = [['ML-001', b.ml001_version], ['ML-002', b.ml002_version]].filter(([id, v]) => active(id) && v !== active(id));
+  const load = b.load_before == null
+    ? h('span', { class: 'fm-muted' }, 'Not recorded. This run predates load recording.')
+    : h('span', {}, cell('load_before', d3.format('.2f')(b.load_before)), ' before, ', cell('load_after', d3.format('.2f')(b.load_after)), ' after, on ', cell('cpu_count', b.cpu_count), ' CPUs');
+  el.replaceChildren(
+    h('dt', {}, 'Measured'), h('dd', {}, cell('measured_at', d3.utcFormat('%-d %b %Y')(new Date(b.measured_at)))),
+    h('dt', {}, 'Bundles'), h('dd', {}, 'ML-001 v', cell('ml001_version', b.ml001_version), ', ML-002 v', cell('ml002_version', b.ml002_version),
+      stale.length ? h('div', {}, h('span', { class: 'fm-pill warn' }, 'Out of date'), ' ', stale.map(([id]) => `${id} is now v${active(id)}`).join('; ') + '. Re-run bench.py once that bundle is installed.') : null),
+    h('dt', {}, 'Requests'), h('dd', {}, cell('ml001_requests', b.ml001_requests), ' expansions, ', cell('ml002_requests', b.ml002_requests), ' title pairs, ', cell('batch_runs', b.batch_runs), ' batches of 20 pairs'),
+    h('dt', {}, 'Machine'), h('dd', {}, cell('machine', b.machine)),
+    h('dt', {}, 'CPU load (1 min)'), h('dd', {}, load),
+  );
+});
+
+/* Development: bundle files */
+dash.draw('devfiles', (el) => {
+  const d = dash.data('bundlefiles');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const rows = d.data.filter((r) => r.model_id === FM.model);
+  if (!rows.length) { el.replaceChildren(h('tr', {}, h('td', { colspan: 5, class: 'fm-muted' }, 'No bundle installed for this model.'))); return; }
+  const human = (n) => n >= 1e6 ? d3.format('.1f')(n / 1e6) + ' MB' : n >= 1e3 ? d3.format('.1f')(n / 1e3) + ' KB' : n + ' B';
+  el.replaceChildren(...rows.map((r) => {
+    const copy = h('button', { type: 'button', class: 'fm-chip', 'aria-label': 'Copy SHA-256 of ' + r.file }, 'Copy');
+    copy.addEventListener('click', () => {
+      const done = () => { copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy'; }, 1500); };
+      const fallback = () => { const sel = getSelection(); const range = document.createRange(); range.selectNodeContents(copy.closest('tr').children[3]); sel.removeAllRanges(); sel.addRange(range); copy.textContent = 'Selected'; };
+      try { navigator.clipboard.writeText(r.sha256).then(done, fallback); } catch (e) { fallback(); }
+    });
+    return h('tr', { 'data-key': [r.model_id, r.file].map(encodeURIComponent).join(',') },
+      h('td', {}, r.file),
+      h('td', {}, d3.format(',')(+r.bytes)),
+      h('td', { class: 'fm-muted' }, human(+r.bytes)),
+      h('td', { title: r.sha256 }, r.sha256),
+      h('td', {}, copy));
+  }));
 });
 </script>

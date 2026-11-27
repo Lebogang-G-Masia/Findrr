@@ -1,0 +1,30 @@
+{
+ "rows": [
+  {
+   "measured_at": "2026-11-27",
+   "ml001_version": "2.0.0",
+   "ml002_version": "1.1.0",
+   "ml001_requests": 50,
+   "ml002_requests": 100,
+   "batch_runs": 10,
+   "cpu_count": null,
+   "load_before": null,
+   "load_after": null,
+   "machine": "Findrr laptop (Intel i5-1235U, CPU only)"
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "bench.py on the Findrr laptop (Intel i5-1235U, CPU only), 2026-11-27"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  },
+  {
+   "label": "Measured by",
+   "value": "scripts/model_dashboard/bench.py"
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "rows": [
+  {
+   "model_id": "ML-001",
+   "bundle_version": "2.0.0",
+   "active_version": "2.1.0",
+   "architecture": "google/flan-t5-small (seq2seq, safetensors)",
+   "export_date": "2026-11-27",
+   "seed": 42,
+   "dataset": "O*NET 31_0 (CC BY 4.0)",
+   "dataset_sha256": "6883548adf5fde64cf6f801b35d15519c9225f2732c3cab0e281c652d16b23a9",
+   "split": "by input title (anchor), hashed 80/10/10; every occupation in training (D-009)",
+   "libraries": "transformers 4.46.3, torch 2.11.0+cu130",
+   "notebook": "notebooks/01_train_title_expander.ipynb",
+   "generator": "scripts/generate_kaggle_notebooks.py",
+   "acceptance_overridden": false
+  },
+  {
+   "model_id": "ML-002",
+   "bundle_version": "1.1.0",
+   "active_version": "1.1.0",
+   "architecture": "sentence-transformers/all-MiniLM-L6-v2 (ONNX INT8, mean pooling)",
+   "export_date": "2026-11-26",
+   "seed": 42,
+   "dataset": "O*NET 31_0 (CC BY 4.0)",
+   "dataset_sha256": "6883548adf5fde64cf6f801b35d15519c9225f2732c3cab0e281c652d16b23a9",
+   "split": "by occupation, stratified by SOC major group (80/10/10)",
+   "libraries": "transformers 4.46.3, sentence-transformers 3.3.1, onnxruntime 1.32.0",
+   "notebook": "notebooks/02_train_similarity_evaluator.ipynb",
+   "generator": "scripts/generate_kaggle_notebooks.py",
+   "acceptance_overridden": false
+  }
+ ],
+ "meta": [
+  {
+   "label": "Built from",
+   "value": "models/*/manifest.json; src/findrr/ml/registry.py"
+  },
+  {
+   "label": "Built by",
+   "value": "scripts/model_dashboard/build.py"
+  }
+ ]
+}

@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-| Model ID / version | ML-001 v2.0.0 (evaluated); v2.1.0 pending (same model, ONNX bundle; D-004) |
+| Model ID / version | ML-001 v2.1.0 (active; the v2.0.0 weights as an ONNX bundle, D-004). v2.0.0 superseded |
 | Base model | `google/flan-t5-small` (about 77M parameters, Apache 2.0) |
 | Runtime | v2.0.0: PyTorch CPU + `transformers`. From v2.1.0: ONNX Runtime fp32 with a KV cache + `tokenizers`, no PyTorch (D-004) |
 | Decoding | 2-beam search constrained by a token trie to 45,713 O*NET titles (`titles.json`); repeated titles impossible (D-007) |
 | Specification | `docs/ml/models/title-expander.md` |
-| Evaluation | `docs/ml/evaluation-reports/title-expander-2.0.0.md` |
-| Status | Acceptance passed; real inference verified 2026-11-27; memory budget not met |
+| Evaluation | `docs/ml/evaluation-reports/title-expander-2.1.0.md` (v2.0.0: `title-expander-2.0.0.md`) |
+| Status | Acceptance passed; real inference verified 2026-11-27 (v2.1.0); memory budget < 550 MB met |
 
 ## Intended use
 
@@ -33,8 +33,8 @@ O*NET 31.0 (U.S. Department of Labor, CC BY 4.0): occupation titles, reported ti
 | Occupation precision (Kaggle / app runner) | 0.851 / 0.828 | >= 0.75 |
 | On wording never seen in training (110 examples) | 0.936 | reported only |
 | Valid titles / repetition | 1.0 / 0.0 (by construction) | >= 0.85 / < 0.05 |
-| Mean latency (i5-1235U) | 407 ms | < 1,500 ms |
-| RSS after load / after 20 requests | 994 MB / 1,105 MB | < 300 MB (not met) |
+| Mean latency (i5-1235U), v2.1.0 | 456 ms | < 1,500 ms |
+| RSS after load / peak, v2.1.0 | 426 MB / 486 MB | < 550 MB (D-004) |
 
 ## Limitations and risks
 
@@ -42,7 +42,7 @@ O*NET 31.0 (U.S. Department of Labor, CC BY 4.0): occupation titles, reported ti
 - **Ambiguous inputs drift.** For example, "Checker" gives warehouse titles, and "Data Analyst" gives survey and research titles. ML-002 filtering and user confirmation are the safeguards.
 - **US-centric vocabulary** (O*NET). Titles from other labour markets may be missing or mapped to the nearest US occupation.
 - **Seniority levels** rely on keyword patterns in O*NET titles. Occupations with few levelled titles fall back to neutral titles.
-- **Memory.** Under PyTorch (v2.0.0), PyTorch alone costs about 520 MB, and RSS grows with use (1,248 MB after 2,525 requests). v2.1.0 runs on ONNX Runtime: about 435 MB after load locally, peak 486 MB over 400 requests, against an amended budget of < 550 MB (PROPOSED, D-004).
+- **Memory.** Under PyTorch (v2.0.0), PyTorch alone costs about 520 MB, and RSS grows with use (1,248 MB after 2,525 requests). v2.1.0 runs on ONNX Runtime without PyTorch: 426 MB after load, peak 486 MB over the full test set, within the amended budget of < 550 MB (D-004, confirmed by merging PR #40).
 - **Not a fairness-audited model.** It maps titles to titles and never sees personal attributes.
 
 ## Integrity

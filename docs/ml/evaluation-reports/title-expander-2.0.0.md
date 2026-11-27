@@ -57,6 +57,7 @@ Importing PyTorch and `transformers` alone costs about 520 MB, and the fp32 weig
 ## 6. Qualitative findings
 
 - **Typical good output:** Truck Driver → CDL Driver, Line Haul Driver, Log Truck Driver; Meat Packer → Meat Processor, Boning Room Worker; Casino Shift Manager → Pit Boss, Floor Supervisor.
+- **Skills can pull results off-topic (found 2026-11-27):** "Software Developer" with skills "Python, SQL, Git" returns Automation Clerk, Computer Forwarding System Markup Clerk, Distribution Clerk, Flat Sorting Machine Clerk and Mail Handler. Without skills, it returns software titles. This is identical under PyTorch and the ONNX export, so it is a property of the trained model.
 - **Ambiguous or uncommon inputs drift:**
   - "Checker" (O*NET: Cashiers) → Loader, Receiver;
   - Data Analyst → Market Survey Representative, Research Interviewer;

@@ -21,3 +21,6 @@ Machine learning models (Title Expander, Semantic Evaluator, and Application Tai
 Chosen option: **ONNX Runtime (CPUExecutionProvider) with INT8 Quantization**.
 - Models exported from Kaggle as optimized ONNX graphs or `.safetensors`.
 - Thread execution capped at 4 threads to prevent operating system freezes.
+
+## Update 2026-11-27 (D-004)
+ML-001 (title expander) now complies with this decision. From v2.1.0 it ships as ONNX fp32 with a KV cache and runs on ONNX Runtime + `tokenizers`, without PyTorch (`findrr.ml.t5_onnx_decoding`). ML-002 loads its tokenizer with `tokenizers` instead of `transformers` (PR #37). No ML runtime path in the app imports PyTorch.

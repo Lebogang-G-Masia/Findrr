@@ -57,8 +57,22 @@ The notebook prints 15 sample predictions with the metrics. If any criterion fai
 
 **Verified locally on 2026-11-26 (no training):** the export code, run on the untrained base model, produced a bundle. The app registry accepted it, and `TitleExpanderRunner` returned only dictionary titles.
 
+## ONNX export (D-004, v2.1.0)
+- After training, `export_t5_bundle` (embedded from `src/findrr/ml/t5_onnx_export.py`) writes `encoder.onnx`, a KV-cached one-step `decoder.onnx` and `embeddings.npy`. It stops if the ONNX logits differ from the model's own logits by more than 1e-3.
+- **All metrics are measured on the exported files**, using the app's decoding code (`src/findrr/ml/t5_onnx_decoding.py`, embedded verbatim). This evaluation runs on the CPU (about 20–30 minutes for about 3,000 requests).
+- **No retraining for an accepted v2.0.0 model:**
+  1. Upload your extracted `models/title-expander/v2.0.0/` folder as a private Kaggle dataset.
+  2. Attach it to the notebook.
+  3. Set `REUSE_BUNDLE_DIR` in the training cell to its path under `/kaggle/input/`.
+
+  The notebook checks the bundle's checksums, ID, version and acceptance, then skips training. The manifest records `reused_bundle`.
+- **Verified locally on 2026-11-27 (no training):**
+  - the notebook ran end to end in reuse mode on the installed v2.0.0 bundle (evaluation cut to 40 inputs, export gate opened for the dry run only);
+  - ONNX parity was 3.8e-5;
+  - the app runner, run separately on the installed v2.0.0 weights exported the same way, returned the same titles as PyTorch on 200/200 test inputs.
+
 ## Transfer
 1. Download `title_expander_bundle.tar.gz` from `/kaggle/working`.
-2. Run `mkdir -p models/title-expander/v2.0.0 && tar -xzf title_expander_bundle.tar.gz -C models/title-expander/v2.0.0`.
+2. Run `mkdir -p models/title-expander/v2.1.0 && tar -xzf title_expander_bundle.tar.gz -C models/title-expander/v2.1.0`.
 3. Run `findrr model inspect ML-001`, which must report `Integrity Verified: Yes`.
 4. Keep the notebook output (metrics and manifest) as evidence for `docs/ml/evaluation-reports/`.

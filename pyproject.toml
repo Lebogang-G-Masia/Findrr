@@ -20,7 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Local CPU inference runtime approved in ADR-0003 (ONNX Runtime + tokenizers).
-# torch is intentionally not listed: see DECISIONS_PENDING D-004.
+# torch is not needed at runtime: ML-001 runs on ONNX Runtime since D-004 (v2.1.0).
 ml = [
     "onnxruntime>=1.18.0",
     "tokenizers>=0.20.0",  # ML-002 tokenizer without transformers/torch (memory budget)

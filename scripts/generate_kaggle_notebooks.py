@@ -315,26 +315,33 @@ def verify_cell(bundle: str) -> dict:
 # ML-001: title expander
 # --------------------------------------------------------------------------------------------
 
-ML001_VERSION = "2.0.0"
+ML001_VERSION = "2.1.0"
+# D-004: a v2.0.0 bundle (same training recipe, safetensors) can be re-exported without
+# retraining; see REUSE_BUNDLE_DIR in the notebook.
+ML001_REUSABLE_VERSION = "2.0.0"
 
 
-CONSTRAINT_SOURCE = Path(__file__).resolve().parents[1] / "src/findrr/ml/title_constraint.py"
+SRC_ML = Path(__file__).resolve().parents[1] / "src/findrr/ml"
 
 
-def constraint_cell() -> dict:
-    """Embed findrr.ml.title_constraint verbatim so the notebook and the app decode identically."""
-    source = CONSTRAINT_SOURCE.read_text(encoding="utf-8")
+def embedded_module_cell(module: str, testable: bool) -> dict:
+    """Embed src/findrr/ml/<module>.py verbatim so the notebook and the app run the same code."""
+    source = (SRC_ML / f"{module}.py").read_text(encoding="utf-8")
     header = (
-        "# Copied verbatim from src/findrr/ml/title_constraint.py by\n"
+        f"# Copied verbatim from src/findrr/ml/{module}.py by\n"
         "# scripts/generate_kaggle_notebooks.py. Do not edit here.\n"
     )
     return {
         "cell_type": "code",
         "execution_count": None,
-        "metadata": {"tags": [TESTABLE]},
+        "metadata": {"tags": [TESTABLE]} if testable else {},
         "outputs": [],
         "source": _source(header + source),
     }
+
+
+def constraint_cell() -> dict:
+    return embedded_module_cell("title_constraint", testable=True)
 
 
 def title_expander_notebook() -> dict:
@@ -355,6 +362,18 @@ def title_expander_notebook() -> dict:
                 Then download `title_expander_bundle.tar.gz` and extract it into
                 `models/title-expander/v{ML001_VERSION}/` in your Findrr folder.
 
+                **Export (D-004):** the model ships as ONNX fp32 with a KV cache (`encoder.onnx`,
+                `decoder.onnx`, `embeddings.npy`), so the Findrr app runs it without PyTorch. The
+                export is checked against the model's own logits, and **all metrics below are
+                measured on the exported ONNX files** with the app's own decoding code
+                (`findrr.ml.t5_onnx_decoding`, embedded below). This evaluation runs on the CPU and
+                takes about 20-30 minutes.
+
+                **No retraining needed for a v{ML001_REUSABLE_VERSION} model:** attach your accepted
+                v{ML001_REUSABLE_VERSION} bundle (the extracted folder) as a Kaggle dataset and set
+                `REUSE_BUNDLE_DIR` below. The notebook verifies its checksums and acceptance, skips
+                training and re-exports it.
+
                 Decoding is constrained to real O*NET titles (D-007), and the bundle ships the
                 title dictionary as `titles.json`. The notebook stops before export if the model
                 fails its acceptance criteria: occupation precision >= the PROPOSED threshold,
@@ -369,14 +388,17 @@ def title_expander_notebook() -> dict:
                 # Compiled packages (torch, tokenizers, safetensors, numpy) come from the Kaggle
                 # image: pinning old releases forces source builds on newer Python versions.
                 # sentencepiece is not needed: flan-t5 loads its fast tokenizer from tokenizer.json.
+                # onnx/onnxruntime get a minimum version so pip can pick a prebuilt wheel (D-004 export).
                 !pip install -q --prefer-binary transformers==4.46.3 datasets==3.1.0 accelerate==1.1.1 \\
-                    rouge-score==0.1.2 sacrebleu==2.4.3
+                    rouge-score==0.1.2 sacrebleu==2.4.3 "onnx>=1.17.0" "onnxruntime>=1.20.1"
                 """
             ),
             ONET_CONFIG,
             ONET_DOWNLOAD,
             ONET_LOADER,
             constraint_cell(),
+            embedded_module_cell("t5_onnx_decoding", testable=False),
+            embedded_module_cell("t5_onnx_export", testable=False),
             code(
                 r'''
                 # Dataset construction parameters (dataset shape, not acceptance thresholds).
@@ -580,71 +602,119 @@ def title_expander_notebook() -> dict:
             ),
             code(version_guard({'transformers': '4.46.3', 'datasets': '3.1.0'})),
             code(
-                r'''
+                rf'''
+                import json
                 import numpy as np, torch
-                from datasets import Dataset
                 from transformers import (AutoModelForSeq2SeqLM, AutoTokenizer, DataCollatorForSeq2Seq,
                                           Seq2SeqTrainer, Seq2SeqTrainingArguments, set_seed)
                 set_seed(SEED)
                 BASE_MODEL = 'google/flan-t5-small'
                 MAX_INPUT_LEN, MAX_TARGET_LEN = 128, 64
-                tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
-                model = AutoModelForSeq2SeqLM.from_pretrained(BASE_MODEL)
+                # D-004: set to the folder of an attached, accepted v{ML001_REUSABLE_VERSION} bundle (for example
+                # '/kaggle/input/findrr-title-expander-v200') to skip training and re-export it.
+                REUSE_BUNDLE_DIR = None
+                REUSED_BUNDLE = None
+                if REUSE_BUNDLE_DIR:
+                    import hashlib
+                    src = Path(REUSE_BUNDLE_DIR)
+                    hits = list(src.rglob('manifest.json'))
+                    if len(hits) != 1:
+                        raise RuntimeError(f'Expected exactly one manifest.json under {{src}}, found {{len(hits)}}.')
+                    src = hits[0].parent
+                    src_manifest = json.loads(hits[0].read_text())
+                    if (src_manifest.get('model_id'), src_manifest.get('version')) != ('ML-001', '{ML001_REUSABLE_VERSION}'):
+                        raise RuntimeError(f'Not an ML-001 v{ML001_REUSABLE_VERSION} bundle: {{src_manifest.get("model_id")}} {{src_manifest.get("version")}}')
+                    if not src_manifest['metadata']['acceptance']['passed']:
+                        raise RuntimeError('The reused bundle did not pass acceptance; refusing to re-export it.')
+                    for name, digest in src_manifest['files'].items():
+                        if hashlib.sha256((src / name).read_bytes()).hexdigest() != digest:
+                            raise RuntimeError(f'Checksum mismatch in the reused bundle: {{name}}')
+                    REUSED_BUNDLE = {{'version': src_manifest['version'], 'export_date': src_manifest['export_date'],
+                                     'manifest_sha256': hashlib.sha256(hits[0].read_bytes()).hexdigest()}}
+                    print('Reusing verified bundle (no training):', REUSED_BUNDLE)
+                    tokenizer = AutoTokenizer.from_pretrained(str(src))
+                    model = AutoModelForSeq2SeqLM.from_pretrained(str(src))
+                else:
+                    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
+                    model = AutoModelForSeq2SeqLM.from_pretrained(BASE_MODEL)
 
-                def tokenize(batch):
-                    enc = tokenizer(batch['input_text'], max_length=MAX_INPUT_LEN, truncation=True)
-                    enc['labels'] = tokenizer(text_target=batch['target_text'], max_length=MAX_TARGET_LEN,
-                                              truncation=True)['input_ids']
-                    return enc
+                if REUSED_BUNDLE is None:
+                    from datasets import Dataset
 
-                ds = {k: Dataset.from_list(v).map(tokenize, batched=True, remove_columns=['input_text', 'target_text', 'soc', 'anchor'])
-                      for k, v in examples.items()}
+                    def tokenize(batch):
+                        enc = tokenizer(batch['input_text'], max_length=MAX_INPUT_LEN, truncation=True)
+                        enc['labels'] = tokenizer(text_target=batch['target_text'], max_length=MAX_TARGET_LEN,
+                                                  truncation=True)['input_ids']
+                        return enc
 
-                # FP16 is off: T5 checkpoints are known to overflow in fp16 and the T4 has no bf16.
-                # flan-t5-small trains comfortably in fp32 on a T4.
-                args = Seq2SeqTrainingArguments(
-                    output_dir='/kaggle/working/ml001-checkpoints',
-                    learning_rate=3e-4, lr_scheduler_type='cosine', warmup_ratio=0.1,
-                    num_train_epochs=15, per_device_train_batch_size=32, per_device_eval_batch_size=64,
-                    weight_decay=0.01, eval_strategy='epoch', save_strategy='epoch',
-                    load_best_model_at_end=True, metric_for_best_model='eval_loss', save_total_limit=1,
-                    fp16=False, logging_steps=50, seed=SEED, report_to='none',
-                )
-                trainer = Seq2SeqTrainer(model=model, args=args, train_dataset=ds['train'], eval_dataset=ds['val'],
-                                         data_collator=DataCollatorForSeq2Seq(tokenizer, model=model),
-                                         processing_class=tokenizer)
-                trainer.train()
+                    ds = {{k: Dataset.from_list(v).map(tokenize, batched=True, remove_columns=['input_text', 'target_text', 'soc', 'anchor'])
+                          for k, v in examples.items()}}
+
+                    # FP16 is off: T5 checkpoints are known to overflow in fp16 and the T4 has no bf16.
+                    # flan-t5-small trains comfortably in fp32 on a T4.
+                    args = Seq2SeqTrainingArguments(
+                        output_dir='/kaggle/working/ml001-checkpoints',
+                        learning_rate=3e-4, lr_scheduler_type='cosine', warmup_ratio=0.1,
+                        num_train_epochs=15, per_device_train_batch_size=32, per_device_eval_batch_size=64,
+                        weight_decay=0.01, eval_strategy='epoch', save_strategy='epoch',
+                        load_best_model_at_end=True, metric_for_best_model='eval_loss', save_total_limit=1,
+                        fp16=False, logging_steps=50, seed=SEED, report_to='none',
+                    )
+                    trainer = Seq2SeqTrainer(model=model, args=args, train_dataset=ds['train'], eval_dataset=ds['val'],
+                                             data_collator=DataCollatorForSeq2Seq(tokenizer, model=model),
+                                             processing_class=tokenizer)
+                    trainer.train()
+                    model = trainer.model  # best checkpoint (load_best_model_at_end)
                 '''
             ),
-            md("## Evaluation on held-out input titles (same decoding settings as the Findrr runner)"),
+            md(
+                """
+                ## Export to ONNX (D-004), then evaluate the exported files
+
+                The export writes `encoder.onnx`, a KV-cached one-step `decoder.onnx` and
+                `embeddings.npy`, and stops if the ONNX logits differ from the model's own
+                logits. Evaluation then uses only those files and the app's decoding code.
+                """
+            ),
+            code(
+                rf'''
+                import shutil
+                EXPORT_DIR = Path('/kaggle/working/title-expander-v{ML001_VERSION}')
+                shutil.rmtree(EXPORT_DIR, ignore_errors=True); EXPORT_DIR.mkdir(parents=True)
+                ONNX_PARITY = export_t5_bundle(model, EXPORT_DIR)
+                print('ONNX parity:', ONNX_PARITY)
+                model.config.save_pretrained(EXPORT_DIR)
+                tokenizer.save_pretrained(EXPORT_DIR)
+                for leftover in ('spiece.model', 'generation_config.json'):
+                    (EXPORT_DIR / leftover).unlink(missing_ok=True)  # not used by the ONNX runner
+                '''
+            ),
             code(
                 r'''
                 from rouge_score import rouge_scorer
                 import sacrebleu
 
-                # D-007: decoding is constrained to real O*NET titles; repeats cannot be completed.
-                DICTIONARY_TITLES = dictionary_titles(onet)
-                constraint = TitleTrieConstraint(DICTIONARY_TITLES, tokenizer, max_titles=MAX_TARGET_TITLES)
-                print(f'Constrained vocabulary: {len(constraint.titles)} titles ({len(constraint.skipped)} skipped)')
                 MAX_NEW_TOKENS = 64  # == MAX_TARGET_LEN, so 5 titles are not cut off
                 NUM_BEAMS = 2
                 # D-010: 1.0 (off). The constraint already prevents repeated titles, and a token
                 # penalty works against correct sibling titles, which share words.
                 REPETITION_PENALTY = 1.0
+                # The app's own inference path: ONNX Runtime + tokenizers, no torch (D-004).
+                onnx_tokenizer = TokenizersAdapter(EXPORT_DIR / 'tokenizer.json', max_length=MAX_INPUT_LEN)
+                onnx_generator = T5OnnxGenerator(EXPORT_DIR)
+                # D-007: decoding is constrained to real O*NET titles; repeats cannot be completed.
+                DICTIONARY_TITLES = dictionary_titles(onet)
+                constraint = TitleTrieConstraint(DICTIONARY_TITLES, onnx_tokenizer, max_titles=MAX_TARGET_TITLES)
+                print(f'Constrained vocabulary: {len(constraint.titles)} titles ({len(constraint.skipped)} skipped)')
 
-                def generate(texts, batch_size=64):
+                def generate(texts):
                     """Returns (raw decoded text, complete distinct titles) per input, as the runner does."""
-                    model.eval(); raw, titles = [], []
-                    allowed = constraint.prefix_allowed_tokens_fn(model.config.decoder_start_token_id)
-                    for i in range(0, len(texts), batch_size):
-                        enc = tokenizer(texts[i:i + batch_size], return_tensors='pt', padding=True,
-                                        truncation=True, max_length=MAX_INPUT_LEN).to(model.device)
-                        with torch.no_grad():
-                            gen = model.generate(**enc, max_new_tokens=MAX_NEW_TOKENS, num_beams=NUM_BEAMS,
-                                                 do_sample=False, repetition_penalty=REPETITION_PENALTY,
-                                                 prefix_allowed_tokens_fn=allowed)
-                        raw += tokenizer.batch_decode(gen, skip_special_tokens=True)
-                        titles += [constraint.complete_titles(g.tolist(), tokenizer) for g in gen]
+                    raw, titles = [], []
+                    for text in texts:
+                        out = onnx_generator.generate(onnx_tokenizer(text)['input_ids'], constraint.allowed_tokens,
+                                                      num_beams=NUM_BEAMS, max_new_tokens=MAX_NEW_TOKENS)
+                        raw.append(onnx_tokenizer.decode(out, skip_special_tokens=True))
+                        titles.append(constraint.complete_titles(out, onnx_tokenizer))
                     return raw, titles
 
                 test_rows = examples['test']
@@ -702,11 +772,7 @@ def title_expander_notebook() -> dict:
             gate_cell("ML-001"),
             code(
                 rf'''
-                import shutil, tarfile
-                EXPORT_DIR = Path('/kaggle/working/title-expander-v{ML001_VERSION}')
-                shutil.rmtree(EXPORT_DIR, ignore_errors=True); EXPORT_DIR.mkdir(parents=True)
-                trainer.model.save_pretrained(EXPORT_DIR, safe_serialization=True)
-                tokenizer.save_pretrained(EXPORT_DIR)
+                import tarfile
                 (EXPORT_DIR / 'preprocess_config.json').write_text(json.dumps({{
                     'max_input_length': MAX_INPUT_LEN, 'max_target_length': MAX_TARGET_LEN,
                     'input_template': 'expand titles: {{title}} | skills: {{skills}} | level: {{level}}',
@@ -716,14 +782,16 @@ def title_expander_notebook() -> dict:
                 }}, indent=2))
                 # Constrained-decoding dictionary, read by findrr TitleExpanderRunner (D-007).
                 (EXPORT_DIR / 'titles.json').write_text(json.dumps(constraint.titles, ensure_ascii=False))
-                import transformers
+                import transformers, onnxruntime as ort
                 manifest = build_manifest(
-                    EXPORT_DIR, 'ML-001', 'title-expander', '{ML001_VERSION}', 'google/flan-t5-small (seq2seq, safetensors)',
+                    EXPORT_DIR, 'ML-001', 'title-expander', '{ML001_VERSION}', 'google/flan-t5-small (ONNX fp32, KV-cached decoder)',
                     evaluation_summary=measured, acceptance=ACCEPTANCE,
                     metadata={{'dataset': f'O*NET {{ONET_VERSION}} (CC BY 4.0)', 'dataset_sha256': ONET_SHA256,
                               'split': 'by input title (anchor), hashed 80/10/10; every occupation in training (D-009)',
                               'examples': {{k: len(v) for k, v in examples.items()}}, 'seed': SEED,
-                              'transformers': transformers.__version__, 'torch': torch.__version__}},
+                              'transformers': transformers.__version__, 'torch': torch.__version__,
+                              'onnxruntime': ort.__version__, 'onnx_parity': ONNX_PARITY,
+                              'reused_bundle': REUSED_BUNDLE}},
                 )
                 (EXPORT_DIR / 'manifest.json').write_text(json.dumps(manifest, indent=2))
                 BUNDLE = '/kaggle/working/title_expander_bundle.tar.gz'

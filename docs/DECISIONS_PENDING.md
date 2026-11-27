@@ -50,6 +50,15 @@
   3. **Brave Search API.** Similar to Tavily, but needs a card.
   4. Any of the above, plus **Greenhouse, Lever and Ashby adapters** for employers the user names (keyless, Milestone 5).
 - **Recommendation (after research):** Option 2, if Adzuna covers the owner's job market; otherwise option 1. Do the option 3 clean-up (evasion flags, `--no-sandbox`, robots.txt) in every case.
+- **Update 2026-11-27 (owner: job market South Africa; the app must scale to many users).** Findings, from providers' own pages unless marked:
+  - **No free tier is meant for a multi-user product.** Each source has a paid or licensed path for scale.
+  - **Careerjet publisher API** (`search.api.careerjet.net/v4/query`): built for third-party sites that show jobs to their own users. The key comes from a free publisher account. careerjet.co.za exists and its sample job uses ZAR. Every request must carry the end user's IP address and user agent, a privacy point to handle on the Milestone 4 server. Locale list, rate limits, cost and display terms are in its publisher terms, not yet read.
+  - **Adzuna:** South Africa (`za`) appears only in third-party lists; Adzuna's own pages do not confirm it. The free key covers "Personal job search". A product that "generates revenue or leads" needs a licence.
+  - **Tavily:** scales on pay-as-you-go ($0.008 a credit). Its terms allow integration in the customer's own applications but forbid sharing the key with third parties.
+  - **South African boards** (PNet, Careers24, CareerJunction): no public APIs were found, only third-party scrapers. Ruled out by BR-004.
+  - **Jooble:** its site terms forbid bots, and no API terms were found. Ruled out for now.
+  - **Common Crawl / Web Data Commons JobPosting data:** free and large, but published yearly, so too stale for live postings. Ruled out for discovery.
+- **Recommendation (scalable):** Careerjet as the primary job source for South Africa, Adzuna as a second source once a live call confirms `za`, and Tavily for web search (D-005 company sites). Each sits behind the NFR-010 provider interface, so a free key can later become a paid or licensed one without changes to the core. Greenhouse, Lever and Ashby adapters are for employer-direct follow-up. Do the option 3 clean-up in every case. Before building: read Careerjet's publisher terms; run one test call per provider when the owner has keys.
 - **Status:** Open
 
 ## Entry template

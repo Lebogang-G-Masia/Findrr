@@ -58,7 +58,8 @@ def onet_dir(tmp_path):
     _write(d / "Job Titles.txt", "O*NET-SOC Code\tJob Title\tShort Title\tSource(s)",
            [(soc, t + " (Full Name)", "n/a", "08") for soc, (_, ts) in occs.items() for t in ts]
            + [("15-1252.00", "Senior Application Developer", "n/a", "08"),
-              ("15-1252.00", "Senior Programmer", "n/a", "08")])
+              ("15-1252.00", "Senior Programmer", "n/a", "08"),
+              ("15-1252.00", "Java Developer", "n/a", "08")])
     _write(d / "Software Skills.txt",
            "O*NET-SOC Code\tWorkplace Example\tElement ID\tElement Name\tHot Technology\tIn Demand",
            [("15-1252.00", "Python", "x", "y", "Y", "Y"),
@@ -111,6 +112,28 @@ def test_title_split_is_by_input_title(onet_dir):
     assert not train & {norm(r["anchor"]) for r in ex["test"] + ex["val"]}
     assert {r["soc"] for r in ex["test"] + ex["val"]} <= {r["soc"] for r in ex["train"]}
     assert ns["novel_wording"](ex) <= {norm(r["anchor"]) for r in ex["test"]}
+
+def test_extra_job_title_anchors_are_training_only(onet_dir):
+    """D-010: O*NET job titles add level-ANY training inputs; val/test wording is never reused."""
+    ns = _testable_namespace("01_train_title_expander.ipynb")
+    norm = ns["norm"]
+    onet = ns["load_onet"](onet_dir)
+    ex = ns["build_title_examples"](onet, seed=3)
+    anchors_by_soc = ns["occupation_anchors"](onet)
+    regular = {norm(a) for anchors, _, _ in anchors_by_soc.values() for a in anchors}
+    extra = [r for r in ex["train"] if norm(r["anchor"]) not in regular]
+    assert "java developer" in {norm(r["anchor"]) for r in extra}
+    held_out = {norm(r["anchor"]) for r in ex["val"] + ex["test"]}
+    for r in extra:
+        assert r["input_text"].endswith("| level: ANY")
+        assert norm(r["anchor"]) not in held_out
+        assert not ns["ANY_LEVEL"].search(r["anchor"])
+        assert len(ns["parse_titles"](r["target_text"])) >= ns["MIN_TARGET_TITLES"]
+    per_soc = {}
+    for r in extra:
+        per_soc[r["soc"]] = per_soc.get(r["soc"], 0) + 1
+    assert max(per_soc.values()) <= ns["MAX_EXTRA_ANCHORS_PER_OCCUPATION"]
+
 
 def test_title_examples_match_runner_prompt_and_levels(onet_dir):
     ns = _testable_namespace("01_train_title_expander.ipynb")

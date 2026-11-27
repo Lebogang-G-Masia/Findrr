@@ -21,14 +21,15 @@
   - Titles containing commas are excluded, because the comma is the output separator.
 - **Split (D-009):** by input title. Each normalised anchor title is hashed (seeded) into train, val or test (80/10/10), so the same input wording never appears in two splits, in any occupation. Each occupation keeps at least one training anchor, so every occupation's titles are learnable, as in the app, where the dictionary is fixed and only the user's wording is new. Test anchors may still appear as training *targets*.
 - **Measured locally on 2026-11-26 (data preparation only):** 26,549 examples from 894 occupations. Train: 21,304 (894 occupations, 3,797 anchors). Val: 2,720 (432 occupations, 483 anchors). Test: 2,525 (403 occupations, 459 anchors). No anchor is shared between splits. 22 test anchors (110 examples) never appear in training at all, as input or target.
+- **Extra training inputs (D-010):** up to 30 O*NET job titles per occupation become additional level-ANY training inputs, with that occupation's neutral titles as targets. They exclude existing anchors, titles with level words, and any wording used as a val or test anchor in any occupation. Measured locally on 2026-11-27: train grows to **42,624 examples and 22,967 distinct input titles** (from 3,797); val and test are unchanged, with no anchor overlap.
 
 ## Training
 - **Model:** `google/flan-t5-small`, full fine-tune.
-- **Settings:** AdamW, learning rate 3e-4, cosine schedule with 10% warmup, 5 epochs, batch size 32. The best checkpoint is chosen by validation loss.
+- **Settings:** AdamW, learning rate 3e-4, cosine schedule with 10% warmup, 15 epochs (D-010; was 5), batch size 32. The best checkpoint is chosen by validation loss.
 - **FP32, not FP16:** T5 checkpoints overflow in FP16, and the T4 has no bf16 (deviation from the spec; see the spec's implementation notes).
 
 ## Evaluation (amended by D-007 and D-009)
-Evaluation runs on held-out input titles, using the runner's **constrained** decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.2`, `max_new_tokens=64`, with a trie over the 45,712 comma-free O*NET titles. Titles that can't be followed cleanly by the separator token are skipped. That is 409 titles: 407 contain commas, and 2 have a last token that merges with ",".
+Evaluation runs on held-out input titles, using the runner's **constrained** decoding: `num_beams=2`, `do_sample=False`, `repetition_penalty=1.0` (off, D-010), `max_new_tokens=64`, with a trie over the 45,712 comma-free O*NET titles. Titles that can't be followed cleanly by the separator token are skipped. That is 409 titles: 407 contain commas, and 2 have a last token that merges with ",".
 
 | Metric | Criterion |
 |---|---|
@@ -36,7 +37,7 @@ Evaluation runs on held-out input titles, using the runner's **constrained** dec
 | Valid title ratio (raw output; a cut-off title counts as invalid) | >= 0.85 |
 | Repetition rate (raw output) | < 0.05 |
 | AC-ML-001.1: distinct titles for "Software Developer" | >= 3 |
-| ROUGE-L, BLEU-4, mean distinct titles, occupation precision on never-seen wording (D-009) | reported only |
+| ROUGE-L, BLEU-4, mean distinct titles, occupation precision on never-seen wording (D-009) and on 500 seeded training inputs (D-010) | reported only |
 
 Reference points for occupation precision on this test split (D-009), drawing 5 random titles from those used as training targets:
 

@@ -80,6 +80,30 @@
    "description": "When the laptop benchmark ran, on which bundle versions, how many requests, and the CPU load.",
    "file": "benchrun.json",
    "format": "json"
+  },
+  "project": {
+   "title": "Project snapshot",
+   "description": "Milestone, phase, latest release and open-decision count from the project's status log.",
+   "file": "project.json",
+   "format": "json"
+  },
+  "modelstatus": {
+   "title": "Model status",
+   "description": "Where each model stands (spec, notebook, training, bundle, real inference) from the status log's model table.",
+   "file": "modelstatus.json",
+   "format": "json"
+  },
+  "worklist": {
+   "title": "Open model items",
+   "description": "Items waiting on the owner, next steps and blockers from the status log, model-related ones only.",
+   "file": "worklist.json",
+   "format": "json"
+  },
+  "activity": {
+   "title": "Recent model work",
+   "description": "The 12 newest model-related entries of the status log's session log.",
+   "file": "activity.json",
+   "format": "json"
   }
  }
 }

@@ -6,7 +6,7 @@
    "date": "2026-11-26",
    "status": "Open",
    "title": "ML-001 runtime uses PyTorch, but ADR-0003 approved ONNX Runtime only",
-   "outcome": "Recommended: Option 2 short term, since it unblocks the artifacts that are already trained"
+   "outcome": "Recommended: Option 2: Keep PyTorch (former option 2)"
   },
   {
    "id": "D-005",

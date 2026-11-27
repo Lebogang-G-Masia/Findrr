@@ -17,8 +17,8 @@
    "test_size": 2525,
    "bundle_mb": 312.2,
    "export_date": "2026-11-27",
-   "stage": 4,
-   "stage_label": "Trained, bundle verified",
+   "stage": 5,
+   "stage_label": "Real inference verified in the app",
    "integrity": "Verified",
    "acceptance": "Passed",
    "latency_budget_ms": 1500,
@@ -42,8 +42,8 @@
    "test_size": 800,
    "bundle_mb": 23.8,
    "export_date": "2026-11-26",
-   "stage": 4,
-   "stage_label": "Trained, bundle verified",
+   "stage": 5,
+   "stage_label": "Real inference verified in the app",
    "integrity": "Verified",
    "acceptance": "Passed",
    "latency_budget_ms": 50,
@@ -79,7 +79,7 @@
  "meta": [
   {
    "label": "Built from",
-   "value": "docs/ml/models/*.md; docs/ml/model-registry.md; models/*/manifest.json; findrr model inspect"
+   "value": "docs/ml/models/*.md; docs/ml/model-registry.md; models/*/manifest.json; findrr model inspect; docs/STATUS.md (model status)"
   },
   {
    "label": "Built by",

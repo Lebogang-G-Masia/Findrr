@@ -47,7 +47,29 @@
   1. Export ML-001 to ONNX (seq2seq encoder/decoder, for example via `optimum`) in the Kaggle notebook, and run it with ONNX Runtime. Trade-offs: matches ADR-0003 and uses less memory; needs a notebook change, which you would run.
   2. Accept PyTorch for ML-001 only: amend ADR-0003 and declare `torch` in the `ml` extra. Trade-offs: no retraining needed; larger install and memory use.
 - **Recommendation:** Option 2 short term, since it unblocks the artifacts that are already trained. Plan Option 1 for Milestone 5 optimisation.
-- **Blocked work:** declaring `torch`; real ML-001 integration claims.
+- **Update 2026-11-27 (evidence, local, inference only):** ML-001 v2.0.0 (Kaggle run 5) is installed and passes acceptance. The open question is now its memory, against a spec budget of < 300 MB.
+  - **PyTorch runner (current):** 994 MB after load, 1,105 MB after 20 requests, 1,248 MB after 2,525 requests (it grows). Importing PyTorch and `transformers` alone costs about 520 MB.
+  - **ONNX prototype:** the installed weights were exported locally to an encoder and a decoder (without a KV cache). It runs on ONNX Runtime + `tokenizers` with a NumPy copy of the 2-beam constrained search, and never imports PyTorch.
+  - **Fixed overhead without PyTorch:** ONNX Runtime + `findrr` 67 MB, tokenizer 32 MB, title trie 32 MB.
+  - **Results on the first 200 test examples:**
+
+    | Variant | Occupation precision | Same output as PyTorch | RSS after load | Mean latency |
+    |---|---|---|---|---|
+    | PyTorch (current) | 0.827 | — | 884 MB | 481 ms |
+    | ONNX fp32 | **0.827** | **200 / 200** (max logit diff 6e-5) | 531 MB | 1,062 ms (no KV cache) |
+    | ONNX INT8 (dynamic) | 0.728 | 107 / 200 | 254 MB | 741 ms |
+    | ONNX INT8 per-channel | 0.685 | 115 / 200 | 257 MB | 491 ms |
+    | ONNX INT8 per-channel, vocabulary layers fp32 | 0.714 | 125 / 200 | 382 MB | 840 ms |
+    | ONNX INT8 encoder + fp32 decoder | 0.724 | — | 437 MB | 1,565 ms |
+
+    Latencies are noisy: the laptop was also running other work.
+  - **Conclusion:** fp32 ONNX is exact and saves about 450 MB, but cannot reach 300 MB. Its weights alone are about 370 MB as exported, or about 240 MB if the shared embedding is stored once. With the dynamic and per-channel INT8 settings tried here, every variant falls below the 0.75 acceptance threshold. Reaching < 300 MB would need quantisation-aware fine-tuning or a smaller model, which means retraining on Kaggle and a new evaluation.
+- **Options (revised 2026-11-27):**
+  1. **ONNX fp32 with a KV cache, exported in notebook 01.** The runner drops PyTorch and keeps identical outputs. Amend the ML-001 memory budget to the measured value (about 550–650 MB, PROPOSED). Trade-offs: a notebook export change (no retraining is needed, but artifacts must come from the notebook, so you re-run it) and a NumPy beam search in the runner. The KV cache is needed to bring latency back to the PyTorch level.
+  2. **Keep PyTorch (former option 2).** Amend ADR-0003 and the budget to about 1.2 GB, declare `torch`, and investigate the RSS growth. Trade-offs: no work now, but the largest footprint, and a poor fit for the Milestone 4 server.
+  3. **Meet < 300 MB.** Quantisation-aware fine-tuning or distillation to a smaller model on Kaggle. Trade-offs: a new training approach (needs spec and dataset approval); success is uncertain.
+- **Recommendation (revised):** Option 1. It removes PyTorch, changes no output, and gives a budget that is honest and measured. Option 3 can be evaluated in Milestone 5 if memory matters on the server.
+- **Blocked work:** declaring `torch`; the ML-001 runtime and memory budget.
 - **Status:** Open
 
 ### D-005: Company research (US-014): sources and how summaries are produced

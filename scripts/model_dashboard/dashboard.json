@@ -1,0 +1,67 @@
+{
+ "meta": {
+  "title": "Findrr Model Observatory"
+ },
+ "datasets": {
+  "models": {
+   "title": "Model registry",
+   "description": "One row per Findrr model: spec, runtime, bundle and lifecycle, from the model specs, registry and bundle manifests.",
+   "file": "models.json",
+   "format": "json"
+  },
+  "criteria": {
+   "title": "Acceptance criteria",
+   "description": "Gated and reported metrics of the current bundles, read from each bundle's manifest.",
+   "file": "criteria.json",
+   "format": "json"
+  },
+  "runs": {
+   "title": "Kaggle training runs",
+   "description": "Metrics per training run, from the decision log (D-007 to D-010), the status log and the latest bundle manifests.",
+   "file": "runs.json",
+   "format": "json"
+  },
+  "baselines": {
+   "title": "ML-001 precision baselines",
+   "description": "Occupation precision of random titles from closer and closer occupation groups, from the ML-001 training doc.",
+   "file": "baselines.json",
+   "format": "json"
+  },
+  "benchmark": {
+   "title": "Laptop latency benchmark",
+   "description": "Per-request CPU latency of the verified bundles, measured on the Findrr laptop.",
+   "file": "benchmark.json",
+   "format": "json"
+  },
+  "resources": {
+   "title": "Load time and memory",
+   "description": "Load time, peak process memory and batch latency from the same laptop benchmark.",
+   "file": "resources.json",
+   "format": "json"
+  },
+  "samples": {
+   "title": "Real model outputs",
+   "description": "Hand-picked inputs run once through the verified bundles with the app's own runners.",
+   "file": "samples.json",
+   "format": "json"
+  },
+  "decisions": {
+   "title": "Model decisions",
+   "description": "ML decisions from the project's decision log, open and resolved.",
+   "file": "decisions.json",
+   "format": "json"
+  },
+  "splits": {
+   "title": "Dataset sizes",
+   "description": "Train, validation and test sizes, evaluation subsets and the title dictionary, from the bundle manifests and training docs.",
+   "file": "splits.json",
+   "format": "json"
+  },
+  "labelmix": {
+   "title": "ML-002 test label mix",
+   "description": "How the 800 ML-002 test pairs divide across the four proxy labels, from decision D-008.",
+   "file": "labelmix.json",
+   "format": "json"
+  }
+ }
+}

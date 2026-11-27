@@ -4,7 +4,7 @@ A developer tool that builds the data behind the **Findrr Model Observatory**, a
 
 ## What it produces
 
-Eight JSON files, each shaped `{rows, meta}`, one per dashboard dataset:
+Ten JSON files, each shaped `{rows, meta}`, one per dashboard dataset:
 
 | File | Contents | Source |
 |---|---|---|
@@ -15,9 +15,18 @@ Eight JSON files, each shaped `{rows, meta}`, one per dashboard dataset:
 | `benchmark.json` | Per-request CPU latency | `bench.py` |
 | `resources.json` | Load time, peak process memory, batch latency | `bench.py` |
 | `samples.json` | Real outputs for hand-picked inputs | `bench.py` (the app's own runners) |
+| `splits.json` | Train, validation and test sizes, evaluation subsets, title dictionary | Manifests, `titles.json`, training docs |
+| `labelmix.json` | ML-002 test-pair label mix | D-008 |
 | `decisions.json` | ML decisions, open and resolved | `DECISIONS` in `build.py` (from `docs/DECISIONS_PENDING.md`) |
 
 Output goes to `build/model-dashboard/`, which `.gitignore` excludes. Never commit it.
+
+## Page source
+
+- `page.html` is the dashboard page: its HTML, CSS and drawing scripts. On claude.ai it is stored as `files/index.html` of a Data (dashboard) artifact.
+- `dashboard.json` lists the dashboard's title and its datasets: each one's id, title, description and data file.
+
+Together with the data files, they recreate the whole dashboard from this repo. If the page is edited on claude.ai, copy it back here.
 
 ## Refresh after a Kaggle run or a decision
 

@@ -1,0 +1,824 @@
+<meta name="dash-one-writer">
+<meta name="dash-form" content="dashboard">
+<style>
+.fm { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.fm-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+.fm-muted { color: var(--color-fg-muted); }
+.fm-head { display: grid; gap: var(--cds-gap-sm); max-width: 62rem; }
+.fm-eyebrow { margin: 0; font-size: var(--cds-font-size-caption); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-muted); }
+.fm-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.35); line-height: 1.1; text-wrap: balance; }
+.fm-lede { margin: 0; font-size: var(--cds-font-size-heading); line-height: 1.45; max-width: 60ch; }
+.fm-lede b { font-variant-numeric: tabular-nums; }
+
+/* Pipeline */
+.fm-pipe { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--cds-gap-sm); }
+.fm-node { display: grid; gap: 2px; padding: var(--cds-pad-sm) var(--cds-pad-md); border-radius: var(--cds-radius); border: 1px dashed var(--color-border-line); font-size: var(--cds-font-size-body); color: var(--color-fg-muted); text-align: left; min-width: 0; }
+.fm-node small { font-size: var(--cds-font-size-caption); }
+.fm-arrow { align-self: center; color: var(--color-fg-muted); font-size: var(--cds-font-size-heading); }
+button.fm-node { font: inherit; border-style: solid; background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+button.fm-node strong { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; font-size: 0.9em; }
+button.fm-node[aria-pressed="true"] { border-color: var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-fg); }
+button.fm-node:focus-visible, .fm-mcard:focus-visible, .fm-segbtn:focus-visible, .fm-chip:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+
+/* Model cards */
+.fm-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr)); gap: var(--cds-gap-md); min-height: 15rem; }
+.fm-mcard { font: inherit; color: inherit; text-align: left; cursor: pointer; display: grid; gap: var(--cds-gap-sm); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; transition: border-color .15s, transform .15s; }
+.fm-mcard:hover { border-color: var(--color-fg-muted); }
+.fm-mcard.is-on { border-color: var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-fg); }
+.fm-mtop { display: flex; justify-content: space-between; align-items: center; gap: var(--cds-gap-sm); flex-wrap: wrap; }
+.fm-mname { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; }
+.fm-mtask { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); line-height: 1.4; }
+.fm-mstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cds-gap-sm); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-sm); }
+.fm-mstats div { display: grid; gap: 2px; min-width: 0; }
+.fm-k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.fm-v { font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); overflow-wrap: anywhere; }
+.fm-life { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.fm-life span { height: 6px; border-radius: 3px; background: var(--color-border-line); }
+.fm-life span.on { background: var(--color-fg); }
+.fm-lifelabel { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+
+.fm-pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); white-space: nowrap; border: 1px solid currentColor; }
+.fm-pill.ok { color: var(--color-ok); }
+.fm-pill.bad { color: var(--color-bad); }
+.fm-pill.warn { color: var(--color-warn); }
+.fm-pill.mute { color: var(--color-fg-muted); }
+
+/* Detail */
+.fm-detail { display: grid; gap: var(--cds-gap-lg); }
+.fm-detail-head { display: grid; gap: var(--cds-gap-xs); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-lg); }
+.fm-detail-head h2 { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); }
+.fm-detail-head p { margin: 0; }
+.fm-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-lg); align-items: start; }
+.fm-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-md); min-width: 0; }
+.fm-card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.fm-cardhead { display: flex; justify-content: space-between; align-items: center; gap: var(--cds-gap-md); flex-wrap: wrap; }
+.fm-controls { display: flex; gap: var(--cds-gap-md); align-items: center; flex-wrap: wrap; }
+.fm-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.fm-check { display: inline-flex; gap: 6px; align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); cursor: pointer; }
+.fm-empty { margin: 0; color: var(--color-fg-muted); padding: var(--cds-pad-md) 0; }
+
+.fm-dl { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: var(--cds-gap-sm) var(--cds-gap-md); margin: 0; min-height: 12rem; }
+.fm-dl dt { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: 0.04em; padding-top: 2px; }
+.fm-dl dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+
+/* Bullet gate */
+.fm-gate { display: grid; gap: var(--cds-gap-md); min-height: 10rem; }
+.fm-gsub { font-size: var(--cds-font-size-caption); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-fg-muted); margin: var(--cds-gap-sm) 0 0; }
+.fm-bul { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--cds-gap-md); align-items: center; }
+.fm-bul-label { font-size: var(--cds-font-size-body); min-width: 0; }
+.fm-bul-label small { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.fm-bul-right { display: flex; gap: var(--cds-gap-sm); align-items: center; justify-self: end; }
+.fm-bul-val { font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
+.fm-track { grid-column: 1 / -1; position: relative; height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--color-border-line) 70%, transparent); margin-bottom: 14px; }
+.fm-track.thin { height: 6px; margin-bottom: 2px; }
+.fm-zone { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--color-ok) 22%, transparent); border-radius: 6px; }
+.fm-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; min-width: 3px; }
+.fm-fill.ok { background: var(--color-ok); }
+.fm-fill.bad { background: var(--color-bad); }
+.fm-fill.neutral { background: var(--cds-chart-muted); }
+.fm-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--color-fg); }
+.fm-tick span { position: absolute; top: 100%; transform: translateX(-50%); font-size: 10px; color: var(--cds-text-secondary); white-space: nowrap; margin-top: 2px; }
+
+/* Charts */
+.fm-chart { position: relative; min-height: 270px; }
+.fm-chart-s { min-height: 150px; }
+.fm-chart svg { display: block; width: 100%; overflow: visible; }
+.fm-chart text { fill: var(--cds-text-secondary); font-size: 11px; font-family: var(--font-anthropic-sans); }
+.fm-chart .val { fill: var(--color-fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fm-grid line { stroke: var(--cds-chart-grid); }
+.fm-thr { stroke: var(--color-fg); stroke-width: 2; stroke-dasharray: 4 3; }
+.fm-base line { stroke: var(--cds-chart-reference); stroke-dasharray: 2 3; }
+.fm-tip { position: absolute; pointer-events: none; z-index: 3; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); font-size: var(--cds-font-size-caption); max-width: 16rem; line-height: 1.4; }
+.fm-tip b { display: block; font-size: var(--cds-font-size-body); }
+
+.fm-runlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--cds-gap-sm); }
+.fm-run { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); display: grid; gap: 4px; font-size: var(--cds-font-size-caption); min-width: 0; }
+.fm-run.is-last { border-color: var(--color-fg-muted); }
+.fm-run-top { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); align-items: center; flex-wrap: wrap; }
+.fm-run-top strong { font-size: var(--cds-font-size-body); }
+.fm-chip { font: inherit; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); border-radius: 999px; padding: 1px 8px; cursor: pointer; }
+.fm-chip:hover { border-color: var(--color-fg); }
+
+.fm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--cds-gap-sm); min-height: 4.5rem; }
+.fm-tile { display: grid; gap: 2px; align-content: start; border-left: 2px solid var(--color-border-line); padding-left: var(--cds-pad-sm); min-width: 0; }
+.fm-tile.ok { border-left-color: var(--color-ok); }
+.fm-tile.bad { border-left-color: var(--color-bad); }
+.fm-tile .fm-big { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.fm-tile small { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+
+/* Try it */
+.fm-samples { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--cds-gap-sm); }
+.fm-sample { display: grid; gap: 6px; padding-bottom: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+.fm-sample:last-child { border-bottom: 0; }
+.fm-sin { display: flex; gap: var(--cds-gap-sm); flex-wrap: wrap; align-items: baseline; }
+.fm-sin strong { font-weight: var(--cds-font-weight-medium); }
+.fm-sin small { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.fm-touts { display: flex; flex-wrap: wrap; gap: 4px; }
+.fm-tout { font-size: var(--cds-font-size-caption); padding: 2px 8px; border-radius: var(--cds-radius); background: color-mix(in srgb, var(--color-fg) 7%, transparent); }
+.fm-search { font: inherit; width: 100%; padding: 6px 10px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); }
+.fm-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--cds-gap-md); }
+.fm-slider { display: grid; gap: 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.fm-slider b { color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.fm-slider input { width: 100%; }
+.fm-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--cds-gap-sm); align-items: center; }
+.fm-pair .fm-track { margin-bottom: 0; }
+.fm-pair-t { font-size: var(--cds-font-size-body); min-width: 0; overflow-wrap: anywhere; }
+.fm-pair-t span { color: var(--color-fg-muted); padding: 0 4px; }
+.fm-fill.dup { background: var(--color-warn); }
+.fm-fill.rel { background: var(--color-ok); }
+.fm-fill.unrel { background: var(--cds-chart-muted); }
+
+/* Decisions */
+.fm-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+.fm-segbtn { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border: 0; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+.fm-segbtn[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.fm-tablewrap { overflow-x: auto; }
+.fm-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); min-width: 40rem; }
+.fm-table th { text-align: left; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid var(--color-border-line); }
+.fm-table td { padding: 8px; border-bottom: 1px solid var(--color-border-line); vertical-align: top; line-height: 1.4; }
+.fm-table tr.is-hl td { background: color-mix(in srgb, var(--color-warn) 14%, transparent); }
+.fm-table td:first-child { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.fm-table td:nth-child(3) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.fm-notes { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); }
+.fm-notes summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); }
+.fm-notes dl { display: grid; gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0 0; max-width: 68ch; }
+.fm-notes dt { font-weight: var(--cds-font-weight-medium); }
+.fm-notes dd { margin: 0 0 var(--cds-gap-sm); color: var(--color-fg-muted); line-height: 1.5; }
+
+/* Training data */
+.fm-unitbtn { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border: 0; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+.fm-unitbtn[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.fm-unitbtn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.fm-splits { display: grid; gap: var(--cds-gap-md); min-height: 8rem; position: relative; }
+.fm-split { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--cds-gap-md); align-items: baseline; }
+.fm-split .fm-track { margin-bottom: 0; height: 14px; }
+.fm-split small { grid-column: 1 / -1; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.fm-split-total { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-sm); }
+.fm-mix { display: flex; height: 18px; border-radius: 6px; overflow: hidden; }
+.fm-mix span { display: block; height: 100%; min-width: 2px; }
+.fm-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 6px var(--cds-gap-md); font-size: var(--cds-font-size-caption); }
+.fm-legend li { display: flex; gap: 6px; align-items: baseline; }
+.fm-legend i { width: 10px; height: 10px; border-radius: 2px; flex: none; align-self: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fm-fill { transition: width var(--cds-dur-slow) var(--cds-ease-out); }
+}
+</style>
+
+<div class="fm">
+  <header class="fm-head" id="overview">
+    <p class="fm-eyebrow">Findrr · machine-learning models</p>
+    <h1 class="fm-title">Findrr Model Observatory</h1>
+    <p class="fm-lede"><b data-draw="readycount" data-source="summary" data-field="ready" data-row="0">—</b> of <b data-draw="modelcount" data-source="summary" data-field="models" data-row="0">—</b> models have a bundle that passes both its integrity check and its acceptance gate. <span data-draw="blocked">—</span></p>
+  </header>
+
+  <nav class="fm-pipe" id="pipeline" aria-label="Where each model sits in Findrr">
+    <div class="fm-node">Your profile<small>Module 1</small></div>
+    <span class="fm-arrow" aria-hidden="true">→</span>
+    <button type="button" class="fm-node" data-model="ML-001" aria-pressed="true"><strong>ML-001</strong><small>Expands your job title</small></button>
+    <span class="fm-arrow" aria-hidden="true">→</span>
+    <button type="button" class="fm-node" data-model="ML-002" aria-pressed="false"><strong>ML-002</strong><small>Checks titles and duplicates</small></button>
+    <span class="fm-arrow" aria-hidden="true">→</span>
+    <div class="fm-node">Search terms and postings<small>Modules 3 and 4</small></div>
+    <span class="fm-arrow" aria-hidden="true">→</span>
+    <button type="button" class="fm-node" data-model="ML-003" aria-pressed="false"><strong>ML-003</strong><small>Phrases CV and letter text</small></button>
+    <span class="fm-arrow" aria-hidden="true">→</span>
+    <div class="fm-node">Application documents<small>Module 5</small></div>
+  </nav>
+
+  <section id="models" aria-label="Models">
+    <div class="fm-cards dash-skeleton" data-draw="cards" data-source="models"></div>
+  </section>
+
+  <section class="fm-detail" id="detail">
+    <div class="fm-detail-head">
+      <h2 data-draw="detailname" data-source="models" data-field="display">—</h2>
+      <p class="fm-muted" data-draw="detailtask" data-source="models" data-field="task">—</p>
+    </div>
+
+    <div class="fm-grid2">
+      <div class="fm-card" id="spec">
+        <h3>Spec sheet</h3>
+        <dl class="fm-dl dash-skeleton" data-draw="spec" data-source="models"></dl>
+      </div>
+      <div class="fm-card" id="gate">
+        <h3>Acceptance gate</h3>
+        <p class="fm-note">The green band is the passing range and the black tick is the threshold. If a gated metric fails, the notebook refuses to export the model. Reported metrics are tracked but do not block.</p>
+        <div class="fm-gate dash-skeleton" data-draw="gate" data-source="criteria"></div>
+      </div>
+    </div>
+
+    <div class="fm-card" id="data">
+      <div class="fm-cardhead">
+        <h3>Training data</h3>
+        <div class="fm-seg" role="group" aria-label="Show split sizes as">
+          <button type="button" class="fm-unitbtn" data-unit="count" aria-pressed="true">Counts</button>
+          <button type="button" class="fm-unitbtn" data-unit="share" aria-pressed="false">Share of total</button>
+        </div>
+      </div>
+      <p class="fm-note">Every dataset is built from O*NET 31.0, a public occupational taxonomy (CC BY 4.0), and holds no real user data. Point at a bar for its occupations and source.</p>
+      <div class="fm-splits dash-skeleton" data-draw="datasplits" data-source="splits"></div>
+      <div class="fm-gate" data-draw="dataextra" data-source="splits labelmix"></div>
+    </div>
+
+    <div class="fm-card" id="history">
+      <div class="fm-cardhead">
+        <h3>Training runs on Kaggle</h3>
+        <div class="fm-controls">
+          <select class="dash-select" data-draw="metricsel" aria-label="Metric to plot"></select>
+          <label class="fm-check" id="baselinectl"><input type="checkbox" id="fm-baselines" checked> Reference baselines</label>
+        </div>
+      </div>
+      <div class="fm-chart dash-skeleton" data-draw="runs" data-source="runs baselines"></div>
+      <ol class="fm-runlist" data-draw="runlist" data-source="runs"></ol>
+    </div>
+
+    <div class="fm-grid2">
+      <div class="fm-card" id="speed">
+        <h3>Speed and memory on the Findrr laptop</h3>
+        <p class="fm-note">Real CPU inference with the verified bundle: 50 expansion requests for ML-001 or 100 title pairs for ML-002, measured on 27 Nov 2026. The dashed line is the spec's latency budget.</p>
+        <div class="fm-tiles dash-skeleton" data-draw="latstats" data-source="latstats resources models"></div>
+        <div class="fm-chart fm-chart-s dash-skeleton" data-draw="latency" data-source="benchmark models"></div>
+      </div>
+      <div class="fm-card" id="tryit">
+        <h3>What the model actually says</h3>
+        <p class="fm-note" data-draw="trynote">—</p>
+        <div class="dash-skeleton" data-draw="tryit" data-source="samples"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fm-card" id="decisions">
+    <div class="fm-cardhead">
+      <h3>Decisions that shaped the models</h3>
+      <div class="fm-seg" role="group" aria-label="Which decisions to show">
+        <button type="button" class="fm-segbtn" data-scope="all" aria-pressed="true">All models</button>
+        <button type="button" class="fm-segbtn" data-scope="model" aria-pressed="false">Selected model</button>
+      </div>
+    </div>
+    <div class="fm-tablewrap">
+      <table class="fm-table" data-source="decisions" data-row-key="id">
+        <thead><tr><th data-field="id">Decision</th><th data-field="model_id">Model</th><th data-field="date">Raised</th><th data-field="status">Status</th><th data-field="title">Problem</th><th data-field="outcome">Outcome</th></tr></thead>
+        <tbody data-draw="decrows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="fm-notes" id="notes">
+    <summary>Definitions and caveats</summary>
+    <dl>
+      <dt>Occupation precision (ML-001)</dt>
+      <dd>The share of generated titles that belong to the input title's O*NET occupation, or to an occupation O*NET lists as closely related ("Primary-Short"). The reference baselines show what random titles from progressively closer occupation groups would score.</dd>
+      <dt>Precision at 0.70 (ML-002)</dt>
+      <dd>Of all title pairs the model scores at 0.70 or above, the share that really are the same or a closely related occupation. 0.70 is the spec's relevance threshold and 0.88 its duplicate threshold.</dd>
+      <dt>Proxy labels</dt>
+      <dd>No human-labelled title-similarity benchmark exists, so ML-002 is evaluated against labels derived from O*NET's occupation structure. Those labels sometimes disagree with what titles mean, which is why Pearson r is reported but no longer gated (D-008).</dd>
+      <dt>Where the latest numbers come from</dt>
+      <dd>The current metrics are read from the manifests inside the bundles on disk. The app's own inspector, <span class="fm-mono">findrr model inspect</span>, verified both bundles' SHA-256 checksums on 27 Nov 2026. Earlier runs come from the Kaggle output recorded in the decision log and the project status log. ML-001's run 2 exposed a bug in the decoding constraint that let titles repeat, which PR #31 fixed.</dd>
+      <dt>Memory</dt>
+      <dd>Peak memory is the whole Python process, including the PyTorch or ONNX runtime, not only the model weights. The specs' budgets (300 MB for ML-001, 100 MB for ML-002) describe the model's active RAM, so the two are not directly comparable. A process-level figure this far over budget still deserves a closer look.</dd>
+      <dt>Real outputs</dt>
+      <dd>The samples are a handful of hand-picked inputs, run once through the app's own runners. They illustrate behaviour and are not an evaluation.</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+window.FM = window.FM || { model: 'ML-001', metric: null, baselines: true, scope: 'all', highlight: null, rel: 0.70, dup: 0.88, q: '' };
+window.FM_DEFAULT_METRIC = { 'ML-001': 'occupation_precision', 'ML-002': 'precision_at_0_70' };
+window.FM_STEPS = ['Spec approved', 'Notebook written', 'Trained on Kaggle', 'Bundle verified', 'Integrated in the app'];
+window.FM_BATCH_BUDGET_MS = 150; // spec: < 150 ms for a batch of 20 pairs (ML-002)
+window.FM_DRAWINGS = ['cards', 'detailname', 'detailtask', 'spec', 'gate', 'datasplits', 'dataextra', 'metricsel', 'runs', 'runlist', 'latstats', 'latency', 'trynote', 'tryit', 'decrows'];
+
+window.h = function (tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'style') el.setAttribute('style', v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+};
+window.FMwait = function (el, ...ids) {
+  for (const id of ids) {
+    const d = dash.data(id);
+    if (d.status !== 'ok') {
+      el.classList.toggle('dash-skeleton', d.status === 'loading');
+      el.replaceChildren(d.status === 'error' ? 'This part could not load its data.' : '—');
+      return true;
+    }
+  }
+  el.classList.remove('dash-skeleton');
+  return false;
+};
+window.FMmodel = function () {
+  const d = dash.data('models');
+  return d.status === 'ok' ? d.data.find((m) => m.model_id === FM.model) : null;
+};
+window.FMselect = function (id) {
+  FM.model = id; FM.metric = null; FM.q = '';
+  document.querySelectorAll('[data-model]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.model === id ? 'true' : 'false'));
+  FM_DRAWINGS.forEach((n) => dash.draw(n));
+};
+window.FMfmt = function (metric, v) {
+  if (v == null) return '—';
+  return metric === 'distinct_titles' ? d3.format('d')(v) : d3.format('.3f')(v);
+};
+window.FMwhere = (o) => Object.entries(o).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+window.FMgoDecision = function (id) {
+  FM.scope = 'all'; FM.highlight = id;
+  document.querySelectorAll('.fm-segbtn').forEach((b) => b.setAttribute('aria-pressed', b.dataset.scope === 'all' ? 'true' : 'false'));
+  dash.draw('decrows');
+  const t = document.getElementById('decisions');
+  if (t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+};
+
+dash.calc('summary', {
+  title: 'Models ready for use',
+  description: 'Counts the models whose bundle passed its integrity check and its acceptance gate.',
+  inputs: ['models'],
+  fn: (models) => [{
+    models: models.length,
+    ready: models.filter((m) => m.integrity === 'Verified' && m.acceptance === 'Passed').length,
+  }],
+});
+
+dash.calc('latstats', {
+  title: 'Latency against budget',
+  description: 'Mean, 95th-percentile and slowest request per model from the laptop benchmark, next to the spec budget.',
+  inputs: ['benchmark', 'models'],
+  fn: (bench, models) => models.map((m) => {
+    const v = bench.filter((b) => b.model_id === m.model_id).map((b) => +b.latency_ms).sort((a, b) => a - b);
+    if (!v.length) return { model_id: m.model_id, requests: 0, mean_ms: null, p95_ms: null, max_ms: null, budget_ms: m.latency_budget_ms, share_of_budget: null };
+    const mean = v.reduce((a, b) => a + b, 0) / v.length;
+    return {
+      model_id: m.model_id, requests: v.length, mean_ms: +mean.toFixed(1),
+      p95_ms: v[Math.ceil(v.length * 0.95) - 1], max_ms: v[v.length - 1],
+      budget_ms: m.latency_budget_ms, share_of_budget: +(mean / m.latency_budget_ms).toFixed(3),
+    };
+  }),
+});
+
+document.querySelectorAll('button[data-model]').forEach((b) => b.addEventListener('click', () => FMselect(b.dataset.model)));
+document.querySelectorAll('.fm-segbtn').forEach((b) => b.addEventListener('click', () => {
+  FM.scope = b.dataset.scope; FM.highlight = null;
+  document.querySelectorAll('.fm-segbtn').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  dash.draw('decrows');
+}));
+document.querySelectorAll('#fm-baselines').forEach((c) => c.addEventListener('change', () => { FM.baselines = c.checked; dash.draw('runs'); }));
+</script>
+
+<script>
+/* Header */
+dash.draw('readycount', (el) => {
+  const s = dash.data('summary');
+  el.textContent = s.status === 'ok' && s.data[0] ? s.data[0].ready : '—';
+});
+dash.draw('modelcount', (el) => {
+  const s = dash.data('summary');
+  el.textContent = s.status === 'ok' && s.data[0] ? s.data[0].models : '—';
+});
+dash.draw('blocked', (el) => {
+  const d = dash.data('models');
+  if (d.status !== 'ok') { el.textContent = ''; return; }
+  const out = d.data.filter((m) => m.acceptance !== 'Passed');
+  el.textContent = out.length
+    ? out.map((m) => `${m.model_id} (${m.display}) is not trained yet${m.open_decision ? ' and waits on decision ' + m.open_decision : ''}.`).join(' ')
+    : 'Every model has passed.';
+});
+
+/* Model cards */
+dash.draw('cards', (el) => {
+  if (FMwait(el, 'models')) return;
+  const rows = dash.data('models').data;
+  el.replaceChildren(...rows.map((m) => {
+    const w = FMwhere({ model_id: m.model_id });
+    const pillCls = m.acceptance === 'Passed' ? 'ok' : m.acceptance === 'Failed' ? 'bad' : 'mute';
+    const stat = (k, field, v, unit) => h('div', {}, h('span', { class: 'fm-k' }, k),
+      h('span', { class: 'fm-v' }, v == null ? h('span', { class: 'fm-muted' }, '—') : h('span', { 'data-source': 'models', 'data-field': field, 'data-where': w }, v), v == null ? '' : unit));
+    const b = h('button', { type: 'button', class: 'fm-mcard' + (m.model_id === FM.model ? ' is-on' : ''), 'data-model': m.model_id, 'aria-pressed': m.model_id === FM.model ? 'true' : 'false' },
+      h('div', { class: 'fm-mtop' },
+        h('span', { class: 'fm-mono fm-muted' }, h('span', { 'data-source': 'models', 'data-field': 'model_id', 'data-where': w }, m.model_id), ' · v', h('span', { 'data-source': 'models', 'data-field': 'version', 'data-where': w }, m.version)),
+        h('span', { class: 'fm-pill ' + pillCls, 'data-source': 'models', 'data-field': 'acceptance', 'data-where': w }, m.acceptance)),
+      h('div', { class: 'fm-mname', 'data-source': 'models', 'data-field': 'display', 'data-where': w }, m.display),
+      h('div', { class: 'fm-mtask' }, m.task),
+      h('div', { class: 'fm-life', 'aria-label': `Lifecycle: ${m.stage} of ${FM_STEPS.length} steps` }, FM_STEPS.map((s, i) => h('span', { class: i < m.stage ? 'on' : '', title: s }))),
+      h('div', { class: 'fm-lifelabel' }, h('span', { 'data-source': 'models', 'data-field': 'stage_label', 'data-where': w }, m.stage_label)),
+      h('div', { class: 'fm-mstats' },
+        stat('Params', 'params_m', m.params_m, ' M'),
+        stat('Bundle', 'bundle_mb', m.bundle_mb, ' MB'),
+        stat('Integrity', 'integrity', m.integrity, '')));
+    b.addEventListener('click', () => FMselect(m.model_id));
+    return b;
+  }));
+});
+
+/* Detail header */
+dash.draw('detailname', (el) => {
+  const m = FMmodel();
+  el.setAttribute('data-where', FMwhere({ model_id: FM.model }));
+  el.textContent = m ? `${m.model_id} · ${m.display}` : '—';
+});
+dash.draw('detailtask', (el) => {
+  const m = FMmodel();
+  el.setAttribute('data-where', FMwhere({ model_id: FM.model }));
+  el.textContent = m ? `${m.task}. Feeds ${m.feeds}.` : '—';
+});
+
+/* Spec sheet */
+dash.draw('spec', (el) => {
+  if (FMwait(el, 'models')) return;
+  const m = FMmodel(); if (!m) { el.replaceChildren('—'); return; }
+  const w = FMwhere({ model_id: m.model_id });
+  const num = d3.format(',');
+  const row = (k, field, v, suffix) => [h('dt', {}, k), h('dd', {}, v == null || v === '' ? h('span', { class: 'fm-muted' }, 'None') : h('span', { 'data-source': 'models', 'data-field': field, 'data-where': w }, v), v == null || v === '' ? '' : (suffix || ''))];
+  el.replaceChildren(
+    ...row('Architecture', 'architecture', m.architecture),
+    ...row('Base model', 'base', m.base),
+    ...row('Parameters', 'params_m', m.params_m, ' million (approx.)'),
+    ...row('Runtime', 'runtime', m.runtime),
+    ...row('Training', 'training', m.training),
+    ...row('Dataset', 'dataset', m.dataset),
+    ...row(m.model_id === 'ML-002' ? 'Training pairs' : 'Training examples', 'train_size', m.train_size == null ? null : num(m.train_size)),
+    ...row(m.model_id === 'ML-002' ? 'Test pairs' : 'Test examples', 'test_size', m.test_size == null ? null : num(m.test_size)),
+    ...row('Bundle size', 'bundle_mb', m.bundle_mb, ' MB'),
+    ...row('Exported', 'export_date', m.export_date ? d3.utcFormat('%-d %b %Y')(new Date(m.export_date)) : null),
+    ...row('Open decision', 'open_decision', m.open_decision),
+  );
+});
+
+/* Acceptance gate */
+dash.draw('gate', (el) => {
+  if (FMwait(el, 'criteria')) return;
+  const rows = dash.data('criteria').data.filter((r) => r.model_id === FM.model);
+  const bullet = (r, thin) => {
+    const v = r.value == null ? null : +r.value, t = r.threshold == null ? null : +r.threshold;
+    const max = (v ?? 0) > 1 || (t ?? 0) > 1 ? Math.max(5, v ?? 0, t ?? 0) : 1;
+    const pct = (x) => (100 * Math.max(0, Math.min(x, max)) / max) + '%';
+    const state = r.passed === true ? 'ok' : r.passed === false ? 'bad' : 'neutral';
+    const track = h('div', { class: 'fm-track' + (thin ? ' thin' : '') });
+    if (t != null) track.append(h('div', { class: 'fm-zone', style: r.op === '>=' ? `left:${pct(t)};right:0` : `left:0;width:${pct(t)}` }));
+    if (v != null) track.append(h('div', { class: 'fm-fill ' + state, style: `width:${pct(v)}` }));
+    if (t != null) track.append(h('div', { class: 'fm-tick', style: `left:${pct(t)}` }, h('span', {}, (r.op === '>=' ? '≥ ' : '< ') + FMfmt(r.metric, t))));
+    const pill = r.gated
+      ? (r.passed === true ? h('span', { class: 'fm-pill ok' }, 'Pass') : r.passed === false ? h('span', { class: 'fm-pill bad' }, 'Fail') : h('span', { class: 'fm-pill mute' }, 'Not measured'))
+      : null;
+    return h('div', { class: 'fm-bul' },
+      h('div', { class: 'fm-bul-label' }, r.label, r.note ? h('small', {}, r.note) : null),
+      h('div', { class: 'fm-bul-right' },
+        v == null ? h('span', { class: 'fm-muted' }, '—') : h('span', { class: 'fm-bul-val', 'data-source': 'criteria', 'data-field': 'value', 'data-where': FMwhere({ model_id: r.model_id, metric: r.metric }) }, FMfmt(r.metric, v)),
+        pill),
+      track);
+  };
+  const g = rows.filter((r) => r.gated), rep = rows.filter((r) => !r.gated);
+  el.replaceChildren(
+    ...(g.length ? [h('p', { class: 'fm-gsub' }, 'Gated'), ...g.map((r) => bullet(r, false))] : []),
+    ...(rep.length ? [h('p', { class: 'fm-gsub' }, 'Reported only'), ...rep.map((r) => bullet(r, true))] : []),
+    ...(!rows.length ? [h('p', { class: 'fm-empty' }, 'No criteria recorded.')] : []),
+  );
+});
+
+/* Metric picker */
+dash.draw('metricsel', (sel) => {
+  const r = dash.data('runs'), c = dash.data('criteria');
+  if (r.status !== 'ok' || c.status !== 'ok') { sel.replaceChildren(); sel.disabled = true; return; }
+  const ms = [...new Set(r.data.filter((x) => x.model_id === FM.model).map((x) => x.metric))];
+  const lab = (m) => (c.data.find((x) => x.model_id === FM.model && x.metric === m) || {}).label || m;
+  sel.replaceChildren(...ms.map((m) => new Option(lab(m), m)));
+  sel.disabled = !ms.length;
+  if (ms.length) sel.value = FM.metric && ms.includes(FM.metric) ? FM.metric : (FM_DEFAULT_METRIC[FM.model] || ms[0]);
+  sel.onchange = () => { FM.metric = sel.value; dash.draw('runs'); };
+});
+</script>
+
+<script>
+/* Run history chart */
+dash.draw('runs', (el) => {
+  if (FMwait(el, 'runs', 'baselines')) return;
+  const all = dash.data('runs').data.filter((r) => r.model_id === FM.model);
+  const ctl = document.getElementById('baselinectl');
+  if (!all.length) {
+    if (ctl) ctl.hidden = true;
+    el.replaceChildren(h('p', { class: 'fm-empty' }, 'No training runs yet. The ML-003 notebook is on hold until decision D-006 settles how its training data is built.'));
+    return;
+  }
+  const metric = FM.metric || FM_DEFAULT_METRIC[FM.model];
+  const runNs = [...new Set(all.map((r) => +r.run))].sort((a, b) => a - b);
+  const pts = runNs.map((n) => {
+    const any = all.find((r) => +r.run === n);
+    const hit = all.find((r) => +r.run === n && r.metric === metric);
+    return hit ? { ...hit, value: hit.value == null ? null : +hit.value } : { ...any, metric, value: null, threshold: null, passed: null, absent: true };
+  });
+  const showBase = FM.model === 'ML-001' && metric === 'occupation_precision';
+  if (ctl) ctl.hidden = !showBase;
+  const base = showBase && FM.baselines ? dash.data('baselines').data : [];
+  const short = { 'Random dictionary title': 'Random title', 'Same SOC major group': 'Major group', 'Same SOC broad group': 'Broad group', 'Same detailed SOC code': 'Detailed code', 'Gold references': 'Gold' };
+
+  const W = Math.max(280, el.clientWidth || 600), H = 270;
+  const m = { t: 22, r: base.length ? 104 : 20, b: 34, l: 38 };
+  const x = d3.scalePoint(runNs, [m.l, W - m.r]).padding(0.35);
+  const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+  const svg = d3.create('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+    .attr('aria-label', `${metric} across ${runNs.length} training runs of ${FM.model}`);
+  const grid = svg.append('g').attr('class', 'fm-grid');
+  [0, 0.25, 0.5, 0.75, 1].forEach((v) => {
+    grid.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v));
+    svg.append('text').attr('x', m.l - 6).attr('y', y(v) + 4).attr('text-anchor', 'end').text(d3.format('.2f')(v));
+  });
+  const bg = svg.append('g').attr('class', 'fm-base');
+  base.forEach((b) => {
+    const v = +b.occupation_precision;
+    bg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v));
+  });
+  // spread baseline labels so they don't collide
+  const labs = base.map((b) => ({ v: +b.occupation_precision, t: `${short[b.baseline] || b.baseline} ${d3.format('.2f')(+b.occupation_precision)}`, y: y(+b.occupation_precision) })).sort((a, b) => b.y - a.y);
+  for (let i = 1; i < labs.length; i++) if (labs[i - 1].y - labs[i].y < 12) labs[i].y = labs[i - 1].y - 12;
+  labs.forEach((l) => bg.append('text').attr('x', W - m.r + 6).attr('y', l.y + 4).text(l.t));
+
+  pts.forEach((p) => {
+    if (p.threshold == null) return;
+    svg.append('line').attr('class', 'fm-thr').attr('x1', x(+p.run) - 18).attr('x2', x(+p.run) + 18).attr('y1', y(+p.threshold)).attr('y2', y(+p.threshold));
+  });
+  svg.append('path').datum(pts).attr('fill', 'none').style('stroke', dash.colors[0]).attr('stroke-width', 2)
+    .attr('d', d3.line().defined((d) => d.value != null).x((d) => x(+d.run)).y((d) => y(d.value)));
+  const color = (p) => p.passed === true ? 'var(--color-ok)' : p.passed === false ? 'var(--color-bad)' : dash.colors[0];
+  const g = svg.append('g');
+  pts.forEach((p) => {
+    const cx = x(+p.run);
+    if (p.value == null) {
+      g.append('circle').attr('cx', cx).attr('cy', y(0)).attr('r', 5).attr('fill', 'var(--color-panel)').style('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 1.5);
+      g.append('text').attr('x', cx).attr('y', y(0) - 10).attr('text-anchor', 'middle').text(p.absent ? 'not measured' : 'not recorded');
+    } else {
+      g.append('circle').attr('cx', cx).attr('cy', y(p.value)).attr('r', 6).style('fill', color(p)).style('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+      g.append('text').attr('class', 'val').attr('x', cx).attr('y', y(p.value) - 11).attr('text-anchor', 'middle').text(FMfmt(metric, p.value));
+    }
+    svg.append('text').attr('x', cx).attr('y', H - m.b + 18).attr('text-anchor', 'middle').text('Run ' + p.run);
+  });
+
+  const tip = h('div', { class: 'fm-tip', hidden: true });
+  const hit = svg.append('g');
+  pts.forEach((p) => {
+    const cx = x(+p.run);
+    hit.append('rect').attr('x', cx - 22).attr('y', m.t).attr('width', 44).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointerenter pointermove', (ev) => {
+        tip.replaceChildren(
+          h('b', {}, `Run ${p.run} · ${d3.utcFormat('%-d %b')(new Date(p.date))}`),
+          p.change, h('br'),
+          p.value == null ? (p.absent ? 'This metric was not measured in this run.' : 'Metrics were not recorded.') : `Value ${FMfmt(metric, p.value)}`,
+          p.threshold != null ? ` · threshold ${p.op === '>=' ? '≥' : '<'} ${FMfmt(metric, +p.threshold)}` : ' · not gated',
+          p.decision ? h('br') : null, p.decision ? `Led to ${p.decision}` : null);
+        tip.hidden = false;
+        const r = el.getBoundingClientRect();
+        const left = Math.min(Math.max(0, ev.clientX - r.left + 12), r.width - 200);
+        tip.style.left = left + 'px'; tip.style.top = Math.max(0, ev.clientY - r.top - 20) + 'px';
+      })
+      .on('pointerleave', () => { tip.hidden = true; });
+  });
+  el.replaceChildren(svg.node(), tip);
+});
+
+/* Run cards */
+dash.draw('runlist', (el) => {
+  const d = dash.data('runs');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const all = d.data.filter((r) => r.model_id === FM.model);
+  const ns = [...new Set(all.map((r) => +r.run))].sort((a, b) => a - b);
+  el.replaceChildren(...ns.map((n, i) => {
+    const rs = all.filter((r) => +r.run === n), r0 = rs[0];
+    const gated = rs.filter((r) => r.threshold != null && r.value != null);
+    const ok = gated.filter((r) => r.passed === true).length;
+    const verdict = !gated.length ? h('span', { class: 'fm-pill mute' }, 'No metrics') : ok === gated.length ? h('span', { class: 'fm-pill ok' }, 'Passed') : h('span', { class: 'fm-pill bad' }, `${gated.length - ok} of ${gated.length} failed`);
+    let dec = null;
+    if (/^D-\d+/.test(r0.decision || '')) {
+      dec = h('button', { type: 'button', class: 'fm-chip' }, 'Led to ' + r0.decision);
+      dec.addEventListener('click', () => FMgoDecision(r0.decision));
+    } else if (r0.decision) dec = h('span', { class: 'fm-muted' }, 'Fixed in ' + r0.decision);
+    return h('li', { class: 'fm-run' + (i === ns.length - 1 ? ' is-last' : '') },
+      h('div', { class: 'fm-run-top' }, h('strong', {}, 'Run ' + n), verdict),
+      h('span', { class: 'fm-muted' }, d3.utcFormat('%-d %b %Y')(new Date(r0.date))),
+      h('span', {}, r0.change),
+      dec);
+  }));
+});
+</script>
+
+<script>
+/* Speed tiles */
+dash.draw('latstats', (el) => {
+  if (FMwait(el, 'latstats', 'resources', 'models')) return;
+  const m = FMmodel();
+  const s = dash.data('latstats').data.find((r) => r.model_id === FM.model);
+  const res = dash.data('resources').data.find((r) => r.model_id === FM.model);
+  if (!m || !s || !s.requests) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'Nothing to measure yet: there is no trained bundle.')); return; }
+  const w = FMwhere({ model_id: FM.model });
+  const tile = (label, src, field, val, unit, sub, state) => h('div', { class: 'fm-tile' + (state ? ' ' + state : '') },
+    h('span', { class: 'fm-k' }, label),
+    h('span', { class: 'fm-big' }, h('span', { 'data-source': src, 'data-field': field, 'data-where': w }, val), h('small', {}, unit)),
+    sub ? h('small', {}, sub) : null);
+  const f1 = d3.format(',.1f');
+  const tiles = [
+    tile('Mean', 'latstats', 'mean_ms', f1(s.mean_ms), ' ms', `${d3.format('.0%')(s.share_of_budget)} of the ${d3.format(',')(s.budget_ms)} ms budget`, s.mean_ms < s.budget_ms ? 'ok' : 'bad'),
+    tile('95th percentile', 'latstats', 'p95_ms', f1(s.p95_ms), ' ms', `slowest ${f1(s.max_ms)} ms`, s.p95_ms < s.budget_ms ? 'ok' : 'bad'),
+  ];
+  if (res && res.batch20_mean_ms != null) tiles.push(tile('Batch of 20 pairs', 'resources', 'batch20_mean_ms', f1(+res.batch20_mean_ms), ' ms', `budget ${FM_BATCH_BUDGET_MS} ms`, +res.batch20_mean_ms < FM_BATCH_BUDGET_MS ? 'ok' : 'bad'));
+  if (res) {
+    tiles.push(tile('Peak memory', 'resources', 'peak_rss_mb', d3.format(',')(+res.peak_rss_mb), ' MB', `budget ${m.memory_budget_mb} MB. ${res.note}`, +res.peak_rss_mb < m.memory_budget_mb ? 'ok' : 'bad'));
+    tiles.push(tile('Load time', 'resources', 'load_s', d3.format('.2f')(+res.load_s), ' s', null, null));
+  }
+  el.replaceChildren(...tiles);
+});
+
+/* Latency strip */
+dash.draw('latency', (el) => {
+  if (FMwait(el, 'benchmark', 'models')) return;
+  const m = FMmodel();
+  const rows = dash.data('benchmark').data.filter((r) => r.model_id === FM.model).map((r) => ({ ...r, latency_ms: +r.latency_ms }));
+  if (!m || !rows.length) { el.replaceChildren(); return; }
+  const W = Math.max(280, el.clientWidth || 500), H = 150, mg = { t: 26, r: 16, b: 28, l: 12 };
+  const max = Math.max(m.latency_budget_ms, d3.max(rows, (r) => r.latency_ms)) * 1.06;
+  const x = d3.scaleLinear([0, max], [mg.l, W - mg.r]).nice();
+  const mid = (H - mg.b + mg.t) / 2;
+  const svg = d3.create('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+    .attr('aria-label', `${rows.length} request latencies for ${FM.model} against a ${m.latency_budget_ms} millisecond budget`);
+  const ticks = x.ticks(W < 420 ? 4 : 6);
+  const grid = svg.append('g').attr('class', 'fm-grid');
+  ticks.forEach((t) => {
+    grid.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', mg.t).attr('y2', H - mg.b);
+    svg.append('text').attr('x', x(t)).attr('y', H - mg.b + 16).attr('text-anchor', t === 0 ? 'start' : 'middle').text(d3.format(',')(t) + (t === ticks[ticks.length - 1] ? ' ms' : ''));
+  });
+  const mean = d3.mean(rows, (r) => r.latency_ms);
+  svg.append('line').attr('x1', x(mean)).attr('x2', x(mean)).attr('y1', mg.t - 4).attr('y2', H - mg.b).style('stroke', 'var(--color-fg)').attr('stroke-width', 1.5);
+  svg.append('text').attr('x', x(mean)).attr('y', mg.t - 8).attr('text-anchor', 'middle').attr('class', 'val').text('mean ' + d3.format(',.0f')(mean));
+  svg.append('line').attr('class', 'fm-thr').attr('x1', x(m.latency_budget_ms)).attr('x2', x(m.latency_budget_ms)).attr('y1', mg.t - 4).attr('y2', H - mg.b);
+  svg.append('text').attr('x', x(m.latency_budget_ms)).attr('y', mg.t - 8).attr('text-anchor', 'end').text('budget ' + d3.format(',')(m.latency_budget_ms));
+  const tip = h('div', { class: 'fm-tip', hidden: true });
+  const span = (H - mg.b - mg.t) / 2 - 8;
+  rows.forEach((r, i) => {
+    const jy = mid + (((i * 37) % 23) / 22 - 0.5) * 2 * span;
+    svg.append('circle').attr('cx', x(r.latency_ms)).attr('cy', jy).attr('r', 4).style('fill', dash.colors[0]).attr('fill-opacity', 0.75)
+      .on('pointerenter', (ev) => {
+        tip.replaceChildren(h('b', {}, d3.format(',.1f')(r.latency_ms) + ' ms'), `${r.scenario}, request ${r.request}`);
+        tip.hidden = false;
+        const b = el.getBoundingClientRect();
+        tip.style.left = Math.min(Math.max(0, ev.clientX - b.left + 10), b.width - 170) + 'px';
+        tip.style.top = Math.max(0, ev.clientY - b.top - 48) + 'px';
+      })
+      .on('pointerleave', () => { tip.hidden = true; });
+  });
+  el.replaceChildren(svg.node(), tip);
+});
+
+/* Real outputs */
+dash.draw('trynote', (el) => {
+  el.textContent = {
+    'ML-001': 'Ten hand-picked inputs run through the verified bundle with the app\'s own runner. Every title comes from the O*NET dictionary, because decoding is constrained to it. Judge for yourself whether each list fits the input.',
+    'ML-002': 'Twelve title pairs scored by the verified bundle. Move the thresholds to see how Findrr would classify each pair. The spec sets 0.70 for relevant and 0.88 for duplicate.',
+    'ML-003': 'ML-003 has no trained bundle, so there is nothing to run yet.',
+  }[FM.model] || '—';
+});
+
+dash.draw('tryit', (el) => {
+  if (FMwait(el, 'samples')) return;
+  const rows = dash.data('samples').data.filter((r) => r.model_id === FM.model);
+  if (!rows.length) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'When ML-003 is trained, its generated summaries will appear here next to the profile facts they were built from.')); return; }
+  if (FM.model === 'ML-001') {
+    const list = h('ul', { class: 'fm-samples' });
+    const search = h('input', { class: 'fm-search', id: 'fm-sample-q', type: 'search', placeholder: 'Filter by input or output title', 'aria-label': 'Filter samples', value: FM.q });
+    const paint = () => {
+      const q = FM.q.trim().toLowerCase();
+      const vis = rows.filter((r) => !q || (r.input + ' ' + r.output).toLowerCase().includes(q));
+      list.replaceChildren(...(vis.length ? vis.map((r) => h('li', { class: 'fm-sample' },
+        h('div', { class: 'fm-sin' }, h('strong', { 'data-source': 'samples', 'data-field': 'input', 'data-where': FMwhere({ model_id: r.model_id, input: r.input }) }, r.input), h('small', {}, r.context)),
+        h('div', { class: 'fm-touts' }, String(r.output).split(', ').map((t) => h('span', { class: 'fm-tout' }, t))))) : [h('li', { class: 'fm-empty' }, 'No sample matches.')]));
+    };
+    search.addEventListener('input', () => { FM.q = search.value; paint(); });
+    paint();
+    el.replaceChildren(search, list);
+    return;
+  }
+  const relIn = h('input', { type: 'range', id: 'fm-rel', min: 0.3, max: 0.95, step: 0.01, value: FM.rel, 'aria-label': 'Relevant from' });
+  const dupIn = h('input', { type: 'range', id: 'fm-dup', min: 0.5, max: 0.99, step: 0.01, value: FM.dup, 'aria-label': 'Duplicate from' });
+  const relV = h('b', {}), dupV = h('b', {}), counts = h('p', { class: 'fm-note' });
+  const list = h('div', { class: 'fm-samples' });
+  const sorted = rows.slice().sort((a, b) => b.score - a.score);
+  const paint = () => {
+    relV.textContent = d3.format('.2f')(FM.rel); dupV.textContent = d3.format('.2f')(FM.dup);
+    let nd = 0, nr = 0, nu = 0;
+    list.replaceChildren(...sorted.map((r) => {
+      const s = +r.score;
+      const k = s >= FM.dup ? 'dup' : s >= FM.rel ? 'rel' : 'unrel';
+      if (k === 'dup') nd++; else if (k === 'rel') nr++; else nu++;
+      return h('div', { class: 'fm-pair' },
+        h('div', { class: 'fm-pair-t' }, r.input, h('span', { 'aria-hidden': 'true' }, '↔'), r.context),
+        h('div', { class: 'fm-bul-right' },
+          h('span', { class: 'fm-bul-val', 'data-source': 'samples', 'data-field': 'score', 'data-where': FMwhere({ model_id: r.model_id, input: r.input, context: r.context }) }, d3.format('.3f')(s)),
+          h('span', { class: 'fm-pill ' + (k === 'dup' ? 'warn' : k === 'rel' ? 'ok' : 'mute') }, k === 'dup' ? 'Duplicate' : k === 'rel' ? 'Relevant' : 'Unrelated')),
+        h('div', { class: 'fm-track thin' },
+          h('div', { class: 'fm-fill ' + k, style: `width:${Math.max(0, Math.min(1, s)) * 100}%` }),
+          h('div', { class: 'fm-tick', style: `left:${FM.rel * 100}%` }),
+          h('div', { class: 'fm-tick', style: `left:${FM.dup * 100}%` })));
+    }));
+    counts.textContent = `At these settings: ${nd} duplicate, ${nr} relevant and ${nu} unrelated.`;
+  };
+  relIn.addEventListener('input', () => { FM.rel = +relIn.value; if (FM.dup < FM.rel) { FM.dup = FM.rel; dupIn.value = FM.dup; } paint(); });
+  dupIn.addEventListener('input', () => { FM.dup = +dupIn.value; if (FM.rel > FM.dup) { FM.rel = FM.dup; relIn.value = FM.rel; } paint(); });
+  paint();
+  el.replaceChildren(
+    h('div', { class: 'fm-sliders' },
+      h('label', { class: 'fm-slider', for: 'fm-rel' }, h('span', {}, 'Relevant from ', relV), relIn),
+      h('label', { class: 'fm-slider', for: 'fm-dup' }, h('span', {}, 'Duplicate from ', dupV), dupIn)),
+    counts, list);
+});
+
+/* Decisions table */
+dash.draw('decrows', (el) => {
+  const d = dash.data('decisions');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const rows = d.data.filter((r) => FM.scope === 'all' || r.model_id === FM.model);
+  if (!rows.length) { el.replaceChildren(h('tr', {}, h('td', { colspan: 6, class: 'fm-muted' }, 'No decisions recorded for this model.'))); return; }
+  el.replaceChildren(...rows.map((r) => h('tr', { class: r.id === FM.highlight ? 'is-hl' : '' },
+    h('td', {}, r.id),
+    h('td', {}, r.model_id),
+    h('td', {}, d3.utcFormat('%-d %b %Y')(new Date(r.date))),
+    h('td', {}, h('span', { class: 'fm-pill ' + (r.status === 'Open' ? 'warn' : 'mute') }, r.status)),
+    h('td', {}, r.title),
+    h('td', {}, r.outcome))));
+});
+</script>
+
+<script>
+/* Training data */
+window.FM.unit = window.FM.unit || 'count';
+document.querySelectorAll('.fm-unitbtn').forEach((b) => b.addEventListener('click', () => {
+  FM.unit = b.dataset.unit;
+  document.querySelectorAll('.fm-unitbtn').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  dash.draw('datasplits');
+}));
+
+dash.draw('datasplits', (el) => {
+  if (FMwait(el, 'splits')) return;
+  const rows = dash.data('splits').data.filter((r) => r.model_id === FM.model && r.kind === 'split');
+  if (!rows.length) { el.replaceChildren(h('p', { class: 'fm-empty' }, 'No dataset yet. Decision D-006 settles how ML-003\'s training data is built, and no examples exist until then.')); return; }
+  const known = rows.filter((r) => r.count != null);
+  const total = d3.sum(known, (r) => +r.count);
+  const max = d3.max(known, (r) => +r.count) || 1;
+  const unit = rows[0].unit;
+  const num = d3.format(','), pct = d3.format('.1%');
+  const tip = h('div', { class: 'fm-tip', hidden: true });
+  const items = rows.map((r, i) => {
+    const c = r.count == null ? null : +r.count;
+    const w = FMwhere({ model_id: r.model_id, split: r.split });
+    const value = c == null ? h('span', { class: 'fm-muted' }, 'Not recorded')
+      : FM.unit === 'share' ? h('span', { class: 'fm-bul-val' }, pct(c / total))
+      : h('span', { class: 'fm-bul-val' }, h('span', { 'data-source': 'splits', 'data-field': 'count', 'data-where': w }, num(c)), ' ' + unit);
+    const width = c == null ? 0 : FM.unit === 'share' ? c / total : c / max;
+    const facts = [];
+    if (r.occupations != null) facts.push(h('span', { 'data-source': 'splits', 'data-field': 'occupations', 'data-where': w }, num(+r.occupations)), ' occupations');
+    if (r.distinct_inputs != null) facts.push(facts.length ? ' · ' : '', h('span', { 'data-source': 'splits', 'data-field': 'distinct_inputs', 'data-where': w }, num(+r.distinct_inputs)), ' distinct input titles');
+    const row = h('div', { class: 'fm-split' },
+      h('span', {}, r.split), value,
+      h('div', { class: 'fm-track' }, h('div', { class: 'fm-fill', style: `width:${width * 100}%;background:${dash.colors[i % dash.colors.length]}` })),
+      facts.length ? h('small', {}, ...facts) : null);
+    row.addEventListener('pointerenter', (ev) => {
+      tip.replaceChildren(h('b', {}, r.split), c == null ? 'Count not recorded' : `${num(c)} ${unit}, ${pct(c / total)} of the recorded total`, h('br'), 'Source: ' + r.source);
+      tip.hidden = false;
+      const b = el.getBoundingClientRect(), rb = row.getBoundingClientRect();
+      tip.style.left = Math.min(Math.max(0, ev.clientX - b.left + 12), b.width - 220) + 'px';
+      tip.style.top = (rb.bottom - b.top + 4) + 'px';
+    });
+    row.addEventListener('pointerleave', () => { tip.hidden = true; });
+    return row;
+  });
+  el.replaceChildren(...items,
+    h('div', { class: 'fm-split-total' }, `Recorded total: ${num(total)} ${unit}` + (known.length < rows.length ? ` (${rows.length - known.length} split not recorded)` : '')),
+    tip);
+});
+
+dash.draw('dataextra', (el) => {
+  const s = dash.data('splits'), l = dash.data('labelmix');
+  if (s.status !== 'ok' || l.status !== 'ok') { el.replaceChildren(); return; }
+  const num = d3.format(',');
+  const extra = s.data.filter((r) => r.model_id === FM.model && r.kind !== 'split' && r.count != null);
+  const parts = [];
+  if (extra.length) {
+    parts.push(h('p', { class: 'fm-gsub' }, 'Evaluation subsets and vocabulary'));
+    parts.push(h('div', { class: 'fm-tiles' }, ...extra.map((r) => h('div', { class: 'fm-tile' },
+      h('span', { class: 'fm-k' }, r.split),
+      h('span', { class: 'fm-big' }, h('span', { 'data-source': 'splits', 'data-field': 'count', 'data-where': FMwhere({ model_id: r.model_id, split: r.split }) }, num(+r.count)), h('small', {}, ' ' + r.unit)),
+      h('small', {}, r.source)))));
+  }
+  const mix = l.data.filter((r) => r.model_id === FM.model).sort((a, b) => b.label - a.label);
+  if (mix.length) {
+    const tot = d3.sum(mix, (r) => +r.pairs);
+    parts.push(h('p', { class: 'fm-gsub' }, `Test pairs by proxy label (${num(tot)} pairs)`));
+    parts.push(h('div', { class: 'fm-mix', role: 'img', 'aria-label': mix.map((r) => `${r.meaning}: ${r.pairs} pairs`).join(', ') },
+      ...mix.map((r, i) => h('span', { style: `width:${100 * r.pairs / tot}%;background:${dash.colors[i % dash.colors.length]}` }))));
+    parts.push(h('ul', { class: 'fm-legend' }, ...mix.map((r, i) => h('li', {},
+      h('i', { style: `background:${dash.colors[i % dash.colors.length]}` }),
+      h('span', {}, `${r.label} · ${r.meaning}: `, h('b', { 'data-source': 'labelmix', 'data-field': 'pairs', 'data-where': FMwhere({ model_id: r.model_id, label: r.label }) }, num(+r.pairs)))))));
+  }
+  el.replaceChildren(...parts);
+});
+</script>

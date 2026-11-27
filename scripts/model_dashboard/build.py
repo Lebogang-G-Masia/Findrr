@@ -613,6 +613,150 @@ def main() -> None:
         ["docs/DECISIONS_PENDING.md"],
     )
 
+    # Dataset sizes. Split counts come from the manifests where they record them; occupation and
+    # input-title counts are the local data-preparation measurements in the training docs.
+    ex1 = m1["metadata"]["examples"]
+    dictionary = len(json.loads((args.models_dir / TE_REL / "titles.json").read_text()))
+
+    def split(model, name, kind, unit, count, occupations, inputs, source):
+        return {
+            "model_id": model,
+            "split": name,
+            "kind": kind,
+            "unit": unit,
+            "count": count,
+            "occupations": occupations,
+            "distinct_inputs": inputs,
+            "source": source,
+        }
+
+    te_doc = "docs/ml/training/title-expander.md"
+    se_doc = "docs/ml/training/similarity-evaluator.md"
+    write(
+        "splits",
+        [
+            split(
+                "ML-001",
+                "Train",
+                "split",
+                "examples",
+                ex1["train"],
+                894,
+                22967,
+                "manifest; occupations and inputs: " + te_doc,
+            ),
+            split(
+                "ML-001",
+                "Validation",
+                "split",
+                "examples",
+                ex1["val"],
+                432,
+                483,
+                "manifest; occupations and inputs: " + te_doc,
+            ),
+            split(
+                "ML-001",
+                "Test",
+                "split",
+                "examples",
+                ex1["test"],
+                403,
+                459,
+                "manifest; occupations and inputs: " + te_doc,
+            ),
+            split(
+                "ML-001",
+                "Test inputs never seen in training",
+                "subset",
+                "examples",
+                int(e1["novel_wording_examples"]),
+                None,
+                22,
+                "manifest; inputs: " + te_doc,
+            ),
+            split(
+                "ML-001",
+                "Training-input sample (under-fit check)",
+                "subset",
+                "examples",
+                500,
+                None,
+                None,
+                "D-010",
+            ),
+            split(
+                "ML-001",
+                "Constrained-decoding dictionary",
+                "vocabulary",
+                "titles",
+                dictionary,
+                None,
+                None,
+                "titles.json in the bundle",
+            ),
+            split(
+                "ML-002",
+                "Train",
+                "split",
+                "pairs",
+                m2["metadata"]["train_pairs"],
+                None,
+                None,
+                "manifest",
+            ),
+            split(
+                "ML-002",
+                "Validation",
+                "split",
+                "pairs",
+                None,
+                None,
+                None,
+                "not recorded in the manifest",
+            ),
+            split(
+                "ML-002",
+                "Test",
+                "split",
+                "pairs",
+                int(e2["test_pairs"]),
+                102,
+                None,
+                "manifest; occupations: D-008",
+            ),
+        ],
+        [
+            "models/*/manifest.json",
+            "models/title-expander/v2.0.0/titles.json",
+            te_doc,
+            se_doc,
+            "docs/DECISIONS_PENDING.md (D-008, D-010)",
+        ],
+    )
+
+    # D-008: the 800 test pairs rebuilt locally with the notebook's own code.
+    write(
+        "labelmix",
+        [
+            {"model_id": "ML-002", "label": 3, "meaning": "Same occupation", "pairs": 306},
+            {
+                "model_id": "ML-002",
+                "label": 2,
+                "meaning": "Closely related (Primary-Short)",
+                "pairs": 99,
+            },
+            {
+                "model_id": "ML-002",
+                "label": 1,
+                "meaning": "Loosely related (Primary-Long)",
+                "pairs": 89,
+            },
+            {"model_id": "ML-002", "label": 0, "meaning": "Different major group", "pairs": 306},
+        ],
+        ["docs/DECISIONS_PENDING.md (D-008)", se_doc],
+    )
+
     print("Wrote", ", ".join(sorted(p.name for p in data_dir.iterdir())), "to", data_dir)
 
 

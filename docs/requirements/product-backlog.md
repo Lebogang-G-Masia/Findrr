@@ -126,6 +126,7 @@ Work items are organized hierarchically:
   - [x] Implement search query builder combining title and location preferences.
   - [x] Extract 2 to 10 search results per title, recording actual retrieved counts.
 - **Dependencies:** `US-003`, `US-007`.
+- **Superseded 2026-11-28 (D-002, ADR 0005):** Google Search via Selenium is withdrawn as the discovery source. Replaced by US-025.
 
 #### US-009: Job Posting Content Extraction & Employer Link Resolution
 - **Priority:** Must Have (M)
@@ -194,6 +195,14 @@ Work items are organized hierarchically:
   - [x] `findrr profile use <id>`; `findrr profile list` marks the active profile.
   - [x] With several profiles and none active, commands stop with guidance instead of guessing. Creating a profile never silently switches the active one.
   - **Acceptance criteria (Iteration 6):** Given two or more profiles, when a command runs without a profile ID, then it uses the active profile, or stops and asks for a choice if none is active. Given one profile, it is used implicitly. Given `profile use <id>`, later commands act on that profile.
+
+### Epic 4 (continued): Compliant Discovery Sources (Module 4)
+- **US-025 (ATS Job-Board Discovery):** As a job seeker, I want postings discovered from employers' own job boards through their official public endpoints so that results are current and discovery runs without CAPTCHAs (`FR-012`, `FR-013`, `FR-014`, `FR-017`, `NFR-010`, `BR-004`, `AC-004`, Must Have). Decided in D-002 (F2); ADR 0005.
+  - [ ] Greenhouse, Lever, Workable and Recruitee adapters behind the search-provider interface, matching postings to accepted titles.
+  - [ ] Employer-board list as configuration (ATS, board identifier, date last verified). *Source of the list blocked on D-013.*
+  - [ ] Driver clean-up: remove `--disable-blink-features=AutomationControlled`, the hard-coded user agent and `--no-sandbox`; robots.txt check before fetching any posting page.
+  - [ ] Remove Google Search as a discovery source.
+  - **Dependencies:** `US-007`, `US-009`.
 
 ---
 

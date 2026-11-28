@@ -1,6 +1,6 @@
 # ADR 0004: Headful Selenium WebDriver for Ethical Search Discovery
 
-- **Status:** Accepted
+- **Status:** Superseded in part by [ADR 0005](0005-ats-job-board-discovery.md) (2026-11-28): Google Search is no longer the discovery source. The headful-by-default rule still applies to any browser automation.
 - **Date:** 2026-11-02
 - **Deciders:** Lebogang Masia, Antigravity AI Pair
 

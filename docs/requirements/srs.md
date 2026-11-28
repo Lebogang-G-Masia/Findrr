@@ -89,7 +89,7 @@ Findrr interacts with the following external actors and boundary systems:
 - **FR-011:** The system shall detect and filter out exact and near-duplicate job titles using string normalization and bi-encoder embedding similarity (provisional threshold: 0.88).
 
 ### Module 4: Job Posting Discovery & Scraping
-- **FR-012:** The system shall automate search queries using Selenium WebDriver in headful mode by default.
+- **FR-012:** The system shall discover postings through official public ATS job-board endpoints (Greenhouse, Lever, Workable, Recruitee) for a configured list of employers, behind the search-provider interface (NFR-010). Any browser automation shall run headful by default. *(Amended 2026-11-28 by D-002 / ADR 0005; previously: automated search queries using Selenium WebDriver.)*
 - **FR-013:** The system shall extract between 2 and 10 job search results per accepted job title.
 - **FR-014:** The system shall resolve and prioritize employer-authorized application destinations (career portals, ATS) over third-party aggregators.
 - **FR-015:** The system shall extract structured posting fields: Job Title, Company Name, Location, Description, Required Qualifications, Application URL, and Posting Date.
@@ -135,7 +135,7 @@ Findrr interacts with the following external actors and boundary systems:
 - **NFR-009 (Zero Hallucination Invariant):** Tailored CVs and cover letters shall contain zero factual claims absent from the user-verified profile.
 
 ### 7.4 Maintainability & Extensibility
-- **NFR-010 (Modular Search Architecture):** Search provider implementations shall adhere to an abstract search interface, allowing alternate providers (e.g. DuckDuckGo, direct ATS APIs) to be substituted without modifying core logic.
+- **NFR-010 (Modular Search Architecture):** Search provider implementations shall adhere to an abstract search interface, allowing alternate providers (e.g. additional ATS adapters or licensed job-listing APIs) to be substituted without modifying core logic.
 - **NFR-011 (Traceability):** 100% of functional requirements and user stories shall be traceable to implementation modules, automated tests, and verification artifacts.
 
 ---
@@ -200,7 +200,7 @@ Findrr interacts with the following external actors and boundary systems:
 
 ### AC-004 (verifies FR-012, FR-013, FR-014, FR-017)
 - **Given** an accepted job title and search preferences,
-- **When** Selenium executes the search in headful mode,
+- **When** the configured ATS providers are queried for that title,
 - **Then** between 2 and 10 results per title are extracted, employer-authorized links are prioritized, and actual counts are recorded without fabricating results.
 
 ### AC-005 (verifies FR-020, FR-021, NFR-009)

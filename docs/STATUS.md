@@ -12,7 +12,7 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | docs/record-pr-50-merge |
+| Current branch | docs/d002-decision-f2 |
 | Open PR | see "Awaiting merge or approval" |
 | Latest release | None |
 
@@ -22,7 +22,8 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Free-only sources researched (see D-002): recommended ATS adapters (Greenhouse, Lever, Workable, Recruitee) now, plus Careerjet once a fixed IP is available.
+- Awaiting merge: PR for branch `docs/d002-decision-f2` (D-002 decision F2, ADR 0005, FR-012/AC-004 amendment). User review: it changes an approved requirement and scraping-compliance controls.
+- Decide D-013 (where F2's employer-board list comes from). Recommended: an agent-researched seed list you approve, plus your own additions.
 
 ## Next step
 
@@ -30,11 +31,11 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 2. US-014 company research, extractive (D-005).
 3. ML-003 dataset spec and notebook 03 rewrite with template-composed targets (D-006); user review before any Kaggle run.
 4. ML-001 quality finding: skills can pull results off-topic ("Software Developer" + "Python, SQL, Git" → postal clerks). Investigate the training data (how O*NET skills are sampled per occupation) and propose a fix; it needs your approval before retraining.
-5. When D-002 is decided: search-provider change and driver clean-up.
+5. US-025 (ATS job-board discovery, D-002 F2) after the D-002 PR merges: adapters, driver clean-up, Google removal. The employer list waits for D-013.
 
 ## Blockers
 
-- Live discovery needs a person to solve the Google CAPTCHA (see D-002).
+- Live discovery stays on Google (CAPTCHA-blocked) until US-025 ships. US-025 waits for the D-002 PR merge; its employer list waits for D-013.
 
 ## Bootstrap and approval tracker
 
@@ -87,7 +88,7 @@ Mark an item verified only after the check has actually been run.
 | Model Registry | Initialized (`docs/ml/model-registry.md`) |
 | UI/UX designs | Skeleton created (`docs/design/ui-ux.md`; Penpot MCP verified, design starts in M3) |
 | Test Plan | Authored and presented (`docs/testing/test-plan.md`) |
-| Architecture Decision Records | Authored ADRs 0001–0004 (`docs/adr/`) |
+| Architecture Decision Records | Authored ADRs 0001–0005 (`docs/adr/`; ADR 0005 accepted 2026-11-28, supersedes ADR 0004 in part) |
 
 ## Open decisions
 
@@ -97,6 +98,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 1
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-28 | D-002 resolved by the owner: F2, ATS adapters only (Greenhouse, Lever, Workable, Recruitee), chosen as the most reliable free option. Wrote ADR 0005 (supersedes ADR 0004 for the discovery source); amended FR-012, NFR-010 and AC-004; US-008 marked superseded; added US-025; updated traceability and architecture §4.1. Raised D-013 (source of the employer list). Docs only; no code changed. | docs/d002-decision-f2 |
 | 2026-11-28 | PR #50 (Claude Code migration) merged by the user (`58cf3a5`); verified with `gh pr view`. Skills now load from `.claude/skills/`; the merge policy is `.claude/skills/open-pr/SKILL.md` §3. | docs/record-pr-50-merge |
 | 2026-11-28 | Antigravity retired: moved all 10 workflows and 7 skills from `.agents/` to `.claude/skills/<name>/SKILL.md` (`git mv`), rewrote every description to say concretely when to use it, repointed the merge policy to `.claude/skills/open-pr/SKILL.md` §3 (AGENTS.md, `pull-request` skill, project plan) and deleted `.agents/`. Added `CLAUDE.md` (imports `AGENTS.md`) and ignored `.claude/settings.local.json`. Claude Code lists all 17 skills. Lint, tests and CI scripts pass locally. Opened PR #50 (user review). | refactor/claude-skills-migration / PR #50 |
 | 2026-11-27 | D-002: researched free discovery sources from the providers' own pages (Tavily, Brave, Adzuna, Greenhouse, Lever, Ashby, Jooble, Serper, DuckDuckGo and SearXNG); options and recommendation revised. D-006 option 1 reconfirmed by the owner (pivot to a text generator only if needed). | docs/d002-free-provider-research |

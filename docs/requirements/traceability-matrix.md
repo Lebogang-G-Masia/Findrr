@@ -32,7 +32,7 @@ This matrix maintains explicit bi-directional traceability across all project la
 | **FR-009** | Semantic Similarity Scoring | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py`, `tests/integration/test_ml_cli.py` | Model 2 (MiniLM) |
 | **FR-010** | Relevance Thresholding (0.70) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py` | Model 2 (MiniLM) |
 | **FR-011** | Duplicate Title Rejection (0.88) | Mod 3 (Search Terms) | `US-007` | `AC-003` | `tests/unit/test_inference_service.py`, `tests/unit/test_search_term_pipeline.py` | Model 2 (MiniLM) |
-| **FR-012** | Headful Selenium Automation | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_query_builder.py`, `tests/integration/test_search_cli.py` | N/A |
+| **FR-012** | ATS job-board discovery (headful browser where used) | Mod 4 (Find Postings) | `US-008` (superseded), `US-025` | `AC-004` | `tests/unit/test_query_builder.py`, `tests/integration/test_search_cli.py` | N/A |
 | **FR-013** | Extract 2–10 Postings/Title | Mod 4 (Find Postings) | `US-008` | `AC-004` | `tests/unit/test_search_limits.py`, `tests/integration/test_posting_service.py` | N/A |
 | **FR-014** | Employer Destination Priority | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_link_resolver.py` | N/A |
 | **FR-015** | Structured Posting Extraction | Mod 4 (Find Postings) | `US-009` | `AC-004` | `tests/unit/test_posting_parser.py` | N/A |

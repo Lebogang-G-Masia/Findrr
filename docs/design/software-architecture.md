@@ -34,7 +34,7 @@ Findrr is designed as a **Modular Clean Architecture (Ports & Adapters)** system
 +-----------------------------------------------------------------------------------+
 |                             INFRASTRUCTURE LAYER                                  |
 |   SQLite Storage    │  Selenium Driver     │  Document Generator │  Inference Svc |
-|   (SQLAlchemy Core) │  (Headful Google)    │  (Jinja2/Weasyprint)│  (Module 9)    |
+|   (SQLAlchemy Core) │  (ATS endpoints)     │  (Jinja2/Weasyprint)│  (Module 9)    |
 +-----------------------------------------------------------------------------------+
 ```
 
@@ -125,6 +125,8 @@ sequenceDiagram
 ## 4. Subsystem Architectures
 
 ### 4.1 Web Automation Architecture (`find_postings`)
+> **Changed 2026-11-28 (ADR 0005, D-002):** discovery uses official ATS job-board endpoints (Greenhouse, Lever, Workable, Recruitee) behind the search-provider interface, not Google Search. The Selenium notes below apply only where a browser is still used, without automation-hiding flags or `--no-sandbox`, and with a robots.txt check before each posting page.
+
 - **Driver Lifecycle:** `SeleniumDriverFactory` manages single-instance headful Chrome/Chromium sessions using `webdriver.Chrome`.
 - **Throttling & Politeness Interceptor:** An internal wrapper injects randomized delays (`time.sleep(uniform(2.0, 5.0))`) before DOM queries and navigation actions.
 - **Link Resolution Engine:** For each search result, the system navigates through aggregator redirection links (e.g. Google Jobs, Indeed redirect) to extract and prioritize direct corporate career URLs and Applicant Tracking Systems (e.g. Greenhouse, Lever, Workday).

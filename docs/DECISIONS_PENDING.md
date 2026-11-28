@@ -9,6 +9,41 @@
 
 ## Open decisions
 
+### D-013: Where F2's list of employer job boards comes from
+- **Raised:** 2026-11-28, while recording the D-002 decision (F2)
+- **Area:** requirements / architecture
+- **Ambiguity:** F2 queries ATS boards for a curated list of South African employers, but nothing says who builds that list, what goes on it, or where it lives. The ATS endpoints need each employer's board identifier (for example `boards-api.greenhouse.io/v1/boards/{token}/jobs`), and there is no public directory of them.
+- **Why it matters:** the list decides F2's coverage, so it decides whether discovery returns enough postings. Under the no-fabrication rule, the agent must not invent employers or board identifiers: every entry needs evidence that the board exists. The list also has to be configuration rather than code, so it can grow without a release.
+- **Options:**
+  1. **Owner-supplied list.** You name the employers you want to target. The app checks each board responds before using it. Trade-offs: exactly your targets and no research cost; coverage is only as wide as your list.
+  2. **Agent-researched seed list, owner-approved.** The agent checks which South African employers have public Greenhouse, Lever, Workable or Recruitee boards (a live call per board, recorded with the date and posting count), and you approve the list. Trade-offs: wider coverage and a measured answer to whether F2 is good enough; takes a research pass, and the list needs periodic re-checks.
+  3. **Both.** A researched seed list plus your own additions, with a `findrr` command to add a board, which the app verifies. Trade-offs: the most coverage; the most work.
+- **Recommendation:** Option 3, starting with option 2's research. It measures F2's real coverage before the adapters are built, and your additions cover employers the research misses. Store the list in a configuration file outside the code, with each entry's ATS, board identifier, and date last verified.
+- **Blocked work:** the employer-list part of US-025. The adapters and the clean-up can proceed without it, tested against mocked responses.
+- **Status:** Open
+
+## Entry template
+
+Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
+
+```markdown
+### D-NNN: Short title
+- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
+- **Area:** requirements | architecture | security | UX | ML | process
+- **Ambiguity:** What is unclear or undecided.
+- **Why it matters:** What depends on it, and what a wrong guess would cost.
+- **Options:**
+  1. Option A. Trade-offs.
+  2. Option B. Trade-offs.
+- **Recommendation:** Which option, and why.
+- **Blocked work:** What has been paused until this is decided.
+- **Status:** Open
+```
+
+## Resolved decisions
+
+Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+
 ### D-002: Job-discovery source conflicts with robots.txt and site terms (BR-004)
 - **Raised:** 2026-11-26, during the pre-Iteration-6 codebase audit
 - **Area:** security / requirements / architecture
@@ -75,29 +110,12 @@
     - postings must never be used for ML training (relevant to ML-003).
   - F2. **ATS adapters only**, over a curated list of South African employers' boards. Completely free, keyless and compliant. Coverage is limited to employers on the list that use these systems.
 - **Recommendation (free-only):** F1 for Milestone 4, starting with F2 now: it works on the laptop today and stays useful at scale. Apply for Careerjet when a fixed IP is available. Do the option 3 clean-up in every case.
-- **Status:** Open
-
-## Entry template
-
-Copy this block for each new decision. Number entries `D-001`, `D-002`, and so on, and never reuse a number.
-
-```markdown
-### D-NNN: Short title
-- **Raised:** YYYY-MM-DD, during <workflow, iteration or document>
-- **Area:** requirements | architecture | security | UX | ML | process
-- **Ambiguity:** What is unclear or undecided.
-- **Why it matters:** What depends on it, and what a wrong guess would cost.
-- **Options:**
-  1. Option A. Trade-offs.
-  2. Option B. Trade-offs.
-- **Recommendation:** Which option, and why.
-- **Blocked work:** What has been paused until this is decided.
-- **Status:** Open
-```
-
-## Resolved decisions
-
-Move an entry here when the user decides. Change its status to Resolved, and add the decision, the date, and the document updated to reflect it.
+- **Status:** Resolved
+- **Decision (2026-11-28, owner):** **F2, ATS adapters only.** Discovery uses the official public job-board endpoints of Greenhouse, Lever, Workable and Recruitee over a curated list of South African employers' boards, behind the NFR-010 provider interface. The owner asked which option gives the most reliable results. F2 does, per result and per request: postings come from the employer's own hiring system, there is no key, account or IP registration that can be suspended, and the endpoints are published for this use. Its known weakness is coverage, which depends on the employer list (see D-013).
+  - Google Search via Selenium is withdrawn as a discovery source.
+  - The option 3 clean-up applies: remove `--disable-blink-features=AutomationControlled`, the hard-coded user agent and `--no-sandbox`, and check robots.txt before fetching any posting page.
+  - SmartRecruiters is excluded until its authentication is confirmed. Careerjet (F1) is not adopted; it may be raised again for Milestone 4, when a fixed IP exists, as a new decision.
+- **Recorded in:** this entry; `docs/adr/0005-ats-job-board-discovery.md` (supersedes ADR-0004 for the discovery source); `docs/requirements/srs.md` (FR-012, NFR-010, AC-004); `docs/requirements/product-backlog.md` (US-008 note, new US-025); `docs/requirements/traceability-matrix.md`; `docs/design/software-architecture.md` §4.1. To be implemented in US-025.
 
 ### D-006: ML-003 (application tailor) training data and notebook rewrite
 - **Raised:** 2026-11-26, during the notebook review requested by the user

@@ -12,7 +12,7 @@
 | Current milestone | Milestone 2 (Additional Functionality) |
 | Current phase | Milestone 2, Iteration 6 (US-017 done; US-014 blocked on D-005) |
 | Current iteration | Milestone 2, Iteration 6 |
-| Current branch | refactor/claude-skills-migration |
+| Current branch | docs/record-pr-50-merge |
 | Open PR | see "Awaiting merge or approval" |
 | Latest release | None |
 
@@ -22,7 +22,6 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR #50 (migration of skills and workflows to `.claude/skills/`; moves the merge-policy file and edits an AGENTS.md §2 path, so it needs user review). Unblocks: nothing else depends on it.
 - Decide D-002 (discovery source): the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01. Free-only sources researched (see D-002): recommended ATS adapters (Greenhouse, Lever, Workable, Recruitee) now, plus Careerjet once a fixed IP is available.
 
 ## Next step
@@ -98,6 +97,7 @@ See `docs/DECISIONS_PENDING.md`. Count of open items: 1
 
 | Date | Summary | Branch / PR |
 |---|---|---|
+| 2026-11-28 | PR #50 (Claude Code migration) merged by the user (`58cf3a5`); verified with `gh pr view`. Skills now load from `.claude/skills/`; the merge policy is `.claude/skills/open-pr/SKILL.md` §3. | docs/record-pr-50-merge |
 | 2026-11-28 | Antigravity retired: moved all 10 workflows and 7 skills from `.agents/` to `.claude/skills/<name>/SKILL.md` (`git mv`), rewrote every description to say concretely when to use it, repointed the merge policy to `.claude/skills/open-pr/SKILL.md` §3 (AGENTS.md, `pull-request` skill, project plan) and deleted `.agents/`. Added `CLAUDE.md` (imports `AGENTS.md`) and ignored `.claude/settings.local.json`. Claude Code lists all 17 skills. Lint, tests and CI scripts pass locally. Opened PR #50 (user review). | refactor/claude-skills-migration / PR #50 |
 | 2026-11-27 | D-002: researched free discovery sources from the providers' own pages (Tavily, Brave, Adzuna, Greenhouse, Lever, Ashby, Jooble, Serper, DuckDuckGo and SearXNG); options and recommendation revised. D-006 option 1 reconfirmed by the owner (pivot to a text generator only if needed). | docs/d002-free-provider-research |
 | 2026-11-27 | Owner decisions recorded: D-003 option 2 (`python-docx` + `fpdf2`), D-005 option 1 (extractive research), D-006 option 1. For D-006, the owner preferred option 2 on their Claude subscription only if allowed; the Consumer Terms forbid using the Services to train models and forbid scripted access without an API key. D-002 stays open: the chosen Google Programmable Search JSON API is closed to new customers and ends on 2027-01-01; options revised. | docs/record-d002-d006-decisions |

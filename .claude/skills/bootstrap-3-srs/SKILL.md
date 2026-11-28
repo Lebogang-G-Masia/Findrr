@@ -1,6 +1,6 @@
 ---
 name: bootstrap-3-srs
-description: Use after bootstrap-2 is approved to write the initial SRS and prioritised product backlog, then stop for user approval.
+description: "Use only for Findrr bootstrap gate 3, when docs/STATUS.md shows gate 2 Approved and gate 3 not yet Approved: write the initial SRS and prioritised product backlog from docs/spec/, surface every ambiguity in docs/DECISIONS_PENDING.md, then stop for user approval."
 ---
 
 # Initial Requirements Specification & Analysis

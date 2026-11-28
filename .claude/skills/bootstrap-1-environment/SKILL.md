@@ -1,6 +1,6 @@
 ---
 name: bootstrap-1-environment
-description: Use at the very start of the project to create the private repository, branch protection, documentation skeleton, tooling and environment, then stop for user approval.
+description: "Use only for Findrr bootstrap gate 1 (GitHub repository, branch protection, CI checks, documentation skeleton, local environment), or when re-verifying those settings. Check the gate tracker in docs/STATUS.md first; once gate 1 is Approved, do not re-run it during normal iterations. Ends by stopping for user approval."
 ---
 
 # GitHub Repository & Project Initialization

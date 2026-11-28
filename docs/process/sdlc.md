@@ -1,6 +1,6 @@
 # Software Development Life Cycle (SDLC)
 
-Generic reference for the six recurring phases. Workflows (`/bootstrap-*`, `/start-iteration`) point here for what each phase means. Phase 5 is summarised here and detailed in the `testing-and-qa` skill, and Phase 6 in `docs/process/release-deployment.md`.
+Generic reference for the six recurring phases. The process skills (`/bootstrap-*`, `/start-iteration`) point here for what each phase means. Phase 5 is summarised here and detailed in the `testing-and-qa` skill, and Phase 6 in `docs/process/release-deployment.md`.
 
 The development process consists of six recurring phases:
 

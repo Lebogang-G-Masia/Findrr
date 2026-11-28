@@ -1,6 +1,6 @@
 ---
 name: srs-and-traceability
-description: Use when writing or changing the SRS, requirement IDs, backlog items, or the traceability matrix.
+description: "Use when writing or changing docs/requirements/ (the SRS or product backlog), assigning FR/NFR/BR/ML/AC requirement IDs, writing user stories and acceptance criteria, or updating the traceability matrix that links requirements to design, code, tests, models and releases."
 ---
 
 # Requirements Analysis & Traceability

@@ -1,6 +1,6 @@
 ---
 name: model-inference
-description: Use when writing or changing model loading, the model registry, the inference service, or artifact integrity checks.
+description: "Use when writing or changing code under src/findrr/ml/ or anything else that loads models, reads the model registry or manifests, verifies artifact SHA-256 integrity, runs inference, or adds MOCK runners and test fixtures for models (Module 9). Also use when integrating artifacts the user has supplied from Kaggle."
 ---
 
 # Model Management and Inference (Findrr Server)

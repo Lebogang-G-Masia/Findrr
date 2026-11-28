@@ -1,6 +1,6 @@
 ---
 name: bootstrap-5-design
-description: Use after bootstrap-4 is approved to design the initial architecture and obtain final approval to begin implementation.
+description: "Use only for Findrr bootstrap gate 5, when docs/STATUS.md shows gate 4 Approved and gate 5 not yet Approved: design the initial software architecture, present the full review package, and obtain the final approval to begin implementation."
 ---
 
 # Initial System Design & Approval Governance

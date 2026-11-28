@@ -12,7 +12,7 @@ You are the senior software engineer, technical architect and ML engineer for **
 
 **Git and GitHub**
 - Work only on a branch (`feature/`, `fix/`, `docs/`, `refactor/`). Never commit to `main`.
-- Every change goes through a PR. **You may merge your own PRs** (the user authorised this on 2026-11-26), but only as the merge policy in `.agents/workflows/open-pr.md` §3 allows. The policy requires:
+- Every change goes through a PR. **You may merge your own PRs** (the user authorised this on 2026-11-26), but only as the merge policy in `.claude/skills/open-pr/SKILL.md` §3 allows. The policy requires:
   - all required checks passing on the PR's latest commit,
   - the `open-pr` review completed,
   - the PR not falling into a user-review category.
@@ -63,9 +63,10 @@ Label information as: confirmed, approved, proposed, assumption, or unresolved. 
 
 - **Method:** iterative and incremental. Milestones: 1 CLI core; 2 additional CLI functionality; 3 desktop web and mobile UI with mock APIs; 4 server integration and performance; 5 refinement. Milestones 1-3 run entirely on the user's laptop. Never assume server specs, endpoints or auth for Milestone 4. The current milestone is in `docs/STATUS.md`. Details: `docs/process/roadmap.md`.
 - **Versioning:** SemVer `vMAJOR.MINOR.PATCH`. Milestones are not releases. Every release has release notes.
+- **Process skills** are in `.claude/skills/` (one folder each, with a `SKILL.md`).
 - **Bootstrap:** run `/bootstrap-1-environment` through `/bootstrap-5-design` in order. Each ends with an approval gate. No substantial implementation until scope, requirements and architecture are approved.
 - **Each iteration:** `/start-iteration`, implement, `/open-pr` (this includes merging when the policy allows; otherwise wait for the user), `/close-iteration`.
-- **Autonomous mode:** when the user asks you to run autonomously, follow `/autonomous-run`. It chains the iteration workflows and queues every gated item for the user. It never relaxes the hard rules in Section 2.
+- **Autonomous mode:** when the user asks you to run autonomously, follow `/autonomous-run`. It chains the iteration skills and queues every gated item for the user. It never relaxes the hard rules in Section 2.
 - **Done means verified,** not generated. See `docs/process/definition-of-done.md`. Never claim tests, integrations, deployments or configuration are complete without verifying them.
 
 ## 6. Where things live
@@ -86,7 +87,7 @@ Label information as: confirmed, approved, proposed, assumption, or unresolved. 
 | Where each project document lives (SRS, backlog, architecture, model specs, test plan, ADRs, releases) | `docs/process/documentation-map.md` (use these paths; do not invent others) |
 | Current state and open decisions | `docs/STATUS.md`, `docs/DECISIONS_PENDING.md` |
 
-Workflows are in `.agents/workflows/`. Use the skill or doc before working in its area.
+Skills, including the process skills (bootstrap, iteration, PR and autonomous run), live in `.claude/skills/<name>/SKILL.md`. Claude loads them from their descriptions or when you type `/<name>`. Use the skill or doc before working in its area.
 
 ## 7. Principles
 

@@ -1,6 +1,6 @@
 ---
 name: bootstrap-4-ml-plan
-description: Use after bootstrap-3 is approved to write the ML architecture document and model specifications, then stop for user approval.
+description: "Use only for Findrr bootstrap gate 4, when docs/STATUS.md shows gate 3 Approved and gate 4 not yet Approved: write the ML Architecture Document and a 13-point Model Specification for every model, then stop for user approval. No training notebook is written in this step."
 ---
 
 # Machine Learning Development Plan & Model Specifications

@@ -1,6 +1,6 @@
 ---
 name: testing-and-qa
-description: Use when writing tests, running verification, or reporting test results.
+description: "Use when writing or changing anything in tests/, running the test suite or lint for verification, reporting test results in a PR or STATUS.md, logging a defect, or testing ML integration, where real-artifact and MOCK results must be reported separately."
 ---
 
 # Testing and Quality Assurance (Findrr)

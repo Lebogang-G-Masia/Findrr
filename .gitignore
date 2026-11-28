@@ -93,3 +93,6 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# Claude Code (personal settings; .claude/skills/ and .claude/settings.json are committed)
+.claude/settings.local.json

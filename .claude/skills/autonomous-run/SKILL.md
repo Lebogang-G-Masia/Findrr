@@ -1,11 +1,11 @@
 ---
 name: autonomous-run
-description: Use when the user asks you to drive development forward autonomously. Loops through backlog items using start-iteration, open-pr and close-iteration, does every piece of work that needs no approval, queues the gated items for the user, and stops only when nothing unblocked is left.
+description: "Use when the user asks you to run autonomously, drive Findrr development forward without supervision, or says \"continue\" to resume a paused autonomous run. Loops start-iteration, implementation, open-pr and close-iteration over eligible backlog items, does all work that needs no approval, queues every gated item in docs/STATUS.md, and stops only when nothing unblocked is left."
 ---
 
 # Autonomous Development Run
 
-Drive Findrr toward completion with as little user involvement as possible, **without breaking any hard rule in `AGENTS.md`**. This workflow only orchestrates. It calls the existing workflows (`start-iteration`, `open-pr`, `close-iteration`, `new-ml-model`) and skills, and it does not replace them.
+Drive Findrr toward completion with as little user involvement as possible, **without breaking any hard rule in `AGENTS.md`**. This skill only orchestrates. It calls the other skills (`start-iteration`, `open-pr`, `close-iteration`, `new-ml-model` and the area skills), and it does not replace them.
 
 Authorised by the user in chat on 2026-11-26 ("run autonomously to finish the development of this project"). The authorisation covers:
 - Starting the next iteration without waiting for `/start-iteration`. This overrides the final "Stop" step of `close-iteration`.
@@ -62,7 +62,7 @@ Work that serves a gated item can still be eligible. For example, you can write 
 If the item needs approval first, do the preparatory work and queue the approval. Then pick the next eligible item.
 
 ### Step C: Deliver the item
-1. Run `start-iteration`. Branch from up-to-date `main`, never from another unmerged branch. If Steps 2-3 of that workflow reveal a material question, record it in `DECISIONS_PENDING.md`, queue it, and return to Step B.
+1. Run `start-iteration`. Branch from up-to-date `main`, never from another unmerged branch. If Steps 2-3 of that skill reveal a material question, record it in `DECISIONS_PENDING.md`, queue it, and return to Step B.
 2. Implement it with the relevant skill (`selenium-search`, `model-inference`, `testing-and-qa`, `srs-and-traceability` and so on).
 3. Verify it under `docs/process/definition-of-done.md`: run the full test suite, lint and the CI scripts locally. Label any mocked inference `MOCK`.
 4. Run `open-pr`. It waits for CI, then either self-merges and closes the iteration (Step D) or records "Awaiting merge: PR #N" for the user. **Do not end the run.** Go back to Step A.
@@ -75,7 +75,7 @@ Run `close-iteration` after confirming the merge from the PR state. Skip its fin
 ## 3. Waiting
 
 When nothing is eligible and only merges are pending:
-- If the harness supports scheduled wake-ups (`/loop`, `ScheduleWakeup`, cron), re-run Step A at a modest interval. Every 20-30 minutes is reasonable; don't poll every minute.
+- If the session can schedule wake-ups (Claude Code's `/loop` with `ScheduleWakeup`, or `CronCreate`), re-run Step A at a modest interval. Every 20-30 minutes is reasonable; don't poll every minute.
 - Otherwise, write the user-action queue (Section 5), report, and end the turn. The run resumes when the user says `continue` or invokes `/autonomous-run`.
 
 ---

@@ -162,7 +162,7 @@ To ensure legal compliance, data integrity, and operational safety:
 
 - **Project Owner & Sole Developer:** Lebogang Masia
   - Direction, requirements approval, pull request merges, Kaggle notebook manual execution, artifact provisioning.
-- **AI Pair Engineer & Architect:** Antigravity (DeepMind Advanced Agentic Assistant)
+- **AI Pair Engineer & Architect:** Claude Code (Anthropic); Antigravity until 2026-11-28
   - Formal SDLC execution, architecture specification, test-driven implementation on branches, PR preparation, Kaggle notebook authoring.
 
 ### 5.2 Technology Stack
@@ -192,7 +192,7 @@ To ensure legal compliance, data integrity, and operational safety:
 ## 7. Project Governance & Definition of Done
 
 Findrr strictly adheres to:
-1. **Branch Protection & Review:** Work occurs exclusively on feature/fix/docs branches; `main` is branch-protected (PR plus four green CI checks, admins included). The agent may merge routine PRs under the merge policy in `.agents/workflows/open-pr.md` §3, approved by the user on 2026-11-26. User-review PRs are merged only by the user.
+1. **Branch Protection & Review:** Work occurs exclusively on feature/fix/docs branches; `main` is branch-protected (PR plus four green CI checks, admins included). The agent may merge routine PRs under the merge policy in `.claude/skills/open-pr/SKILL.md` §3, approved by the user on 2026-11-26. User-review PRs are merged only by the user.
 2. **Synchronized Documentation:** No PR is approved without corresponding updates to requirements, architecture, or test docs.
 3. **Verified ML Status:** Explicit differentiation in PRs between `MOCK` fixtures and `Verified with Real Artifacts`.
 4. **Approval Gates:** Progression between roadmap milestones and bootstrap phases requires explicit user sign-off.

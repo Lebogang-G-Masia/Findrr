@@ -1,6 +1,6 @@
 ---
 name: ui-design-penpot
-description: Use when designing or implementing any user interface.
+description: "Use before designing, changing or implementing any Findrr user interface (Milestone 3 onward: dashboard, profile, opportunities, application screens). Designs are made with the Penpot MCP and need the user's explicit approval before any UI code is written."
 ---
 
 # UI/UX Design & Penpot Workflow

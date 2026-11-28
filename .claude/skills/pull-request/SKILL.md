@@ -1,6 +1,6 @@
 ---
 name: pull-request
-description: Use when finishing a task, preparing a PR, or checking the definition of done.
+description: "Use when finishing a task or preparing a PR description: definition-of-done checklist, documentation maintenance audit (which docs to update for each kind of code change), artifact and secret audit, and the required PR template. Pair it with open-pr, which runs the review, CI and merge steps."
 ---
 
 # Pull Request & Documentation Maintenance (Findrr)
@@ -11,7 +11,7 @@ Every Pull Request (PR) must deliver a complete, verified increment where code, 
 
 1. **Documentation Sync**: Never open or approve a PR that modifies system behavior without updating the corresponding documentation in the same branch.
 2. **No Untested PRs**: Code generation alone does not qualify for a PR. Include test execution results and explicitly distinguish between real and mocked ML inference.
-3. **Branches Only, Merge by Policy**: Work only on a `feature/`, `fix/`, `docs/` or `refactor/` branch. Never commit to `main`. Merge your own PR only as the merge policy in `.agents/workflows/open-pr.md` §3 allows: green required checks, review done, and not a user-review category. Otherwise record `Awaiting merge: PR #N` in `docs/STATUS.md`, start no work that depends on it, and wait for the user. If the user requests changes, address them on the same branch.
+3. **Branches Only, Merge by Policy**: Work only on a `feature/`, `fix/`, `docs/` or `refactor/` branch. Never commit to `main`. Merge your own PR only as the merge policy in `.claude/skills/open-pr/SKILL.md` §3 allows: green required checks, review done, and not a user-review category. Otherwise record `Awaiting merge: PR #N` in `docs/STATUS.md`, start no work that depends on it, and wait for the user. If the user requests changes, address them on the same branch.
 4. **Git Hygiene & Security**: Verify that no binary model weights (`.pt`, `.pth`, `.bin`, `.safetensors`, `.onnx`), large datasets, local environment paths, or secrets/credentials are staged in the diff.
 
 ## Definition of Done

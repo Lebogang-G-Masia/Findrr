@@ -1,6 +1,6 @@
 ---
 name: kaggle-notebook
-description: Use whenever creating, editing, or reviewing a Kaggle training or fine-tuning notebook, or defining model artifacts and the manifest that the notebook must export.
+description: "Use when creating, editing or reviewing anything in notebooks/ (Kaggle training or fine-tuning notebooks), or when defining the artifacts and manifest a notebook must export. Covers Kaggle paths, reproducibility, leakage-free splits, evaluation against docs/ml/evaluation-policy.md, and notebook/inference compatibility. You write notebooks; only the user runs them."
 ---
 
 # Kaggle Model Training & Evaluation

@@ -1,6 +1,6 @@
 ---
 name: bootstrap-2-plan
-description: Use after bootstrap-1 is approved to produce the initial project plan, roadmap and feasibility analysis, then stop for user approval.
+description: "Use only for Findrr bootstrap gate 2, when docs/STATUS.md shows gate 1 Approved and gate 2 not yet Approved: produce the initial project plan, roadmap and feasibility analysis (including ML feasibility), then stop for user approval."
 ---
 
 # Initial Project Plan & Roadmap

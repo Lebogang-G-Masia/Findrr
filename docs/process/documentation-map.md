@@ -1,6 +1,6 @@
 # Documentation Map
 
-Maintain the following documents where applicable. The `bootstrap-1-environment` workflow creates the initial skeleton from this table.
+Maintain the following documents where applicable. The `bootstrap-1-environment` skill creates the initial skeleton from this table.
 
 | Document | Path | Purpose |
 |---|---|---|

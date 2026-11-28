@@ -1,6 +1,6 @@
 ---
 name: new-ml-model
-description: Use whenever the application needs a new or changed ML model, to run the lifecycle from model specification through Kaggle training to verified server inference.
+description: "Use when a feature needs a new ML model or a change to an existing one (new or amended model spec, retraining, a new artifact version or export format). Runs the 14-step lifecycle from model specification, through a Kaggle notebook the user runs, to integrity-verified inference on the app server. Use kaggle-notebook for notebook details and model-inference for loading and inference code."
 ---
 
 # Kaggle-to-Server Model Workflow & Iterative Development

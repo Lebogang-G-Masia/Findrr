@@ -2,7 +2,7 @@
 
 - **Status:** Proposed / Accepted / Deprecated / Superseded
 - **Date:** YYYY-MM-DD
-- **Deciders:** Lebogang Masia, Antigravity Agent
+- **Deciders:** Lebogang Masia, Claude Code
 
 ## Context and Problem Statement
 

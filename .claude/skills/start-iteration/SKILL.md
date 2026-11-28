@@ -1,6 +1,6 @@
 ---
 name: start-iteration
-description: Use at the start of each iteration to plan scope, analyse requirements and design the increment, and to create the working branch before implementing.
+description: "Use when beginning a new Findrr iteration or backlog item, or when the user says \"next iteration\": checks the bootstrap gates and open decisions, branches from up-to-date main, plans scope, analyses requirements and designs the increment before any code is written."
 ---
 
 # Iteration Planning, Requirements Analysis & System Design

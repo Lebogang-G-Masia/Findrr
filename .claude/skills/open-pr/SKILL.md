@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Use when an increment is implemented and tested, to review it, open the pull request, and either merge it under the merge policy or hand it to the user.
+description: "Use when work on a feature/, fix/, docs/ or refactor/ branch is implemented and tested and ready to go up: self-review, push, open the PR from the template, wait for CI, then either self-merge or record \"Awaiting merge\" for the user. Section 3 is the authoritative Findrr merge policy; read it before merging any PR or deciding whether a PR needs user review."
 ---
 
 # Review & Pull Request Workflow

@@ -1,6 +1,6 @@
 ---
 name: selenium-search
-description: Use when writing or changing search, scraping, or browser-automation code.
+description: "Use when writing or changing code under src/findrr/search/, or any job discovery, search provider, scraping, posting extraction, availability classification, deduplication or Selenium browser-automation code (Module 4). Covers headful-by-default Selenium, search result limits, untrusted scraped content and site-terms compliance."
 ---
 
 # Selenium Browser Automation & Job Discovery (Findrr Module 4)

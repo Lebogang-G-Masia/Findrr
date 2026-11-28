@@ -1,6 +1,6 @@
 ---
 name: close-iteration
-description: Use after the user has merged the pull request, to close the iteration: backlog, docs, versioning, STATUS.md and next priorities.
+description: "Use after an iteration's PR is confirmed merged into main (gh pr view shows state MERGED), whether you merged it under the open-pr merge policy or the user did. Reconciles the product backlog, syncs documentation, handles versioning and release notes, and updates docs/STATUS.md and docs/DECISIONS_PENDING.md."
 ---
 
 # Iteration Closure & Retrospective

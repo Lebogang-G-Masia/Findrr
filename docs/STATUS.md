@@ -22,7 +22,7 @@ The autonomous run is paused: every remaining item is gated on the user (see bel
 
 ## Awaiting merge or approval
 
-- Awaiting merge: PR for branch `docs/d002-decision-f2` (D-002 decision F2, ADR 0005, FR-012/AC-004 amendment). User review: it changes an approved requirement and scraping-compliance controls.
+- Awaiting merge: PR #52 (D-002 decision F2, ADR 0005, FR-012/AC-004 amendment). User review: it changes an approved requirement and scraping-compliance controls.
 - Decide D-013 (where F2's employer-board list comes from). Recommended: an agent-researched seed list you approve, plus your own additions.
 
 ## Next step
